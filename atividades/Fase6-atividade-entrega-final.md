@@ -53,3 +53,25 @@ Fique atento à chamada para bancas classificatórias.
 Em caso de dúvidas, faça contato com seu tutor que também é o responsável pela chamada.
 
 Participe das lives do Startup One, pois elas são importantes para esclarecer dúvidas e embasar a construção do seu pitch.
+
+## Roteiro
+
+- [x] Abertura – contextualização.
+
+- [x] Dor – catástrofe da história, o problema que quer resolver.
+
+- [ ] Mercado – tamanho da dor.
+
+- [x] Solução – como resolver o problema.
+
+- [ ] Protótipo, MVP – protótipos da solução.
+
+- [ ] Validações – evidências da viabilidade do negócio.
+
+- [ ] Financeiro – demonstrar a escala financeira.
+
+- [ ] Roadmap – roadmap de produto e novas oportunidades de negócio.
+
+- [ ] Equipe – formação e responsabilidades de cada membro.
+
+- [ ] Fechamento – encerramento e contatos.
