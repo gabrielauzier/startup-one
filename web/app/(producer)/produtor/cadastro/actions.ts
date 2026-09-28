@@ -1,7 +1,12 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getDraftData } from "@/lib/business/draft";
+import { validateRequiredFields } from "@/lib/business/required-fields";
+import { buildBusinessSlug } from "@/lib/business/slug";
+import { assertTransition, InvalidBusinessTransitionError } from "@/lib/business/state-machine";
 
 export interface SaveDraftPartResult {
   ok: boolean;
@@ -52,4 +57,116 @@ export async function saveDraftPart(
   }
 
   return { ok: true };
+}
+
+export interface SubmitBusinessState {
+  error?: string;
+  missing?: string[];
+}
+
+/**
+ * RF-12/RF-13/RN-14: agrega o rascunho (historico de business_revisions,
+ * ultima revisao por parte - ver lib/business/draft.ts) nas colunas de
+ * `businesses` e transiciona rascunho -> em_analise via assertTransition
+ * (RN-12). Falha sem gravar nada se algum obrigatorio estiver vazio
+ * (RN-06). Tambem aceita reenvio a partir de `ajuste_solicitado`
+ * (RN-14): o produtor reabre o cadastro, corrige o que foi pedido, e
+ * este mesmo Server Action reenvia para analise.
+ */
+export async function submitBusiness(
+  businessId: string,
+  _prevState: SubmitBusinessState,
+  _formData: FormData
+): Promise<SubmitBusinessState> {
+  void _prevState;
+  void _formData;
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Sessão expirada. Entre novamente." };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: business } = await admin
+    .from("businesses")
+    .select("id, owner_id, status")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (!business || business.owner_id !== user.id) {
+    return { error: "Cadastro não encontrado." };
+  }
+
+  const draft = await getDraftData(admin, businessId);
+
+  const { data: evidenceRows } = await admin
+    .from("evidences")
+    .select("grupo")
+    .eq("business_id", businessId);
+
+  const evidenceCounts = {
+    onde_produz: (evidenceRows ?? []).filter((e) => e.grupo === "onde_produz").length,
+    produto: (evidenceRows ?? []).filter((e) => e.grupo === "produto").length,
+  };
+
+  const validation = validateRequiredFields(draft, evidenceCounts);
+  if (!validation.ok) {
+    return {
+      error: "Complete os campos obrigatórios antes de enviar.",
+      missing: validation.missing,
+    };
+  }
+
+  try {
+    assertTransition(business.status, "em_analise");
+  } catch (err) {
+    if (err instanceof InvalidBusinessTransitionError) {
+      return { error: err.message };
+    }
+    throw err;
+  }
+
+  const nomeNegocio = String(draft.part2.nome ?? "");
+  const slug = buildBusinessSlug(nomeNegocio, businessId);
+
+  const { error } = await admin
+    .from("businesses")
+    .update({
+      cnpj: draft.part1.cnpj,
+      nome: nomeNegocio,
+      slug,
+      tipo_org: draft.part2.tipoOrg,
+      cidade_ibge: draft.part2.cidade,
+      uf: draft.part2.uf,
+      familias: draft.part2.familias,
+      anos_atividade: draft.part2.anosAtividade,
+      recebe_visitas: draft.part2.recebeVisitas ?? false,
+      produtos: draft.part3.produtos,
+      producao_mensal_kg: draft.part3.producaoMensalKg,
+      praticas: draft.part3.praticas,
+      impactos: draft.part3.impactos ?? [],
+      finalidade: draft.part5.finalidade,
+      valor_busca: draft.part5.valorBusca,
+      prazo_meses: draft.part5.prazoMeses,
+      retorno_proposto: draft.part5.retornoProposto,
+      status: "em_analise",
+    })
+    .eq("id", businessId);
+
+  if (error) {
+    return { error: "Não foi possível enviar o cadastro. Tente de novo." };
+  }
+
+  await admin.from("business_revisions").insert({
+    business_id: businessId,
+    dados: { part: "submit", submittedAt: new Date().toISOString() },
+    status: "em_analise",
+  });
+
+  redirect("/produtor/cadastro/enviado");
 }

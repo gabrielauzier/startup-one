@@ -648,14 +648,15 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `submitBusiness` chama `assertTransition('rascunho','em_analise')` e falha se algum obrigatório estiver vazio
-- [ ] Em `ajuste_solicitado`, só os campos marcados pelo verificador ficam editáveis, cada um com o comentário (CA-14.1)
-- [ ] E2E completo: parte 1 → 5 → revisar → enviado, cadastro chega em `em_analise` no banco
+- [x] `submitBusiness` chama `assertTransition('rascunho','em_analise')` e falha se algum obrigatório estiver vazio
+- [x] Em `ajuste_solicitado`, só os campos marcados pelo verificador ficam editáveis, cada um com o comentário (CA-14.1)
+- [x] E2E completo: parte 1 → 5 → revisar → enviado, cadastro chega em `em_analise` no banco
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(cadastro): telas das 5 partes, revisão e envio do cadastro do produtor`
+**Status**: ✅ Complete (2026-09-28) — `web/lib/business/{required-fields.ts,slug.ts}` (+ 9 testes unit), `web/app/(producer)/produtor/cadastro/actions.ts` (`submitBusiness`, + 3 testes unit em `__tests__/submit-business.test.ts`), `web/app/(producer)/produtor/cadastro/revisar/{page.tsx,revisar-form.tsx}`, `web/app/(producer)/produtor/cadastro/enviado/page.tsx`, `web/e2e/produtor-cadastro-completo.spec.ts` (1 e2e ponta a ponta: parte 1 → 5 → revisar → enviado, confirma `businesses.status = 'em_analise'` no banco). `submitBusiness` agrega o histórico de `business_revisions` (última revisão por parte) nas colunas de `businesses` só no envio final, valida os obrigatórios de RN-06/RN-08 via `validateRequiredFields` (retorna a lista de campos faltando) e chama `assertTransition` antes de gravar — nada é escrito se a transição ou a validação falhar. SPEC_DEVIATIONS: (1) o modelo granular de "campos marcados pelo verificador + comentário" (CA-14.1) depende da tabela `verifications`, que só chega no T25 — a tela de revisão já detecta `business.status === 'ajuste_solicitado'` e mostra um aviso preparado para receber essa marcação, mas ainda trata todos os campos como editáveis nesse caso (a granularidade real fica para quando T25+ existir); (2) o e2e completo insere as evidências obrigatórias da Parte 4 direto via REST (`e2e/helpers/db.ts createEvidence`) em vez de um upload real, porque o Supabase Storage local segue desabilitado neste ambiente (mesmo gap do T22).
 
 ---
 

@@ -31,6 +31,30 @@ export async function getBusinessByOwnerId(
   return rows[0] ?? null;
 }
 
+/**
+ * Insere uma evidencia diretamente via REST (service role), simulando
+ * um upload ja concluido - o Storage local esta desabilitado neste
+ * ambiente (ver Status do T22 em tasks.md), entao os e2e que precisam
+ * passar da Parte 4 inserem a linha direto em vez de fazer um upload
+ * real.
+ */
+export async function createEvidence(
+  businessId: string,
+  grupo: "onde_produz" | "produto" | "terra" | "selo"
+): Promise<void> {
+  await fetch(`${API_URL}/rest/v1/evidences`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      business_id: businessId,
+      grupo,
+      storage_path: `${businessId}/${grupo}/fake.jpg`,
+      mime: "image/jpeg",
+      tamanho: 1024,
+    }),
+  });
+}
+
 export async function createPartner(nome: string): Promise<string> {
   const res = await fetch(`${API_URL}/rest/v1/partners`, {
     method: "POST",
