@@ -127,11 +127,14 @@ export async function createProfileWithAuth(
   return user.id;
 }
 
-export async function createPartner(nome: string): Promise<string> {
+export async function createPartner(
+  nome: string,
+  overrides: Record<string, unknown> = {}
+): Promise<string> {
   const res = await fetch(`${API_URL}/rest/v1/partners`, {
     method: "POST",
     headers: { ...headers(), Prefer: "return=representation" },
-    body: JSON.stringify({ nome, tipo: "indicador", ativo: true }),
+    body: JSON.stringify({ nome, tipo: "indicador", ativo: true, ...overrides }),
   });
   const rows = (await res.json()) as { id: string }[];
   return rows[0].id;

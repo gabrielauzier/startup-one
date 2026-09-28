@@ -1245,13 +1245,15 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Interesse Pendente não pode ser apresentado ao parceiro (CA-40.1)
-- [ ] Apresentar um interesse Aceito muda a etapa para "Apresentamos as partes" e dispara o e-mail ao `partners.email_contato` (CA-40.2)
+- [x] Interesse Pendente não pode ser apresentado ao parceiro (CA-40.1)
+- [x] Apresentar um interesse Aceito muda a etapa para "Apresentamos as partes" e dispara o e-mail ao `partners.email_contato` (CA-40.2)
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(interesse): formulário, aceite da produtora e apresentação ao parceiro`
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(verifier)/verificacao/conexoes/page.tsx` (lista `status='aceito'` globalmente — verificador vê tudo, RLS `interests_select_verificador` de T45 — com etapa atual e histórico de `connection_events`), `web/app/(verifier)/verificacao/conexoes/actions.ts` (`presentToPartner`: só avança a partir de etapa `aceita`, CA-40.1 — como a lista já só mostra `status='aceito'`, um interesse Pendente nunca aparece nem tem o botão; `addObservation` para observação livre sem mudar etapa). **SPEC_DEVIATION**: `lib/notifications/queue.ts` citado como Reuse no texto da task só existe a partir do T53 (Fase 11, fora deste lote) — criado `web/lib/notifications/send-email.ts` como interface estável (hoje só loga a intenção de envio e devolve sucesso síncrono) que o T53 substitui por um provedor real sem mudar quem chama; o rastro "E-mail enviado a X" fica gravado em `connection_events.observacao` mesmo sem envio real. `web/e2e/verificacao-conexoes.spec.ts` (2 testes: CA-40.1, CA-40.2). `web/e2e/helpers/db.ts` ganhou `createConnectionEvent`, `createInterest`, `getInterest`, e `createPartner` passou a aceitar overrides (precisava de `email_contato`, que o helper original não gravava). Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` (2/2 novos; suite completa roda no fechamento do lote).
 
 ---
 
