@@ -154,10 +154,11 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Classes utilitárias `bg-primary`, `text-primary`, `font-heading`, `font-body` disponíveis e usadas em `app/page.tsx` como smoke test
+- [x] Classes utilitárias `bg-primary`, `text-primary`, `font-heading`, `font-body` disponíveis e usadas em `app/page.tsx` como smoke test
 
 **Tests**: none
 **Gate**: build
+**Status**: ✅ Complete (2026-09-27) — `web/app/globals.css` (tokens via `@theme`, Tailwind v4 é CSS-first — não gera `tailwind.config.ts`), `web/app/layout.tsx` (fontes Newsreader/Hanken Grotesk, `lang="pt-BR"` por RNF-11), `web/app/page.tsx` (smoke test). SPEC_DEVIATION: task previa `tailwind.config.ts`; o scaffold do T1 usa Tailwind v4, cujo mecanismo idiomático de tokens é o bloco `@theme` em CSS, não um arquivo de config JS — mantido para seguir a convenção já estabelecida no T1, sem reintroduzir um `tailwind.config.ts` legado.
 
 ---
 
