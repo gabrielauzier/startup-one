@@ -69,10 +69,11 @@
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)
-- **Phase / Task**: Fases 1 e 2 **completas e commitadas** — T1 a T12 ✅. Próxima: Fase 3 (Cadastro do produtor — dados e rascunho offline, T13–T17).
-- **Completed**: T1–T6 (Fase 1) e T7–T12 (Fase 2). Últimos commits: `019de9d` (T11), `5e26488` (T12), branch `feature/website-mvp` (a app criou essa branch de sessão automaticamente; `main` local parou em `3f8a76f`/T4).
-- **In-progress**: nenhuma — próxima task a iniciar é T13 (migração `businesses`, `business_revisions`, `evidences`, `certifications`, `partners`).
-- **Next step**: Executar a Fase 3 (T13–T17): schema de negócios, máquina de estados (`lib/business/state-machine.ts`), rascunho offline (IndexedDB) e o service worker escopado ao cadastro.
-- **Blockers**: nenhum. `supabase start`/`db reset`/`test db`/e2e funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (reabilitar antes do T22). `web/.env.local` (gitignored) precisa existir com as credenciais do Supabase local para os e2e rodarem — valores documentados em `.env.local.example` e obtidos via `supabase status -o env`. Questões jurídicas/parceiro seguem como Assumptions em `spec.md`, sem bloquear o código.
+- **Phase / Task**: Fases 1, 2 e 3 **completas e commitadas** — T1 a T17 ✅. Próxima: Fase 4 (Cadastro do produtor — telas, M2 parte 2/2, T18–T24).
+- **Completed**: T1–T6 (Fase 1), T7–T12 (Fase 2), T13–T17 (Fase 3). Último commit: `36f843d` (T17), branch `feature/website-mvp`.
+- **In-progress**: nenhuma — próxima task a iniciar é T18 (Tela Boas-vindas `/produtor`, PRO-01).
+- **Next step**: Executar a Fase 4 (T18–T24): as 5 partes do formulário de cadastro (RF-06 a RF-10), revisão e envio. T18 substitui o placeholder de `/produtor/cadastro/1` criado no T16 pelo formulário real da Parte 1 (esse é T19).
+- **Blockers**: nenhum. `supabase start`/`db reset`/`test db`/e2e funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (reabilitar antes do T22, upload de fotos). `web/.env.local` (gitignored) precisa existir com as credenciais do Supabase local — valores em `.env.local.example`, obtidos via `supabase status -o env`. `CRON_SECRET` também precisa estar em `.env.local` para testar a rota `/api/cron/expire-drafts` manualmente (os testes unitários não dependem disso). Questões jurídicas/parceiro seguem como Assumptions em `spec.md`, sem bloquear o código.
+- **Padrão recorrente a manter**: `businesses`/`business_revisions`/`evidences`/`certifications`/`partners` ainda não têm RLS (só `enable row level security` sem policies, chegam no T25) — Server Actions que leem/escrevem essas tabelas usam `createAdminClient()` e conferem a posse manualmente (ex.: `saveDraftPart`), seguindo o mesmo padrão usado em `profiles` antes do T12.
 - **Uncommitted files**: nenhum
 - **Branch**: feature/website-mvp
