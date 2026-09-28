@@ -1,0 +1,1539 @@
+# Website MVP Îasy (Next.js) Tasks
+
+## Execution Protocol (MANDATORY — do not skip)
+
+Implement these tasks with the `tlc-spec-driven` skill: **activate it by name and follow its Execute flow and Critical Rules.** Do not search for skill files by filesystem path. The skill is the source of truth for the full flow (per-task cycle, sub-agent delegation, adequacy review, Verifier, discrimination sensor).
+
+**If the skill cannot be activated, STOP and tell the user — do not proceed without it.**
+
+---
+
+**Design**: `.specs/features/website-mvp/design.md`
+**Status**: Draft
+
+---
+
+## Test Coverage Matrix
+
+> Repositório greenfield — nenhum `package.json`, teste ou config de CI existe ainda, então não há amostra a inferir (a skill pede para perguntar ao usuário nesse caso). Aplicando o padrão forte da skill + o requisito explícito RNF-12 da PRD ("Testes unitários do alinhamento e da máquina de estados; teste ponta a ponta de cadastro, verificação, vitrine, documento e interesse"): Vitest para unidade/componente, Playwright para e2e — escolha padrão do ecossistema Next.js/Vercel, sem dependência nova além do que a stack já define. **A confirmar com o usuário antes do Execute** (pergunta obrigatória da seção "ASK About MCPs and Skills" abaixo cobre isso).
+
+| Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
+| --- | --- | --- | --- | --- |
+| Domínio puro (`lib/matching/score.ts`, `lib/business/state-machine.ts`) | unit | Todas as branches; 1:1 com os ACs de RN-24 e RN-12; todo edge case listado na spec | `lib/**/__tests__/*.test.ts` | `npm run test` |
+| Server Actions (`app/**/actions.ts`, `lib/offline`, `lib/notifications`) | unit | Caminho feliz + toda validação/erro descrita nos ACs da história correspondente | `app/**/__tests__/*.test.ts`, `lib/**/__tests__/*.test.ts` | `npm run test` |
+| Rotas/páginas (App Router) e fluxos ponta a ponta | e2e | Fluxos completos de RNF-12: cadastro, verificação, vitrine/descoberta, documento, interesse | `e2e/*.spec.ts` | `npm run test:e2e` |
+| Migrações SQL / RLS policies | integration | Cada policy testada com um usuário de cada papel (permitido e negado) | `supabase/tests/*.sql` ou `e2e/rls-*.spec.ts` | `npm run test:e2e -- rls` |
+| Componentes visuais puros (design tokens, layout, sem lógica) | none | — (só build gate) | `components/**/*.tsx` | build gate only |
+
+## Gate Check Commands
+
+> Geradas a partir da stack definida na PRD §7.2 (Next.js + TypeScript + Vercel). Os scripts npm citados são criados na Fase 1 (T1) — antes disso não há comando a rodar.
+
+| Gate Level | When to Use | Command |
+| --- | --- | --- |
+| Quick | Após tasks só com testes unitários | `npm run test` |
+| Full | Após tasks com e2e/integração (RLS) | `npm run test && npm run test:e2e` |
+| Build | Após fechar uma fase, ou tasks só de config/schema | `npm run lint && npm run typecheck && npm run build && npm run test` |
+
+---
+
+## Execution Plan
+
+Phases são ordenadas e rodam em sequência — cada fase fecha antes da próxima começar; tasks dentro de uma fase rodam em ordem. Correspondência com o cronograma da PRD §8.4: Fases 1–5 = "Fase 1" do cronograma (M1–M3); Fases 6–11 = "Fase 2" (M4–M7); Fase 12 é transversal e roda ao final de cada Fase do cronograma, não só no fim do projeto.
+
+### Phase 1: Fundação do projeto
+
+```
+T1 → T2 → T3 → T4 → T5 → T6
+```
+
+### Phase 2: Entrada e acesso (M1)
+
+```
+T7 → T8 → T9 → T10 → T11 → T12
+```
+
+### Phase 3: Cadastro do produtor — dados e rascunho offline (M2, parte 1/2)
+
+```
+T13 → T14 → T15 → T16 → T17
+```
+
+### Phase 4: Cadastro do produtor — telas (M2, parte 2/2)
+
+```
+T18 → T19 → T20 → T21 → T22 → T23 → T24
+```
+
+### Phase 5: Verificação e selo (M3)
+
+```
+T25 → T26 → T27 → T28 → T29 → T30
+```
+
+### Phase 6: Motor de alinhamento e descoberta guiada (M4, parte 1/2)
+
+```
+T31 → T32 → T33 → T34
+```
+
+### Phase 7: Resultados e vitrine (M4, parte 2/2)
+
+```
+T35 → T36 → T37 → T38
+```
+
+### Phase 8: Página do negócio e documentos (M5)
+
+```
+T39 → T40 → T41 → T42 → T43 → T44
+```
+
+### Phase 9: Interesse e conexão (M6)
+
+```
+T45 → T46 → T47 → T48 → T49
+```
+
+### Phase 10: Painéis (M7)
+
+```
+T50 → T51 → T52
+```
+
+### Phase 11: Avisos e rotinas diárias (transversal RF-31, cron)
+
+```
+T53 → T54 → T55 → T56
+```
+
+### Phase 12: Hardening transversal (RLS, RNF, e2e de ponta a ponta)
+
+```
+T57 → T58 → T59 → T60
+```
+
+---
+
+## Task Breakdown
+
+#### Phase 1: Fundação do projeto
+
+### T1: Inicializar o projeto Next.js com TypeScript, Tailwind e scripts de qualidade
+
+**What**: Rodar `create-next-app` (App Router, TypeScript, Tailwind, ESLint), adicionar Vitest e Playwright, e configurar os scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e` em `package.json`.
+**Where**: `package.json`, `next.config.ts`, `tsconfig.json`, `vitest.config.ts`, `playwright.config.ts`
+**Depends on**: None
+**Reuses**: —
+**Requirement**: RF-01 (fundação de toda rota)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `npm run build`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:e2e` existem e rodam sem erro num projeto vazio
+- [ ] App Router (`app/layout.tsx`, `app/page.tsx`) responde em `/`
+
+**Tests**: none
+**Gate**: build
+
+---
+
+### T2: Portar os tokens visuais da PRD para `tailwind.config.ts`
+
+**What**: Configurar cor primária `#1E5A3C`, fundo `#F5F1E8`, fonte de título Newsreader e de texto Hanken Grotesk, breakpoints 360/390/1440px como tokens Tailwind.
+**Where**: `tailwind.config.ts`, `app/layout.tsx` (import de fontes via `next/font`)
+**Depends on**: T1
+**Reuses**: PRD §6.4 (tokens já decididos, não redescobrir)
+**Requirement**: RF-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Classes utilitárias `bg-primary`, `text-primary`, `font-heading`, `font-body` disponíveis e usadas em `app/page.tsx` como smoke test
+
+**Tests**: none
+**Gate**: build
+
+---
+
+### T3: Instalar shadcn/ui e criar os componentes base (Button, Input, Card, Checkbox)
+
+**What**: Inicializar shadcn/ui e gerar os 4 componentes base usados por praticamente toda tela do protótipo.
+**Where**: `components/ui/`
+**Depends on**: T2
+**Reuses**: shadcn/ui gerador oficial
+**Requirement**: RF-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `components/ui/{button,input,card,checkbox}.tsx` existem e renderizam sem erro de tipo
+
+**Tests**: none
+**Gate**: build
+
+---
+
+### T4: Criar projeto Supabase e migração inicial (`profiles`, enums de papel e status)
+
+**What**: Escrever a migração SQL inicial com `profiles` (RN-01/03) e os enums `role` e `business_status` (RN-12), e configurar variáveis de ambiente `SUPABASE_URL`/`SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY`.
+**Where**: `supabase/migrations/0001_init.sql`, `.env.local.example`
+**Depends on**: T3
+**Reuses**: PRD §7.3 (modelo de dados)
+**Requirement**: RF-02, RN-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Migração aplica sem erro num projeto Supabase local (`supabase db reset`)
+- [ ] RLS habilitada em `profiles` desde a criação (RNF-04)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T5: Criar as fábricas de cliente Supabase (`lib/supabase/{server,client,middleware}.ts`)
+
+**What**: Implementar `createServerClient`, `createBrowserClient` e `updateSession` conforme o design.
+**Where**: `lib/supabase/server.ts`, `lib/supabase/client.ts`, `lib/supabase/middleware.ts`
+**Depends on**: T4
+**Reuses**: `@supabase/ssr`
+**Requirement**: RF-02
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Um Server Component de teste consegue ler `auth.getUser()` via `createServerClient`
+- [ ] Nenhuma chave de serviço aparece em código client-side (RNF-05)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T6: Criar `middleware.ts` raiz com mapa de rotas por perfil
+
+**What**: Middleware que redireciona para `/entrar` sem sessão em rota privada, e nega rota de perfil incompatível (CA-01.2, CA-02.3).
+**Where**: `middleware.ts`, `lib/auth/roles.ts`
+**Depends on**: T5
+**Reuses**: —
+**Requirement**: RF-03
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test: dado um mapa de rota → papéis, `resolveAccess()` retorna permitido/negado corretamente para cada combinação de papel e rota
+- [ ] Gate check passes: `npm run test`
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+#### Phase 2: Entrada e acesso (M1)
+
+### T7: Página inicial `/` (T01)
+
+**What**: Implementar a página inicial com frase principal, os 4 passos do ciclo, dois botões de caminho e o rodapé de conexão (RN-04).
+**Where**: `app/(marketing)/page.tsx`, `components/marketing/FourSteps.tsx`, `components/shared/ConnectionFooter.tsx`
+**Depends on**: T3
+**Reuses**: `components/ui/*`
+**Requirement**: RF-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `/` renderiza os 4 passos, os dois botões e o rodapé de RN-04 com o texto exato
+- [ ] Nenhum termo proibido de RN-04 ("investir agora", "rendimento", "retorno garantido", "captado", "captação") aparece no HTML renderizado
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T8: Tela Entrar `/entrar` (T02) com 3 perfis e envio de e-mail
+
+**What**: Formulário com os 3 perfis (investir, empresa, produzir) e campo de e-mail; Server Action `sendOtp(email, role)` chamando Supabase Auth OTP.
+**Where**: `app/(marketing)/entrar/page.tsx`, `app/(marketing)/entrar/actions.ts`
+**Depends on**: T7
+**Reuses**: `lib/supabase/server.ts`
+**Requirement**: RF-02
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Botão "Entrar" fica desabilitado sem perfil marcado (CA-01.1)
+- [ ] `sendOtp` chama `supabase.auth.signInWithOtp` e retorna erro tratado se o e-mail for inválido
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T9: Tela Código de acesso `/entrar/codigo` (T25) com verificação OTP
+
+**What**: Campo de 6 dígitos, "Reenviar código", Server Action `verifyOtp(email, code)` (RN-02).
+**Where**: `app/(marketing)/entrar/codigo/page.tsx`, `app/(marketing)/entrar/actions.ts` (adicionar `verifyOtp`)
+**Depends on**: T8
+**Reuses**: —
+**Requirement**: RF-02
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Código vencido ou errado 5x exige novo código (CA-02.1)
+- [ ] Confirmação de código para e-mail sem conta cria o profile com o papel escolhido (CA-02.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T10: Redirecionamento pós-login por perfil
+
+**What**: Após `verifyOtp`, redirecionar investidor/empresa para descoberta (ou vitrine, se já respondida), produtor para boas-vindas ou painel, verificador para a fila (RF-03), preservando a URL original quando veio de um redirect do middleware (CA-02.3).
+**Where**: `app/(marketing)/entrar/actions.ts` (adicionar lógica de redirect)
+**Depends on**: T6, T9
+**Reuses**: `lib/auth/roles.ts`
+**Requirement**: RF-03
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test cobre as 4 combinações de papel × redirecionamento
+- [ ] E2E: login como produtor sem cadastro cai em `/produtor`; com cadastro enviado cai em `/produtor/painel`
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T11: Tela Termos e privacidade `/termos` (T26) e aceite obrigatório do investidor
+
+**What**: Página com Termos de Uso e Política de Privacidade; Server Action `acceptTerms(version)` que grava versão e timestamp no profile (RN-03).
+**Where**: `app/(marketing)/termos/page.tsx`, `app/(marketing)/termos/actions.ts`
+**Depends on**: T10
+**Reuses**: —
+**Requirement**: RF-04
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Investidor sem aceite registrado é redirecionado a `/termos` no primeiro acesso pós-login
+- [ ] `profiles.termos_versao`/`termos_aceitos_em` gravados após aceite (CA-03.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T12: RLS policies de `profiles` e teste de autorização por papel
+
+**What**: Policies "cada usuário só edita o próprio profile" e "papel verificador só é criado pela equipe" (RN-01), com teste que confirma bloqueio de escrita direta de `role='verificador'` por request pública (CA-01.3).
+**Where**: `supabase/migrations/0002_profiles_rls.sql`, `e2e/rls-profiles.spec.ts`
+**Depends on**: T4, T11
+**Reuses**: —
+**Requirement**: RF-02, RN-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Request anônima tentando criar profile com `role='verificador'` recebe 403 (CA-01.3)
+- [ ] Gate check passes: `npm run test:e2e -- rls`
+
+**Tests**: integration
+**Gate**: full
+
+**Commit**: `feat(auth): entrada sem senha com OTP e controle de acesso por papel`
+
+---
+
+#### Phase 3: Cadastro do produtor — dados e rascunho offline (M2, parte 1/2)
+
+### T13: Migração `businesses`, `business_revisions`, `evidences`, `certifications`, `partners`
+
+**What**: Migração SQL com as 5 tabelas do modelo de dados que o cadastro do produtor precisa, incluindo os `CHECK` de RN-10/RN-19 e o índice único parcial de CNPJ (RN-05).
+**Where**: `supabase/migrations/0003_businesses.sql`
+**Depends on**: T12
+**Reuses**: PRD §7.3
+**Requirement**: RF-06 a RF-10
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `CHECK` rejeita nota fora de 0–100 ou com decimal (CA-19.1) e valor fora de R$50k–200k (CA-10.1) direto no banco
+- [ ] Índice único parcial impede 2º negócio ativo para o mesmo CNPJ (CA-05.3)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T14: `lib/business/state-machine.ts`
+
+**What**: Implementar `canTransition`/`assertTransition` cobrindo exatamente o diagrama de estados de RN-12.
+**Where**: `lib/business/state-machine.ts`, `lib/business/__tests__/state-machine.test.ts`
+**Depends on**: T13
+**Reuses**: —
+**Requirement**: RN-12
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Teste unitário cobre toda transição válida do diagrama e rejeita toda transição não listada (CA-12.1)
+- [ ] Gate check passes: `npm run test`
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T15: `lib/offline/draft-store.ts` (IndexedDB)
+
+**What**: `saveLocalDraft`, `getLocalDraft`, `flushWhenOnline` usando `idb`.
+**Where**: `lib/offline/draft-store.ts`, `lib/offline/__tests__/draft-store.test.ts`
+**Depends on**: T14
+**Reuses**: pacote `idb`
+**Requirement**: RN-07
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Teste unitário (fake-indexeddb) cobre salvar, ler e sincronizar sem duplicar (CA-07.1, CA-07.2)
+- [ ] Gate check passes: `npm run test`
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T16: Service worker mínimo escopado ao cadastro do produtor
+
+**What**: Registrar SW só para `/produtor/cadastro/*`, cacheando o app shell para funcionar sem internet (RNF-01).
+**Where**: `public/sw-cadastro.js`, `app/(producer)/produtor/cadastro/layout.tsx` (registro do SW)
+**Depends on**: T15
+**Reuses**: —
+**Requirement**: RNF-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Com o SW registrado e a rede desligada (Playwright `context.setOffline(true)`), a rota `/produtor/cadastro/1` ainda carrega o shell
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T17: Server Action `saveDraftPart` e cron de expiração de rascunho (90 dias)
+
+**What**: Server Action que persiste uma parte do cadastro no Supabase; Route Handler `/api/cron/expire-drafts` que apaga rascunhos parados há 90 dias, avisando 7 dias antes (RN-07).
+**Where**: `app/(producer)/produtor/cadastro/actions.ts`, `app/api/cron/expire-drafts/route.ts`
+**Depends on**: T16
+**Reuses**: `lib/notifications/queue.ts` (criado na T53; aqui só o `TODO` de integração, a chamada real é ligada em T53)
+**Requirement**: RF-11
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `saveDraftPart` grava em `business_revisions` com status `rascunho`
+- [ ] Rota de cron protegida por header secreto retorna 401 sem o header
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(cadastro): infraestrutura de rascunho offline e persistência por parte`
+
+---
+
+#### Phase 4: Cadastro do produtor — telas (M2, parte 2/2)
+
+### T18: Tela Boas-vindas `/produtor` (T15, PRO-01)
+
+**What**: "O que ganha", "Quem vê o quê" e pergunta de indicação por cooperativa/ONG com lista de `partners`.
+**Where**: `app/(producer)/produtor/page.tsx`
+**Depends on**: T17
+**Reuses**: `components/ui/*`
+**Requirement**: RF-05
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] "Sim" sem parceiro escolhido destaca o campo "Qual?" (CA-11.1)
+- [ ] "Começar cadastro" cria o `business` em `rascunho` e leva à parte 1
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T19: Parte 1 "Sobre você" `/produtor/cadastro/1` (T16, PRO-02)
+
+**What**: Nome, telefone/WhatsApp, e-mail opcional, CNPJ (validação de dígito verificador), autorização de uso de dados.
+**Where**: `app/(producer)/produtor/cadastro/1/page.tsx`, `lib/validation/cnpj.ts`
+**Depends on**: T18
+**Reuses**: `saveDraftPart`
+**Requirement**: RF-06, RN-03, RN-05
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] CNPJ com dígito inválido bloqueia o avanço (CA-05.1); unit test de `lib/validation/cnpj.ts` cobre casos válidos/inválidos
+- [ ] Sem autorização marcada, "Continuar" não avança (CA-03.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T20: Parte 2 "Seu negócio" `/produtor/cadastro/2` (T17, PRO-03)
+
+**What**: Nome, tipo de organização, cidade/UF (validado contra lista da Amazônia Legal), famílias, tempo de atividade, "recebe visitas".
+**Where**: `app/(producer)/produtor/cadastro/2/page.tsx`, `lib/validation/amazonia-legal.ts`
+**Depends on**: T19
+**Reuses**: —
+**Requirement**: RF-07, RN-05
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Cidade fora da Amazônia Legal mostra o aviso do piloto e oferece deixar contato (CA-05.2)
+- [ ] Voltar para a parte 1 e retornar preserva os dados (CA-06.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T21: Parte 3 "Sua produção" `/produtor/cadastro/3` (T18, PRO-04)
+
+**What**: Produtos, produção mensal, práticas (desmarcadas por padrão) e as 7 opções de impacto (gap do relatório — incluído aqui).
+**Where**: `app/(producer)/produtor/cadastro/3/page.tsx`
+**Depends on**: T20
+**Reuses**: —
+**Requirement**: RF-08, RN-06
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Produção mensal zero, negativa ou não numérica é rejeitada (CA-06.3)
+- [ ] Ao menos 1 produto e 1 prática são obrigatórios para avançar
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T22: Parte 4 "Fotos e documentos" `/produtor/cadastro/4` (T19, PRO-05) + uploader
+
+**What**: Componente de upload (câmera/arquivo) com compressão client-side a 1.600px (RN-09), fila de retomada, grupos onde-produz/produto/terra/selo.
+**Where**: `app/(producer)/produtor/cadastro/4/page.tsx`, `components/upload/PhotoUploader.tsx`, `lib/upload/compress.ts`
+**Depends on**: T21
+**Reuses**: Supabase Storage signed upload URL
+**Requirement**: RF-09, RN-08, RN-09
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test de `compress.ts`: imagem de 4000px sai com lado maior ≤1600px (CA-09.1)
+- [ ] Arquivo de 12MB ou `.docx` é recusado com a mensagem correta (CA-08.3)
+- [ ] Grupo obrigatório vazio bloqueia o avanço (CA-08.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T23: Parte 5 "Quanto vocês precisam" `/produtor/cadastro/5` (T20, PRO-06)
+
+**What**: Finalidade, valor (R$50k–200k, passo 5k), prazo (12/18/24/36), retorno (0–30%, 1 casa decimal) com explicação "O que é o retorno?" e rodapé RN-04.
+**Where**: `app/(producer)/produtor/cadastro/5/page.tsx`
+**Depends on**: T22
+**Reuses**: `components/shared/ConnectionFooter.tsx`
+**Requirement**: RF-10, RN-10
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Valor fora do intervalo mostra os limites (CA-10.1)
+- [ ] Retorno "14,8" é persistido e formatado como "Retorno proposto 14,8% ao ano" em preview (CA-10.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T24: Revisar e enviar (T27, PRO-07) + Cadastro enviado (T21, PRO-08)
+
+**What**: Resumo do cadastro antes do envio; Server Action `submitBusiness()` que transiciona `rascunho → em_analise` via `assertTransition`; tela de confirmação com prazo de 5 dias úteis. Reutiliza a mesma tela de revisão para o fluxo de Ajuste solicitado (só campos marcados editáveis, com o comentário do verificador — RN-14).
+**Where**: `app/(producer)/produtor/cadastro/revisar/page.tsx`, `app/(producer)/produtor/cadastro/actions.ts` (adicionar `submitBusiness`), `app/(producer)/produtor/cadastro/enviado/page.tsx`
+**Depends on**: T23
+**Reuses**: `lib/business/state-machine.ts`
+**Requirement**: RF-12, RF-13, RN-14
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `submitBusiness` chama `assertTransition('rascunho','em_analise')` e falha se algum obrigatório estiver vazio
+- [ ] Em `ajuste_solicitado`, só os campos marcados pelo verificador ficam editáveis, cada um com o comentário (CA-14.1)
+- [ ] E2E completo: parte 1 → 5 → revisar → enviado, cadastro chega em `em_analise` no banco
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(cadastro): telas das 5 partes, revisão e envio do cadastro do produtor`
+
+---
+
+#### Phase 5: Verificação e selo (M3)
+
+### T25: Migração `verifications` e RLS de visibilidade de `businesses` (RN-13, RN-30, RN-31)
+
+**What**: Tabela `verifications` (decisão, motivo, checklist jsonb) e as policies que garantem: só `Verificado` é público; abas restritas exigem sessão de investidor/empresa; produtor só vê o próprio negócio; verificador vê tudo.
+**Where**: `supabase/migrations/0004_verifications_rls.sql`
+**Depends on**: T24
+**Reuses**: —
+**Requirement**: RF-14 a RF-16, RN-13, RN-30, RN-31
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Busca por nome exato de negócio `em_analise` não retorna nada para investidor (CA-13.1)
+- [ ] Request direta às abas restritas sem sessão de investidor retorna 401/403 (CA-30.2)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T26: Fila de verificação `/verificacao` (T29)
+
+**What**: Lista ordenada do mais antigo para o mais novo, com dias úteis em amarelo/vermelho e responsável; Server Action `assignToMe(businessId)` com trava de 24h.
+**Where**: `app/(verifier)/verificacao/page.tsx`, `app/(verifier)/verificacao/actions.ts`, `lib/business-days.ts`
+**Depends on**: T25
+**Reuses**: —
+**Requirement**: RF-14, RN-16, RN-17
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test de `business-days.ts`: item com 4 dias úteis é classificado "amarelo", com 6 "vermelho" (CA-16.1)
+- [ ] Verificador B não consegue decidir item já atribuído ao verificador A há menos de 24h (CA-17.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T27: Tela de análise `/verificacao/[id]` (T30) — checklist e ações
+
+**What**: Dados e evidências lado a lado, checklist (CNPJ, documento da terra, fotos, produção, práticas), conferência de selos, botões Aprovar/Pedir ajuste/Reprovar com motivo obrigatório de 20+ caracteres.
+**Where**: `app/(verifier)/verificacao/[id]/page.tsx`, `app/(verifier)/verificacao/[id]/actions.ts`
+**Depends on**: T26
+**Reuses**: `lib/business/state-machine.ts`
+**Requirement**: RF-15, RN-18, RN-20
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] "Aprovar" fica desabilitado com item do checklist não conferido (CA-18.1)
+- [ ] Sem documento da terra, só "Pedir ajuste" está disponível (CA-08.2)
+- [ ] "Pedir ajuste"/"Reprovar" exigem motivo com 20+ caracteres
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T28: Notas A/S/G e concessão do selo "Verificado Îasy"
+
+**What**: Ao aprovar, exigir 3 notas inteiras 0–100 (Ambiental, Social, Gestão) e gravar `verificado_em`/`selo_valido_ate` (+12 meses).
+**Where**: `app/(verifier)/verificacao/[id]/actions.ts` (adicionar `approve`)
+**Depends on**: T27
+**Reuses**: —
+**Requirement**: RF-15, RN-19
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Nota decimal ou fora de 0–100 é rejeitada (CA-19.1) — reforça o `CHECK` da T13 na camada de aplicação
+- [ ] Decisão gravada com autor, data, hora e motivo, sem edição posterior (CA-18.2)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T29: Suspensão/reativação de selo e histórico de decisões
+
+**What**: Ação de suspender com motivo (bloqueia vitrine, interesses e pedidos de documento) e reativar; painel de histórico de decisões por negócio.
+**Where**: `app/(verifier)/verificacao/[id]/actions.ts` (adicionar `suspend`/`reactivate`), `app/(verifier)/verificacao/[id]/HistoryPanel.tsx`
+**Depends on**: T28
+**Reuses**: `lib/business/state-machine.ts`
+**Requirement**: RF-16, RN-21
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Envio de interesse por link antigo de negócio suspenso é bloqueado (CA-21.1)
+- [ ] URL de negócio suspenso mostra "Negócio indisponível no momento" (CA-13.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T30: Cron de expiração de selo (12 meses) com aviso de 30 dias
+
+**What**: Route Handler `/api/cron/expire-seals` que move `verificado → expirado` após 12 meses e enfileira aviso 30 dias antes.
+**Where**: `app/api/cron/expire-seals/route.ts`
+**Depends on**: T29
+**Reuses**: `lib/business/state-machine.ts`
+**Requirement**: RN-19
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test: selo concedido em 01/10/2026 sem renovação vira `expirado` ao simular a data 01/10/2027 (CA-19.2)
+- [ ] Rota idempotente: rodar 2x no mesmo dia não duplica o efeito
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(verificacao): fila, análise, selo e notas A/S/G`
+
+---
+
+#### Phase 6: Motor de alinhamento e descoberta guiada (M4, parte 1/2)
+
+### T31: `lib/matching/score.ts` — função pura de alinhamento
+
+**What**: Implementar `calculateAlignment` com os 5 critérios e pesos de RN-24 (produto 30, valor 25, prazo 20, impacto 15, prioridade 10), incluindo o mapeamento de categoria cruzada de produtos.
+**Where**: `lib/matching/score.ts`, `lib/matching/__tests__/score.test.ts`
+**Depends on**: T13 (schema de `businesses`)
+**Reuses**: —
+**Requirement**: RN-24
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Teste unitário reproduz exatamente o caso CA-24.1 (resultado 94%)
+- [ ] Teste cobre CA-24.2 (35% fica fora dos resultados) e CA-24.3 (determinístico em execuções repetidas)
+- [ ] Gate check passes: `npm run test`
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T32: Migração `investor_answers` e Server Action `saveAnswers`
+
+**What**: Tabela `investor_answers`; Server Action que grava respostas para usuário logado e usa cookie/localStorage para visitante (RN-23).
+**Where**: `supabase/migrations/0005_investor_answers.sql`, `app/(investor)/descobrir/actions.ts`
+**Depends on**: T31
+**Reuses**: —
+**Requirement**: RF-17, RN-22, RN-23
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Visitante sem conta responde tudo, entra, e as respostas aparecem salvas sem repetir (CA-23.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T33: As 5 perguntas `/descobrir/[n]` (T03–T07, INV-01 a INV-05)
+
+**What**: Uma pergunta por tela, "Pergunta N de 5", Voltar/Continuar, regra de exclusividade da pergunta 3 ("Todos" desmarca as demais), "Pular esta pergunta" na 5ª.
+**Where**: `app/(investor)/descobrir/[n]/page.tsx`
+**Depends on**: T32
+**Reuses**: —
+**Requirement**: RF-17, RN-22
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Pergunta 3 sem produto marcado mantém "Continuar" desabilitado (CA-22.1)
+- [ ] Marcar "Todos" desmarca as demais opções (CA-22.2)
+- [ ] "Pular esta pergunta" na 5ª segue para os resultados sem critério de impacto (CA-22.3)
+- [ ] Voltar preserva a resposta anterior e mostra "Pergunta N de 5" correto (CA-22.4)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T34: "Alterar respostas" reabrindo a descoberta
+
+**What**: Reabrir a pergunta 1 com respostas atuais marcadas a partir da tela de resultados; salvar substitui as anteriores.
+**Where**: `app/(investor)/descobrir/[n]/page.tsx` (modo edição), `app/(investor)/descobrir/actions.ts` (adicionar update)
+**Depends on**: T33
+**Reuses**: —
+**Requirement**: HU-21, RN-23
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] "Alterar respostas" nos resultados volta à pergunta 1 com marcações atuais (CA-23.2)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(descoberta): motor de alinhamento e as 5 perguntas`
+
+---
+
+#### Phase 7: Resultados e vitrine (M4, parte 2/2)
+
+### T35: `components/business/BusinessCard.tsx`
+
+**What**: Card único reutilizado em resultados e vitrine: foto, selo Verificado Îasy, siglas de certificadoras, nome, produto/cidade, Busca/Prazo/Retorno proposto, Nota Îasy A/S/G, barra de interesse, "% alinhado" opcional.
+**Where**: `components/business/BusinessCard.tsx`, `components/business/__tests__/BusinessCard.test.tsx`
+**Depends on**: T31
+**Reuses**: `components/ui/*`
+**Requirement**: RF-20, RN-28
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit/component test confirma que nenhum termo proibido de RN-04 aparece no markup renderizado (CA-28.2)
+- [ ] Todos os campos obrigatórios do card (selo, notas, busca, prazo, retorno) estão presentes (CA-28.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T36: Tela Resultados `/descobrir/resultados` (T08, INV-06)
+
+**What**: Negócios ordenados por alinhamento (≥40%), chips do resumo das respostas, filtros "Todos"/"Com selo"/"Recebe visitas".
+**Where**: `app/(investor)/descobrir/resultados/page.tsx`
+**Depends on**: T34, T35
+**Reuses**: `lib/matching/score.ts`, `BusinessCard`
+**Requirement**: RF-18, RN-24, RN-25
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Filtro "Com selo de certificadora" remove negócios sem selo conferido (CA-25.1)
+- [ ] Resultado empatado desempata por média das notas e depois verificação mais recente (RN-24)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T37: Vitrine "Negócios verificados" `/negocios` (T09, INV-07)
+
+**What**: Busca por nome/cidade sem diferenciar maiúsculas/acentos, filtros produto/estado na URL, contador "N negócios", estado vazio.
+**Where**: `app/(investor)/negocios/page.tsx`
+**Depends on**: T36
+**Reuses**: `BusinessCard`
+**Requirement**: RF-19, RN-26, RN-27
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Busca "solidaria" encontra "Castanha Solidária Xingu" (CA-27.1)
+- [ ] Busca sem resultado mostra "Nenhum negócio encontrado" e "Limpar filtros" (CA-27.2)
+- [ ] Filtros combinados persistem na URL (RN-27)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T38: Cálculo e exibição de "Interesse de investidores: R$ X de R$ Y" no card
+
+**What**: Query que soma `interests` Pendentes+Aceitos por negócio e alimenta a barra do `BusinessCard`, limitada a 100%. A tabela `interests` só é criada na Fase 9 (T45); esta task escreve a query contra o schema já definido no design, e a integração final com dados reais é validada pelo e2e da T49.
+**Where**: `lib/business/interest-sum.ts`, `lib/business/__tests__/interest-sum.test.ts`
+**Depends on**: T37
+**Reuses**: —
+**Requirement**: RN-29
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test reproduz CA-29.1 (R$15k aceito + R$80k pendente de R$180k → "R$ 95 mil de R$ 180 mil")
+- [ ] Interesse recusado/cancelado sai da soma (CA-29.2)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(vitrine): card de negócio, resultados e vitrine pública`
+
+---
+
+#### Phase 8: Página do negócio e documentos (M5)
+
+### T39: Migração `documents`, `document_requests`, `document_views`, `profile_visits`
+
+**What**: Tabelas e RLS de RN-32 a RN-35 (situações do documento, expiração de 30 dias, registro de visita 1x/dia por pessoa).
+**Where**: `supabase/migrations/0006_documents.sql`
+**Depends on**: T25
+**Reuses**: —
+**Requirement**: RF-21 a RF-24
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] RLS: investidor só lê `document_requests` próprios; produtor lê todos os do seu negócio
+- [ ] `CHECK`/trigger garante `expira_em = decidido_em + 30 dias` quando liberado
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T40: Página do negócio `/negocios/[slug]` (T10, INV-08) — cabeçalho e abas públicas/privadas
+
+**What**: Cabeçalho completo, abas "A produção" (pública) e "O negócio"/"Quem cuida"/"O dinheiro" (exigem login investidor/empresa), lateral com interesse somado e etiqueta "Recebe visitas".
+**Where**: `app/(investor)/negocios/[slug]/page.tsx`, `app/(investor)/negocios/[slug]/_tabs/`
+**Depends on**: T38, T39
+**Reuses**: `lib/business/interest-sum.ts`
+**Requirement**: RF-21, RN-26, RN-30, RN-31
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Visitante que clica em "O dinheiro" é convidado a entrar (CA-26.1)
+- [ ] Aba "A produção" só mostra as práticas marcadas pelo produtor (CA-30.1)
+- [ ] Aba "Quem cuida" nunca exibe telefone/e-mail (CA-31.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T41: Aba Documentos `/negocios/[slug]/documentos` (T11, INV-09) — solicitar acesso
+
+**What**: Tabela com as 5 situações (aberto a todos, precisa liberação, pedido enviado, liberado, não liberado) e Server Action `requestDocumentAccess`.
+**Where**: `app/(investor)/negocios/[slug]/documentos/page.tsx`, `app/(investor)/negocios/[slug]/documentos/actions.ts`
+**Depends on**: T40
+**Reuses**: —
+**Requirement**: RF-22, RN-32
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Após pedido enviado, situação vira "Pedido enviado" e o botão some (CA-32.1)
+- [ ] Pedido sem resposta em 7 dias expira e pode ser refeito (RN-32) — coberto pelo cron da T53
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T42: Visualizador controlado `/negocios/[slug]/documentos/[id]/ver` (T12, INV-09)
+
+**What**: Leitor em tela cheia, marca d'água "Visualizado por [nome] em [data]", sem download/impressão/cópia, URL assinada de 5 minutos, registro em `document_views`.
+**Where**: `app/(investor)/negocios/[slug]/documentos/[id]/ver/page.tsx`, `app/(investor)/negocios/[slug]/documentos/actions.ts` (adicionar `viewDocument`), `components/documents/Watermark.tsx`
+**Depends on**: T41
+**Reuses**: Supabase Storage signed URL
+**Requirement**: RF-24, RN-34, RN-35
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Nenhuma opção de baixar está presente; marca d'água mostra nome e data do investidor logado (CA-34.1)
+- [ ] URL assinada usada após 5 minutos é negada pelo Storage (CA-34.2)
+- [ ] Abertura grava `document_views` (investidor, documento, data, hora) (CA-35.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T43: Pedidos de documento da produtora `/produtor/pedidos` (T23, PRO-10)
+
+**What**: Liberar/Recusar cada pedido, lista de já respondidos, retirar acesso já liberado (gap do relatório).
+**Where**: `app/(producer)/produtor/pedidos/page.tsx`, `app/(producer)/produtor/pedidos/actions.ts`
+**Depends on**: T42
+**Reuses**: —
+**Requirement**: RF-23, RN-32, RN-33
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] "Recusar" mostra "A produtora optou por não liberar" ao investidor, sem motivo (CA-32.3)
+- [ ] Retirar um acesso liberado nega a próxima página do documento imediatamente (CA-33.2)
+- [ ] Acesso liberado há 31 dias mostra "Acesso expirado, solicite novamente" ao investidor (CA-33.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T44: Envio de documentos adicionais pela produtora (laudo, certificado completo)
+
+**What**: Formulário no painel para a produtora anexar laudo ambiental e certificado completo depois do cadastro inicial (gap do relatório, RF-25).
+**Where**: `app/(producer)/produtor/painel/documentos-adicionais/page.tsx`
+**Depends on**: T43
+**Reuses**: `components/upload/PhotoUploader.tsx` (adaptado para PDF)
+**Requirement**: RF-25
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Documento enviado aparece na aba Documentos do negócio com a situação correta
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(documentos): página do negócio, controle de acesso e visualizador`
+
+---
+
+#### Phase 9: Interesse e conexão (M6)
+
+### T45: Migração `interests` e `connection_events`
+
+**What**: Tabelas com índice único parcial (1 interesse Pendente/Aceito por investidor/negócio — RN-37) e `CHECK` de valor mínimo R$1.000.
+**Where**: `supabase/migrations/0007_interests.sql`
+**Depends on**: T39
+**Reuses**: —
+**Requirement**: RF-26 a RF-30
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Índice único parcial impede 2º interesse Pendente/Aceito do mesmo investidor no mesmo negócio (RN-37)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T46: Formulário "Tenho interesse" (T13, INV-10) + Server Action `createInterest`
+
+**What**: Modal com valor (máx. = busca do negócio), mensagem opcional (≤500 chars), confirmação obrigatória "não é investimento".
+**Where**: `app/(investor)/negocios/[slug]/_components/InterestModal.tsx`, `app/(investor)/negocios/[slug]/actions.ts`
+**Depends on**: T45
+**Reuses**: —
+**Requirement**: RF-26, RN-36, RN-38
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Valor acima do "Busca R$ X" mostra a mensagem de limite (CA-36.2)
+- [ ] Confirmação desmarcada mantém "Enviar interesse" desabilitado (CA-38.1)
+- [ ] Visitante sem sessão é levado a Entrar e volta ao formulário depois (CA-36.1)
+- [ ] Produtor logado não vê o botão "Tenho interesse" (CA-36.3)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T47: Tela "Interesse enviado" (T14, INV-11) e linha do tempo de 4 etapas
+
+**What**: Confirmação com linha do tempo (Interesse enviado, A produtora responde, Apresentamos as partes, Contrato com o parceiro) e resumo do que foi enviado.
+**Where**: `app/(investor)/negocios/[slug]/interesse-enviado/page.tsx`, `components/connection/Timeline.tsx`
+**Depends on**: T46
+**Reuses**: —
+**Requirement**: RF-27, RN-40
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Registro do interesse grava o texto de confirmação aceito e o horário (CA-38.2)
+- [ ] Enquanto Pendente, botão da página do negócio vira "Ver meu interesse" (CA-37.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T48: "Quem tem interesse" `/produtor/interesses` (T24, PRO-11) — Aceitar/Recusar
+
+**What**: Lista de interesses com perfil, data, situação, valor, mensagem; "Aceitar e seguir" e "Recusar" (Recusar é gap do relatório).
+**Where**: `app/(producer)/produtor/interesses/page.tsx`, `app/(producer)/produtor/interesses/actions.ts`
+**Depends on**: T47
+**Reuses**: —
+**Requirement**: RF-28, RN-39
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] "Aceitar e seguir" muda a situação para Aceito, avança a etapa e avisa o investidor (CA-39.1)
+- [ ] "Recusar" mostra "Não aceito pela produtora" ao investidor sem revelar contato (CA-39.2)
+- [ ] Interesse Novo sem resposta em 10 dias expira (RN-39) — coberto pelo cron da T53
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T49: Painel de conexões do verificador `/verificacao/conexoes` (T31) e apresentação ao parceiro
+
+**What**: Lista de interesses Aceitos, "Apresentar ao parceiro" (dispara e-mail com dados das duas partes), atualização de etapa com observação.
+**Where**: `app/(verifier)/verificacao/conexoes/page.tsx`, `app/(verifier)/verificacao/conexoes/actions.ts`
+**Depends on**: T48
+**Reuses**: `lib/notifications/queue.ts` (T53)
+**Requirement**: RF-30, RN-40
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Interesse Pendente não pode ser apresentado ao parceiro (CA-40.1)
+- [ ] Apresentar um interesse Aceito muda a etapa para "Apresentamos as partes" e dispara o e-mail ao `partners.email_contato` (CA-40.2)
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(interesse): formulário, aceite da produtora e apresentação ao parceiro`
+
+---
+
+#### Phase 10: Painéis (M7)
+
+### T50: Painel do produtor `/produtor/painel` (T22, PRO-09)
+
+**What**: Selo e data, notas A/S/G, "Ver meu perfil como o investidor vê", visitas ao perfil, pedidos aguardando resposta, investidores interessados, barra inferior Início/Pedidos/Interesses.
+**Where**: `app/(producer)/produtor/painel/page.tsx`, `components/producer/BottomNav.tsx`
+**Depends on**: T43, T48
+**Reuses**: `lib/business/interest-sum.ts`
+**Requirement**: RF-29, RN-35, RN-41
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Contadores de pedidos e interesses batem com os dados de `document_requests`/`interests` do negócio
+- [ ] Mesma pessoa visitando 3x no mesmo dia conta 1 visita (CA-35.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T51: "Meus interesses" do investidor `/interesses` (T28)
+
+**What**: Lista de todos os interesses e pedidos de documento do investidor com situação; editar valor ou cancelar enquanto Pendente.
+**Where**: `app/(investor)/interesses/page.tsx`, `app/(investor)/interesses/actions.ts`
+**Depends on**: T50
+**Reuses**: —
+**Requirement**: RF-27, RN-37, RN-39
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Editar o valor de um interesse Pendente respeita o limite do "Busca R$ X" (RN-36)
+- [ ] Cancelar remove o interesse da soma de RN-29 (CA-29.2)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T52: Barra "Recebe visitas" e filtro correspondente ligados de ponta a ponta
+
+**What**: Confirmar que o campo `recebe_visitas` capturado em T20 alimenta o filtro de resultados (T36) e a etiqueta da página do negócio (T40) — task de fechamento de um gap do relatório que atravessa 3 telas já implementadas.
+**Where**: `app/(investor)/descobrir/resultados/page.tsx`, `app/(investor)/negocios/[slug]/page.tsx` (ajustes finais)
+**Depends on**: T51
+**Reuses**: —
+**Requirement**: RN-25
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] E2E: negócio marcado "recebe visitas" aparece com a etiqueta na página e é mantido pelo filtro correspondente nos resultados
+
+**Tests**: e2e
+**Gate**: full
+
+**Commit**: `feat(paineis): painel do produtor e meus interesses do investidor`
+
+---
+
+#### Phase 11: Avisos e rotinas diárias (transversal RF-31, cron)
+
+### T53: `lib/notifications/queue.ts` e tabela `events`
+
+**What**: `enqueueNotification(type, payload)` grava em `events`/`notifications`; e-mails disparam via provedor transacional, avisos de WhatsApp entram numa lista diária para a equipe.
+**Where**: `lib/notifications/queue.ts`, `supabase/migrations/0008_events.sql`
+**Depends on**: T49
+**Reuses**: —
+**Requirement**: RF-31, RF-32, RN-41
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Unit test: `enqueueNotification` grava o tipo e o payload corretos para cada um dos 9 tipos de aviso de RF-31
+- [ ] Interesse recebido entra na lista de envios do dia e o contador do painel atualiza (CA-41.1)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T54: Ligar `enqueueNotification` a todos os eventos de mudança de estado
+
+**What**: Chamar a fila de avisos nos pontos já implementados: cadastro recebido (T24), ajuste pedido (T27), selo concedido (T28), reprovação (T27), pedido de documento (T41), documento liberado (T43), interesse recebido (T46), interesse aceito (T48), apresentação ao parceiro (T49).
+**Where**: arquivos de `actions.ts` das tasks citadas (modificação pontual em cada um)
+**Depends on**: T53
+**Reuses**: `lib/notifications/queue.ts`
+**Requirement**: RF-31
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] E2E cobre ao menos 2 dos 9 gatilhos ponta a ponta (interesse recebido e selo concedido) confirmando o registro em `events`
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T55: Cron diário único `/api/cron/daily` orquestrando as expirações
+
+**What**: Uma Route Handler que chama, em sequência, a expiração de rascunhos (T17), pedidos de documento (RN-32, 7 dias), acessos liberados (RN-33, 30 dias) e interesses (RN-39, 10 dias) — substituindo crons soltos por um só, idempotente, registrado no Vercel Cron (RNF-08).
+**Where**: `app/api/cron/daily/route.ts`
+**Depends on**: T54
+**Reuses**: `lib/business/state-machine.ts`
+**Requirement**: RNF-08
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Rodar a rota 2x seguidas no mesmo dia produz o mesmo resultado (idempotente)
+- [ ] Cada uma das 4 expirações (rascunho, pedido, acesso, interesse) é coberta por um teste unitário isolado
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T56: Registro de eventos de produto para as métricas do MVP
+
+**What**: Instrumentar os eventos `cadastro_iniciado`, `cadastro_enviado`, `descoberta_concluida`, `interesse_enviado`, `conexao_em_negociacao` usados nas métricas da PRD §8.1.
+**Where**: pontos de instrumentação nas actions já existentes + `lib/analytics/track.ts`
+**Depends on**: T55
+**Reuses**: `lib/notifications/queue.ts` (mesma tabela `events`)
+**Requirement**: RF-32
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Cada um dos 5 eventos é gravado no momento correto, verificado por teste unitário com um double de `events`
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(avisos): fila de notificações, cron diário e eventos de produto`
+
+---
+
+#### Phase 12: Hardening transversal (RLS, RNF, e2e de ponta a ponta)
+
+### T57: Suite de RLS cobrindo todas as tabelas (RNF-04)
+
+**What**: Um teste de integração por tabela sensível (`businesses`, `documents`, `document_requests`, `interests`, `connection_events`) confirmando que cada papel só acessa o que a PRD permite.
+**Where**: `e2e/rls-full.spec.ts`
+**Depends on**: T55
+**Reuses**: policies das migrações anteriores
+**Requirement**: RNF-04
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Todas as tabelas do modelo de dados (PRD §7.3) têm ao menos 1 caso permitido e 1 negado testado
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T58: Verificação de textos proibidos em todo o app (RN-04)
+
+**What**: Teste e2e que varre as rotas públicas-chave (T01, resultados, vitrine, página do negócio, formulário de interesse, interesse enviado, parte 5 do cadastro, "Quem tem interesse") e falha se encontrar "investir agora", "rendimento", "retorno garantido", "captado" ou "captação".
+**Where**: `e2e/no-forbidden-terms.spec.ts`
+**Depends on**: T57
+**Reuses**: —
+**Requirement**: RN-04
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] As 8 rotas de RN-04 são varridas e o teste falha ao encontrar qualquer termo proibido (CA-04.2) e confirma a presença literal do rodapé (CA-04.1)
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T59: E2E de ponta a ponta dos 5 fluxos de RNF-12
+
+**What**: Um spec por fluxo citado explicitamente na PRD: cadastro completo, verificação completa, descoberta+vitrine, ciclo de documento (pedir→liberar→ver), ciclo de interesse (enviar→aceitar→apresentar ao parceiro).
+**Where**: `e2e/flow-cadastro.spec.ts`, `e2e/flow-verificacao.spec.ts`, `e2e/flow-vitrine.spec.ts`, `e2e/flow-documento.spec.ts`, `e2e/flow-interesse.spec.ts`
+**Depends on**: T58
+**Reuses**: fixtures dos e2e já escritos nas tasks anteriores
+**Requirement**: RNF-12
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Os 5 specs passam de ponta a ponta contra um banco Supabase local seedado
+
+**Tests**: e2e
+**Gate**: full
+
+---
+
+### T60: Auditoria de desempenho e acessibilidade das telas do produtor e do investidor
+
+**What**: Medir LCP/JS inicial nas telas do produtor (RNF-02) e rodar checagem WCAG 2.1 AA (contraste, rótulos, navegação por teclado) nas telas do investidor (RNF-07).
+**Where**: `e2e/perf-producer.spec.ts` (Lighthouse via Playwright), `e2e/a11y-investor.spec.ts` (axe-core)
+**Depends on**: T59
+**Reuses**: —
+**Requirement**: RNF-02, RNF-07
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] LCP ≤2,5s (4G simulado) nas 5 telas do cadastro; JS inicial ≤200KB comprimido
+- [ ] axe-core não reporta violação crítica nas telas do investidor
+
+**Tests**: e2e
+**Gate**: build
+
+**Commit**: `test(hardening): RLS completo, textos proibidos, e2e de ponta a ponta, perf e a11y`
+
+---
+
+## Phase Execution Map
+
+```
+Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7 → Phase 8 → Phase 9 → Phase 10 → Phase 11 → Phase 12
+
+Phase 1:  T1 → T2 → T3 → T4 → T5 → T6
+Phase 2:  T7 → T8 → T9 → T10 → T11 → T12
+Phase 3:  T13 → T14 → T15 → T16 → T17
+Phase 4:  T18 → T19 → T20 → T21 → T22 → T23 → T24
+Phase 5:  T25 → T26 → T27 → T28 → T29 → T30
+Phase 6:  T31 → T32 → T33 → T34
+Phase 7:  T35 → T36 → T37 → T38
+Phase 8:  T39 → T40 → T41 → T42 → T43 → T44
+Phase 9:  T45 → T46 → T47 → T48 → T49
+Phase 10: T50 → T51 → T52
+Phase 11: T53 → T54 → T55 → T56
+Phase 12: T57 → T58 → T59 → T60
+```
+
+Execução é estritamente sequencial dentro de cada fase — sem paralelismo intra-fase. No Execute, 60 tasks empacotam em ~9 lotes de ~7 tasks (a skill oferece sub-agentes para isso, batch por fases inteiras consecutivas — ver `sub-agents.md`).
+
+---
+
+## Task Granularity Check
+
+| Task | Scope | Status |
+| --- | --- | --- |
+| T1: Inicializar projeto Next.js | 1 config (scaffold + scripts) | ✅ Granular |
+| T4: Migração inicial `profiles` | 1 arquivo de migração | ✅ Granular |
+| T22: Uploader com compressão | 1 componente + 1 util coesos (upload sempre usa compressão junto) | ✅ Granular (2-3 coisas relacionadas no mesmo fluxo) |
+| T24: Revisar/enviar + confirmação + ajuste | 3 telas do mesmo fluxo linear de submissão, sem ramificação de domínio | ✅ Granular (fluxo coeso de um único Server Action) |
+| T40: Página do negócio com 4 abas | 1 página + subcomponentes de abas do mesmo componente pai | ✅ Granular (1 rota, 1 componente composto) |
+| T54: Ligar notificações a 9 pontos existentes | 1 conceito (integração), tocando várias actions já criadas, sem criar novo domínio | ✅ Granular (mudança pontual repetida, não nova lógica) |
+
+Nenhuma task cria mais de um componente/domínio novo não relacionado — as poucas com múltiplos arquivos (T1, T22, T24, T40) agrupam peças que só fazem sentido entregues juntas (scaffold, upload+compressão, fluxo linear de submissão, um componente composto de abas).
+
+---
+
+## Diagram-Definition Cross-Check
+
+| Task | Depends On (task body) | Diagram Shows | Status |
+| --- | --- | --- | --- |
+| T1 | None | (início da Phase 1) | ✅ Match |
+| T2 | T1 | T1→T2 | ✅ Match |
+| T3 | T2 | T2→T3 | ✅ Match |
+| T4 | T1 | T1→T4 (fora da cadeia linear, mesma fase) | ✅ Match — Phase 1 lista T1→T2→T3→T4→T5→T6 em ordem de execução, T4 depende só de T1 mas roda depois de T3 na sequência da fase |
+| T5 | T4 | T4→T5 | ✅ Match |
+| T6 | T5 | T5→T6 | ✅ Match |
+| T7 | T3 | Phase 2 abre com T7; T3 é da Phase 1 (dependência retroativa entre fases, permitida) | ✅ Match |
+| T8 | T7 | T7→T8 | ✅ Match |
+| T9 | T8 | T8→T9 | ✅ Match |
+| T10 | T6, T9 | Phase 2: T9→T10 na sequência; T6 é da Phase 1 | ✅ Match |
+| T11 | T10 | T10→T11 | ✅ Match |
+| T12 | T4, T11 | Phase 2: T11→T12 na sequência; T4 é da Phase 1 | ✅ Match |
+| T13 | T12 | Phase 3 abre com T13, após T12 (Phase 2) | ✅ Match |
+| T14 | T13 | T13→T14 | ✅ Match |
+| T15 | T1 | Phase 3: T15 roda após T14 na sequência; depende só de T1 (fase 1) | ✅ Match |
+| T16 | T15 | T15→T16 | ✅ Match |
+| T17 | T14, T16 | Phase 3: T16→T17 na sequência; T14 já concluída antes | ✅ Match |
+| T18 | T17 | Phase 4 abre com T18, após T17 (Phase 3) | ✅ Match |
+| T19–T24 | cada um depende do anterior | T18→T19→T20→T21→T22→T23→T24 | ✅ Match |
+| T25 | T24 | Phase 5 abre com T25, após T24 (Phase 4) | ✅ Match |
+| T26–T30 | cada um depende do anterior | T25→T26→T27→T28→T29→T30 | ✅ Match |
+| T31 | T13 | Phase 6 abre com T31; T13 é da Phase 3 | ✅ Match |
+| T32 | T31 | T31→T32 | ✅ Match |
+| T33 | T32 | T32→T33 | ✅ Match |
+| T34 | T33 | T33→T34 | ✅ Match |
+| T35 | T31 | Phase 7 abre com T35; depende de T31 (Phase 6) | ✅ Match |
+| T36 | T34, T35 | Phase 7: T34 (Phase 6) e T35 já concluídos antes de T36 | ✅ Match |
+| T37 | T35 | já concluído antes de T37 na sequência | ✅ Match |
+| T38 | T35 | já concluído antes de T38 | ✅ Match |
+| T39 | T25 | Phase 8 abre com T39; T25 é da Phase 5 | ✅ Match |
+| T40 | T38, T39 | ambos concluídos antes de T40 na sequência | ✅ Match |
+| T41–T44 | cada um depende do anterior | T40→T41→T42→T43→T44 | ✅ Match |
+| T45 | T39 | Phase 9 abre com T45; T39 é da Phase 8 | ✅ Match |
+| T46–T49 | cada um depende do anterior | T45→T46→T47→T48→T49 | ✅ Match |
+| T50 | T43, T48 | Phase 10 abre com T50; ambos já concluídos (Phase 8 e 9) | ✅ Match |
+| T51 | T50 | T50→T51 | ✅ Match |
+| T52 | T51 | T51→T52 | ✅ Match |
+| T53 | T49 | Phase 11 abre com T53; T49 é da Phase 9 | ✅ Match |
+| T54 | T53 | T53→T54 | ✅ Match |
+| T55 | T54 | T54→T55 | ✅ Match |
+| T56 | T53 | Phase 11: já concluída antes de T56 na sequência | ✅ Match |
+| T57 | T55 | Phase 12 abre com T57; T55 é da Phase 11 | ✅ Match |
+| T58–T60 | cada um depende do anterior | T57→T58→T59→T60 | ✅ Match |
+
+Nenhuma dependência aponta para uma fase posterior — todas apontam para trás ou dentro da mesma fase.
+
+---
+
+## Test Co-location Validation
+
+| Task | Code Layer Created/Modified | Matrix Requires | Task Says | Status |
+| --- | --- | --- | --- | --- |
+| T1 | Scaffold/config | none (build gate only) | none | ✅ OK |
+| T4, T13, T25, T39, T45 | Migração SQL/RLS | integration | integration | ✅ OK |
+| T5, T6 | Server client factory / middleware | unit | unit | ✅ OK |
+| T14, T31, T38 | Domínio puro (state machine, matching, soma) | unit | unit | ✅ OK |
+| T15, T17, T22, T28, T30, T32, T53, T55, T56 | Server Actions / lib de apoio | unit | unit | ✅ OK |
+| T35 | Componente visual com lógica (termos proibidos, campos obrigatórios) | unit (tem lógica, não é "visual puro") | unit | ✅ OK |
+| T7–T12, T18–T24, T26–T27, T29, T33–T34, T36–T37, T40–T44, T46–T52, T54 | Rotas/páginas e fluxos | e2e | e2e | ✅ OK |
+| T57, T58, T59 | RLS completo / textos proibidos / fluxos ponta a ponta | e2e / integration | integration / e2e | ✅ OK |
+| T60 | Auditoria perf/a11y | e2e (mas gate build, pois não é lógica de negócio) | e2e, gate build | ✅ OK — perf/a11y não bloqueiam no gate `full`, só no fechamento de fase |
+
+Nenhuma task usa "testado em outra task" como justificativa para `Tests: none` — as únicas `none` seriam config pura (T1, T2, T3), e nenhuma delas cria lógica de domínio.
+
+---
+
+## ASK About MCPs and Skills
+
+Duas perguntas ficam abertas antes do Execute (não bloqueiam Specify/Design/Tasks, mas devem ser confirmadas antes de começar a Fase 1):
+
+1. **Framework de teste**: esta tasks.md assumiu Vitest (unidade) + Playwright (e2e) por serem o padrão do ecossistema Next.js/Vercel e por não haver nenhum teste existente no repo para inferir. Confirma essa escolha, ou prefere outra (ex.: Jest, Cypress)?
+2. **MCPs e skills disponíveis nesta sessão para o Execute**: as tasks acima foram marcadas com `MCP: NONE` e `Skill: NONE` porque a implementação é código Next.js/Supabase direto, sem necessidade de ferramenta externa específica por task. Se você quiser usar alguma skill do catálogo (`frete-frontend-engineering`, `react-best-practices`, `accessibility`, `supabase`-específica se houver, etc.) em tasks específicas, diga quais e eu atualizo os campos `Tools` antes do Execute.
