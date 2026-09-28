@@ -59,6 +59,16 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: createAdminClientMock,
 }));
 
+// RN-23/CA-23.1: migracao do cookie de respostas de visitante -
+// mockada aqui porque depende de `next/headers` (cookies), fora do
+// escopo deste teste (a logica em si e' testada em
+// app/(investor)/descobrir/__tests__/actions.test.ts).
+const migrateCookieAnswersToProfileMock = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("@/app/(investor)/descobrir/actions", () => ({
+  migrateCookieAnswersToProfile: migrateCookieAnswersToProfileMock,
+}));
+
 const redirectMock = vi.fn((url: string) => {
   throw new Error(`REDIRECT:${url}`);
 });
@@ -150,6 +160,35 @@ describe("verifyOtp", () => {
       { id: "user-123", role: "investidor", nome: "helena" },
       { onConflict: "id", ignoreDuplicates: true }
     );
+  });
+
+  it("RN-23/CA-23.1: migra as respostas do cookie de visitante para investidor/empresa, nunca para produtor", async () => {
+    verifyOtpMock.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+      error: null,
+    });
+    const { verifyOtp } = await import("../../actions");
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({ email: "helena@example.com", role: "investidor", code: "123456" })
+      )
+    ).rejects.toThrow("REDIRECT:/descobrir/1");
+    expect(migrateCookieAnswersToProfileMock).toHaveBeenCalledWith("user-123");
+
+    migrateCookieAnswersToProfileMock.mockClear();
+    profileRoleResult = {
+      data: { role: "produtor", termos_aceitos_em: null },
+    };
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({ email: "raimunda@example.com", role: "produtor", code: "123456" })
+      )
+    ).rejects.toThrow("REDIRECT:/produtor");
+    expect(migrateCookieAnswersToProfileMock).not.toHaveBeenCalled();
   });
 
   it("depois de confirmar, volta para a URL original em vez do destino por papel (CA-02.3)", async () => {

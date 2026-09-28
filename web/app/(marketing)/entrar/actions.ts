@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { migrateCookieAnswersToProfile } from "@/app/(investor)/descobrir/actions";
 import {
   isSafeRedirect,
   resolvePostLoginRedirect,
@@ -121,6 +122,14 @@ export async function verifyOtp(
     .single();
 
   const actualRole = (profile?.role as ProfileRole | undefined) ?? (role as ProfileRole);
+
+  // RN-23/CA-23.1: migra as respostas da descoberta guardadas no
+  // cookie de visitante para `investor_answers` assim que ele entra -
+  // antes de qualquer redirect (termos ou destino final), para nunca
+  // perder o cookie por causa de um `redirect()` anterior.
+  if (actualRole === "investidor" || actualRole === "empresa") {
+    await migrateCookieAnswersToProfile(data.user.id);
+  }
 
   // RN-03/RF-04: investidor e empresa precisam aceitar os Termos de Uso e a
   // Politica de Privacidade no primeiro acesso, antes de qualquer outra

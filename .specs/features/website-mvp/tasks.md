@@ -838,10 +838,11 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Visitante sem conta responde tudo, entra, e as respostas aparecem salvas sem repetir (CA-23.1)
+- [x] Visitante sem conta responde tudo, entra, e as respostas aparecem salvas sem repetir (CA-23.1)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0006_investor_answers.sql` (tabela `investor_answers` + policies RLS "own row" completas, já corretas desde a criação — decisão explícita desta task, ver comentário na migração), `web/app/(investor)/descobrir/{types.ts,actions.ts}` (`saveAnswers`/`loadAnswers`/`migrateCookieAnswersToProfile`), `web/app/(investor)/descobrir/__tests__/actions.test.ts` (11 unit). `saveAnswers` sempre grava um cookie httpOnly `iasy_descobrir_respostas` (visitante ou logado, para "Voltar" sobreviver à navegação entre páginas de pergunta) e, quando logado com as 4 respostas obrigatórias completas, também grava em `investor_answers` via upsert por `investor_id`. `migrateCookieAnswersToProfile` é chamada por `verifyOtp` (`app/(marketing)/entrar/actions.ts`, SPEC_DEVIATION: fora do `Where` original desta task, mas necessário para RN-23 — mesmo padrão de tasks anteriores que tocaram `entrar/actions.ts`) logo após autenticar, migrando o cookie completo para o banco e apagando o cookie (CA-23.1). SPEC_DEVIATION: migração nomeada `0006_investor_answers.sql` (não `0005`, como tasks.md previa) porque `0005_verification_assignment.sql` (T26) já ocupava esse número antes desta fase começar. `web/app/(marketing)/entrar/codigo/__tests__/actions.test.ts` recebeu um mock de `migrateCookieAnswersToProfile` (a lógica real já é coberta pelos testes dedicados) e um teste novo confirmando que só investidor/empresa disparam a migração, nunca produtor.
 
 ---
 
