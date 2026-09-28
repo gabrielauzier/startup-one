@@ -581,11 +581,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Produção mensal zero, negativa ou não numérica é rejeitada (CA-06.3)
-- [ ] Ao menos 1 produto e 1 prática são obrigatórios para avançar
+- [x] Produção mensal zero, negativa ou não numérica é rejeitada (CA-06.3)
+- [x] Ao menos 1 produto e 1 prática são obrigatórios para avançar
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/lib/business/impact-options.ts` (produtos, práticas e as 7 opções de impacto — a PRD só cita exemplos, não a lista completa; lista definida e documentada aqui como SPEC_DEVIATION/assumption, para reuso sem divergência na descoberta do investidor, T33+), `web/app/(producer)/produtor/cadastro/3/{page.tsx,parte3-form.tsx,actions.ts}`, `web/e2e/produtor-parte3.spec.ts` (2 e2e). BUG DESCOBERTO E CORRIGIDO nesta task, retroativo a T19/T20: os Server Actions do React 19 resetam inputs **não controlados** de um `<form action=...>` após qualquer submissão (sucesso *ou* erro) — um erro num campo (ex.: "escolha 1 produto") apagava todos os outros campos já preenchidos. `Parte1Form`, `Parte2Form` e `Parte3Form` foram convertidos de `defaultValue`/`defaultChecked` para inputs controlados (`useState` inicializado do rascunho) para sobreviver a re-submissões parciais; comportamento confirmado por instrumentação (mount id estável, valor do input revertendo mesmo sem remount) antes da correção.
 
 ---
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,16 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
   const nomeRef = useRef<HTMLInputElement>(null);
   const telefoneRef = useRef<HTMLInputElement>(null);
   const cnpjRef = useRef<HTMLInputElement>(null);
-  const autorizacaoRef = useRef<HTMLInputElement>(null);
+
+  // Controlado no cliente: apos um Server Action rodar (sucesso ou
+  // erro), React reseta inputs nao-controlados do formulario - sem
+  // isso, um erro num campo (ex.: CNPJ) apagaria os demais ja
+  // preenchidos.
+  const [nome, setNome] = useState(() => draft.nome ?? "");
+  const [telefone, setTelefone] = useState(() => draft.telefone ?? "");
+  const [email, setEmail] = useState(() => draft.email ?? "");
+  const [cnpj, setCnpj] = useState(() => draft.cnpj ?? "");
+  const [autorizacao, setAutorizacao] = useState(() => draft.autorizacao ?? false);
 
   // CA-06.1: mantem o foco no primeiro campo invalido com a mensagem de erro.
   useEffect(() => {
@@ -32,7 +41,6 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
       nome: nomeRef,
       telefone: telefoneRef,
       cnpj: cnpjRef,
-      autorizacao: autorizacaoRef,
     };
     refs[state.field]?.current?.focus();
   }, [state.field, state.error]);
@@ -47,7 +55,8 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
           id="nome"
           name="nome"
           ref={nomeRef}
-          defaultValue={draft.nome ?? ""}
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
           required
         />
       </div>
@@ -61,7 +70,8 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
           name="telefone"
           type="tel"
           ref={telefoneRef}
-          defaultValue={draft.telefone ?? ""}
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
           required
         />
       </div>
@@ -74,7 +84,8 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
           id="email"
           name="email"
           type="email"
-          defaultValue={draft.email ?? ""}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </div>
 
@@ -86,7 +97,8 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
           id="cnpj"
           name="cnpj"
           ref={cnpjRef}
-          defaultValue={draft.cnpj ?? ""}
+          value={cnpj}
+          onChange={(e) => setCnpj(e.target.value)}
           required
         />
         {state.field === "cnpj" && (
@@ -98,8 +110,8 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
         <Checkbox
           id="autorizacao"
           name="autorizacao"
-          ref={autorizacaoRef}
-          defaultChecked={draft.autorizacao ?? false}
+          checked={autorizacao}
+          onCheckedChange={(checked) => setAutorizacao(checked === true)}
         />
         <label htmlFor="autorizacao" className="font-body text-sm text-foreground/80">
           Autorizo a Îasy a usar estes dados para montar meu perfil e

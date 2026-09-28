@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,18 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
   const familiasRef = useRef<HTMLInputElement>(null);
   const anosRef = useRef<HTMLInputElement>(null);
 
+  // Controlado no cliente pelo mesmo motivo do Parte1Form: React reseta
+  // inputs nao-controlados apos qualquer Server Action, mesmo em erro.
+  const [nome, setNome] = useState(() => draft.nome ?? "");
+  const [tipoOrg, setTipoOrg] = useState(() => draft.tipoOrg ?? "");
+  const [cidade, setCidade] = useState(() => draft.cidade ?? "");
+  const [uf, setUf] = useState(() => draft.uf ?? "");
+  const [familias, setFamilias] = useState(() => draft.familias?.toString() ?? "");
+  const [anosAtividade, setAnosAtividade] = useState(
+    () => draft.anosAtividade?.toString() ?? ""
+  );
+  const [recebeVisitas, setRecebeVisitas] = useState(() => draft.recebeVisitas ?? false);
+
   useEffect(() => {
     if (!state.field) return;
     const refs: Record<string, React.RefObject<HTMLInputElement | null>> = {
@@ -66,7 +78,14 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
         <label htmlFor="nome" className="font-body text-sm font-medium">
           Nome do negócio
         </label>
-        <Input id="nome" name="nome" ref={nomeRef} defaultValue={draft.nome ?? ""} required />
+        <Input
+          id="nome"
+          name="nome"
+          ref={nomeRef}
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          required
+        />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -76,7 +95,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
         <select
           id="tipoOrg"
           name="tipoOrg"
-          defaultValue={draft.tipoOrg ?? ""}
+          value={tipoOrg}
+          onChange={(e) => setTipoOrg(e.target.value)}
           aria-label="Tipo de organização"
           className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
         >
@@ -97,7 +117,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
           id="cidade"
           name="cidade"
           ref={cidadeRef}
-          defaultValue={draft.cidade ?? ""}
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
           required
         />
       </div>
@@ -111,7 +132,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
           name="uf"
           ref={ufRef}
           maxLength={2}
-          defaultValue={draft.uf ?? ""}
+          value={uf}
+          onChange={(e) => setUf(e.target.value)}
           required
         />
       </div>
@@ -126,7 +148,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
           type="number"
           min={0}
           ref={familiasRef}
-          defaultValue={draft.familias ?? ""}
+          value={familias}
+          onChange={(e) => setFamilias(e.target.value)}
           required
         />
       </div>
@@ -141,7 +164,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
           type="number"
           min={0}
           ref={anosRef}
-          defaultValue={draft.anosAtividade ?? ""}
+          value={anosAtividade}
+          onChange={(e) => setAnosAtividade(e.target.value)}
           required
         />
       </div>
@@ -150,7 +174,8 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
         <Checkbox
           id="recebeVisitas"
           name="recebeVisitas"
-          defaultChecked={draft.recebeVisitas ?? false}
+          checked={recebeVisitas}
+          onCheckedChange={(checked) => setRecebeVisitas(checked === true)}
         />
         <label htmlFor="recebeVisitas" className="font-body text-sm text-foreground/80">
           Recebemos visitas de investidores
