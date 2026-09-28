@@ -1151,10 +1151,12 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Índice único parcial impede 2º interesse Pendente/Aceito do mesmo investidor no mesmo negócio (RN-37)
+- [x] Índice único parcial impede 2º interesse Pendente/Aceito do mesmo investidor no mesmo negócio (RN-37)
 
 **Tests**: integration
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0008_interests.sql` (tabelas `interests`/`connection_events`, índice único parcial `interests_unique_pendente_aceito_per_investor_business` em `(business_id, investor_id) where status in ('pendente','aceito')`, `CHECK (valor >= 1000)`, RLS real: investidor vê/edita os próprios interesses enquanto Pendente, produtora vê/decide os do próprio negócio enquanto Pendente, verificador vê todos; `connection_events` segue a mesma visibilidade composta), `web/supabase/tests/interests.sql` (5 asserções pgTAP: tabelas existem, CHECK de valor mínimo, índice único bloqueia 2º Pendente, cancelar libera um novo). Nomeada `0008` (não `0007`, como o texto acima previa) porque `0007_documents.sql` (T39, Lote 4) já ocupou esse número — mesmo padrão de desvio de numeração já documentado em `0007_documents.sql`. Gate: lint + typecheck (rebuild `.next`, exigiu criar `web/.env.local` a partir de `.env.local.example` — não existia neste worktree) + `npm run test` (184) + `npx supabase test db` (25, incluindo os 5 novos) verdes.
 
 ---
 
