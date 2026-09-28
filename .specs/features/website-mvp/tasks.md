@@ -815,12 +815,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Teste unitário reproduz exatamente o caso CA-24.1 (resultado 94%)
-- [ ] Teste cobre CA-24.2 (35% fica fora dos resultados) e CA-24.3 (determinístico em execuções repetidas)
-- [ ] Gate check passes: `npm run test`
+- [x] Teste unitário reproduz exatamente o caso CA-24.1 (resultado 94%)
+- [x] Teste cobre CA-24.2 (35% fica fora dos resultados) e CA-24.3 (determinístico em execuções repetidas)
+- [x] Gate check passes: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/matching/score.ts` (`calculateAlignment`), `web/lib/matching/__tests__/score.test.ts` (9 unit). CA-24.1 usa o caso literal já existente em `mvp/prd-mvp.md` (RN-24: negócio de açaí, R$180 mil/24 meses, Ambiental 90 → 94%) em vez de inventar um caso novo — a nota do lote pedia para "construir" um caso, mas o exemplo numérico completo já existe na PRD original (não estava em spec.md/design.md, que só citam os pesos); reproduzido literalmente. CA-24.2 constrói um negócio com soma exata de 35 (produto 30 + prioridade 5, demais critérios 0) para demonstrar que a função devolve um valor abaixo do corte de 40% — o corte em si (RN-24: "mostram negócios com 40% ou mais") é responsabilidade da tela de resultados (T36), não da função pura, então o teste só verifica `toBeLessThan(40)` sem a função conhecer a regra de corte.
 
 ---
 
