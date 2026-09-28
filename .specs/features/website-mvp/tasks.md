@@ -1295,11 +1295,13 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Editar o valor de um interesse Pendente respeita o limite do "Busca R$ X" (RN-36)
-- [ ] Cancelar remove o interesse da soma de RN-29 (CA-29.2)
+- [x] Editar o valor de um interesse Pendente respeita o limite do "Busca R$ X" (RN-36)
+- [x] Cancelar remove o interesse da soma de RN-29 (CA-29.2)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/interesses/page.tsx` (lista Interesses e Pedidos de documento do investidor com situação — reusa `computeDocumentSituation`/`SITUATION_LABELS` de T41), `web/app/(investor)/interesses/actions.ts` (`editInterestValue`: mesmo limite de RN-36 de `createInterest`, T46; `cancelInterest`: RLS `interests_update_own_pending` de T45 só permite Pendente→Cancelado), `web/app/(investor)/interesses/EditInterestForm.tsx` (client component controlado, mesmo padrão de `InterestModal`). `web/e2e/interesses-investidor.spec.ts` (2 testes: RN-36 no editar, CA-29.2 no cancelar — confirma a soma de `interest-sum.ts` cai para R$ 0 na página do negócio depois do cancelamento). **Gotcha de ambiente descoberto e corrigido nesta task**: `supabase/config.toml`'s `[auth.rate_limit].email_sent` estava no padrão do CLI (2 e-mails/hora), insuficiente para o volume de logins OTP deste conjunto de e2e — elevado para 1000 (só afeta o ambiente local de dev/teste com Mailpit, documentado no próprio arquivo e em `.specs/STATE.md`); exigiu `supabase stop && supabase start` para aplicar, e nesse meio-tempo o Docker Desktop também precisou ser reiniciado (estava fora do ar, sem relação com o código). Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` (2/2 novos).
 
 ---
 
