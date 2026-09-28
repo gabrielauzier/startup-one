@@ -423,11 +423,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Teste unitário cobre toda transição válida do diagrama e rejeita toda transição não listada (CA-12.1)
-- [ ] Gate check passes: `npm run test`
+- [x] Teste unitário cobre toda transição válida do diagrama e rejeita toda transição não listada (CA-12.1)
+- [x] Gate check passes: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/business/state-machine.ts` (`canTransition`/`assertTransition`/`InvalidBusinessTransitionError`), `web/lib/business/__tests__/state-machine.test.ts` (13 testes: as 9 transições válidas, as 40 combinações inválidas geradas programaticamente, e os dois comportamentos de `assertTransition`).
 
 ---
 
