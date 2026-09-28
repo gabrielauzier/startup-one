@@ -1125,12 +1125,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Documento enviado aparece na aba Documentos do negócio com a situação correta
+- [x] Documento enviado aparece na aba Documentos do negócio com a situação correta
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(documentos): página do negócio, controle de acesso e visualizador`
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/painel/documentos-adicionais/page.tsx`, `documentos-adicionais-form.tsx` (client), `actions.ts` (`createDocumentUploadUrl`, `confirmDocumentUpload`, `listDocumentosAdicionais`), `web/components/upload/PhotoUploader.tsx` (adaptado: `createUploadUrlFn`/`confirmUploadFn`/`itemLabel` injetáveis, com os defaults originais preservados — uso existente em `produtor/cadastro/4` inalterado, confirmado sem regressão pelos e2e `produtor-parte4`/`produtor-cadastro-completo`), `web/e2e/produtor-documentos-adicionais.spec.ts` (1 teste). Documento adicional grava em `documents` (mesmo bucket `documentos` do visualizador, T42) via cliente admin (`documents` só tem policy de SELECT desde o T39 — mesmo padrão já usado por `evidences`/`certifications`). `/produtor/painel/documentos-adicionais` funciona mesmo sem `/produtor/painel/page.tsx` existir ainda (só chega no T50, Fase 10, fora deste lote) — rotas-filhas do App Router não dependem de um `page.tsx` no segmento pai. Rota já protegida pelo middleware (`/produtor(\/|$)` → role produtor). SPEC_DEVIATION (mesmo gap do T22/T24/T42): Storage local desabilitado neste ambiente — o e2e simula um upload já concluído inserindo a linha em `documents` direto via REST (`createDocument`, reaproveitado do T41) em vez de exercitar o upload real do `PhotoUploader`; a lógica de geração de URL assinada de upload (`createDocumentUploadUrl`) segue o mesmo padrão real já usado e testado em `createUploadUrl` (T09/T22). Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `npm run test:e2e -- produtor-documentos-adicionais` (1/1) + regressão `produtor-parte4`/`produtor-cadastro-completo` (2/2) verdes.
 
 ---
 

@@ -6,7 +6,6 @@ import { validateEvidenceFile } from "@/lib/upload/validate";
 import {
   confirmEvidence,
   createUploadUrl,
-  type EvidenceGroup,
 } from "@/app/(producer)/produtor/cadastro/4/actions";
 
 type QueueStatus = "pending" | "uploading" | "done" | "error";
@@ -18,14 +17,44 @@ interface QueueItem {
   error?: string;
 }
 
+export interface CreateUploadUrlFn {
+  (businessId: string, grupo: string, fileName: string): Promise<{
+    ok: boolean;
+    error?: string;
+    path?: string;
+    signedUrl?: string;
+  }>;
+}
+
+export interface ConfirmUploadFn {
+  (
+    businessId: string,
+    grupo: string,
+    path: string,
+    mime: string,
+    tamanho: number
+  ): Promise<{ ok: boolean; error?: string }>;
+}
+
 export interface PhotoUploaderProps {
   businessId: string;
-  grupo: EvidenceGroup;
+  grupo: string;
   label: string;
   required?: boolean;
   highlight?: boolean;
   initialCount?: number;
   onUploaded?: () => void;
+  /** Rótulo do arquivo enviado no resumo (ex.: "fotos", "documentos"). Padrão: "fotos". */
+  itemLabel?: string;
+  /**
+   * T44 (RF-25): permite reaproveitar este componente para enviar
+   * documentos adicionais (laudo, certificado completo) para a tabela
+   * `documents`, em vez das fotos de cadastro (`evidences`, T09) - por
+   * padrão usa `createUploadUrl`/`confirmEvidence` de
+   * cadastro/4/actions.ts (comportamento original, inalterado).
+   */
+  createUploadUrlFn?: CreateUploadUrlFn;
+  confirmUploadFn?: ConfirmUploadFn;
 }
 
 /**
@@ -43,6 +72,9 @@ export function PhotoUploader({
   highlight,
   initialCount = 0,
   onUploaded,
+  itemLabel = "fotos",
+  createUploadUrlFn = createUploadUrl as CreateUploadUrlFn,
+  confirmUploadFn = confirmEvidence as ConfirmUploadFn,
 }: PhotoUploaderProps) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [uploadedCount, setUploadedCount] = useState(initialCount);
@@ -68,7 +100,7 @@ export function PhotoUploader({
           mime = uploadBlob.type || file.type;
         }
 
-        const created = await createUploadUrl(businessId, grupo, file.name);
+        const created = await createUploadUrlFn(businessId, grupo, file.name);
         if (!created.ok || !created.signedUrl || !created.path) {
           throw new Error(created.error ?? "Falha ao preparar o envio.");
         }
@@ -82,7 +114,7 @@ export function PhotoUploader({
           throw new Error("Falha no envio. Tente de novo quando a conexão voltar.");
         }
 
-        const confirmed = await confirmEvidence(
+        const confirmed = await confirmUploadFn(
           businessId,
           grupo,
           created.path,
@@ -106,7 +138,7 @@ export function PhotoUploader({
         );
       }
     },
-    [businessId, grupo, onUploaded]
+    [businessId, grupo, onUploaded, createUploadUrlFn, confirmUploadFn]
   );
 
   function handleFiles(files: FileList | null) {
@@ -128,7 +160,9 @@ export function PhotoUploader({
       </p>
 
       {uploadedCount > 0 && (
-        <p className="font-body text-sm text-primary">Enviado · {uploadedCount} fotos</p>
+        <p className="font-body text-sm text-primary">
+          Enviado · {uploadedCount} {itemLabel}
+        </p>
       )}
 
       <input
