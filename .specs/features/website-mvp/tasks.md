@@ -488,13 +488,15 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `saveDraftPart` grava em `business_revisions` com status `rascunho`
-- [ ] Rota de cron protegida por header secreto retorna 401 sem o header
+- [x] `saveDraftPart` grava em `business_revisions` com status `rascunho`
+- [x] Rota de cron protegida por header secreto retorna 401 sem o header
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(cadastro): infraestrutura de rascunho offline e persistência por parte`
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/cadastro/actions.ts` (`saveDraftPart`), `web/app/api/cron/expire-drafts/route.ts`, com 10 testes unit somados. `saveDraftPart` usa o cliente admin (mesma razão do T9/T17 anteriores: `businesses`/`business_revisions` não têm policy de RLS até o T25) e confere que o negócio pertence ao usuário logado antes de gravar. O cron calcula "atividade" pela revisão mais recente em `business_revisions`, caindo para `businesses.created_at` quando não há nenhuma — mais preciso que só olhar a criação do negócio. O aviso de 7 dias antes (RN-07) fica como `TODO(T53)`, comentado no código, pois a fila de notificações só existe a partir do T53.
 
 ---
 
