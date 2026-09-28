@@ -788,13 +788,15 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test: selo concedido em 01/10/2026 sem renovação vira `expirado` ao simular a data 01/10/2027 (CA-19.2)
-- [ ] Rota idempotente: rodar 2x no mesmo dia não duplica o efeito
+- [x] Unit test: selo concedido em 01/10/2026 sem renovação vira `expirado` ao simular a data 01/10/2027 (CA-19.2)
+- [x] Rota idempotente: rodar 2x no mesmo dia não duplica o efeito
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(verificacao): fila, análise, selo e notas A/S/G`
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/api/cron/expire-seals/route.ts` (protegido pelo mesmo header `x-cron-secret`/`CRON_SECRET` do T17; move `businesses.status='verificado'` com `selo_valido_ate` no passado para `expirado`, via `assertTransition`), `web/app/api/cron/expire-seals/__tests__/route.test.ts` (5 unit: 401 sem/errado segredo, expira selo vencido — CA-19.2, não expira selo ainda válido, idempotência rodando 2x). A query já filtra só `status='verificado'`, então a 2ª rodada no mesmo dia não encontra mais nada a expirar (idempotente por construção, sem precisar de trava adicional). TODO(T53) documentado no código para o aviso de 30 dias antes (fila de notificações só existe a partir do T53, mesmo padrão do T17). `npm run test` (138/138), `lint`/`typecheck`/`build` limpos.
 
 ---
 
