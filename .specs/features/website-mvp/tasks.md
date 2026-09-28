@@ -537,11 +537,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] CNPJ com dígito inválido bloqueia o avanço (CA-05.1); unit test de `lib/validation/cnpj.ts` cobre casos válidos/inválidos
-- [ ] Sem autorização marcada, "Continuar" não avança (CA-03.1)
+- [x] CNPJ com dígito inválido bloqueia o avanço (CA-05.1); unit test de `lib/validation/cnpj.ts` cobre casos válidos/inválidos
+- [x] Sem autorização marcada, "Continuar" não avança (CA-03.1)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/validation/cnpj.ts` (+ 9 testes unit), `web/app/(producer)/produtor/cadastro/1/{page.tsx,parte1-form.tsx,actions.ts}` (substitui o placeholder do T16), `web/app/(producer)/produtor/cadastro/1/__tests__/actions.test.ts` (5 unit), `web/e2e/produtor-parte1.spec.ts` (1 e2e smoke, cobertura extra além do gate declarado). `submitParte1` usa `saveDraftPart` já existente; `lib/business/draft.ts` (novo, SPEC_DEVIATION de `Where`) reconstrói o rascunho a partir de `business_revisions` (última revisão por parte) para preencher o formulário ao voltar (CA-06.2), em vez de duplicar os campos nas colunas de `businesses` antes do envio final (T24 faz a agregação).
 
 ---
 
