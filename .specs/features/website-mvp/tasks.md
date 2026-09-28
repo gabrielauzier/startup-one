@@ -699,11 +699,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test de `business-days.ts`: item com 4 dias úteis é classificado "amarelo", com 6 "vermelho" (CA-16.1)
-- [ ] Verificador B não consegue decidir item já atribuído ao verificador A há menos de 24h (CA-17.1)
+- [x] Unit test de `business-days.ts`: item com 4 dias úteis é classificado "amarelo", com 6 "vermelho" (CA-16.1)
+- [x] Verificador B não consegue decidir item já atribuído ao verificador A há menos de 24h (CA-17.1)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/business-days.ts` (`businessDaysBetween`/`classifyQueueUrgency`, + `web/lib/__tests__/business-days.test.ts`, 5 unit cobrindo exatamente os limites de CA-16.1: 3→normal, 4→amarelo, 5→amarelo, 6→vermelho), `web/lib/verification/assignment.ts` (`canAssign`, pura, + `web/lib/verification/__tests__/assignment.test.ts`, 5 unit cobrindo CA-17.1: bloqueio de outro verificador dentro de 24h, liberação após 24h, o próprio dono sempre pode reabrir), `web/supabase/migrations/0005_verification_assignment.sql` (`businesses.assigned_to`/`assigned_at` — colunas em vez de tabela dedicada, é estado 1:1 por negócio, não histórico), `web/app/(verifier)/verificacao/{page.tsx,actions.ts,AssumirButton.tsx}`. A leitura de `businesses` na fila usa o cliente de sessão (RLS do T25 já cobre "verificador vê tudo"); `assignToMe` escreve via cliente admin (sem policy de UPDATE para verificador ainda, mesmo padrão usado para o produtor desde o T17). `npm run test` (112/112), `npm run build`/`typecheck`/`lint` limpos.
 
 ---
 
