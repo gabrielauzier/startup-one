@@ -559,11 +559,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Cidade fora da Amazônia Legal mostra o aviso do piloto e oferece deixar contato (CA-05.2)
-- [ ] Voltar para a parte 1 e retornar preserva os dados (CA-06.2)
+- [x] Cidade fora da Amazônia Legal mostra o aviso do piloto e oferece deixar contato (CA-05.2)
+- [x] Voltar para a parte 1 e retornar preserva os dados (CA-06.2)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/lib/validation/amazonia-legal.ts` (validação por UF, simplificação documentada em vez da lista completa de ~772 municípios do IBGE), `web/app/(producer)/produtor/cadastro/2/{page.tsx,parte2-form.tsx,actions.ts}`, `web/e2e/produtor-parte2.spec.ts` (2 e2e). UF fora da Amazônia Legal salva o contato já coletado na Parte 1 (não perde o progresso) mas não avança para a Parte 3, mostrando a explicação do escopo do piloto (CA-05.2).
 
 ---
 

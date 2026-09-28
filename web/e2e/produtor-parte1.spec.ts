@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { loginAsProducer } from "./helpers/auth";
 
 test.describe("Parte 1 Sobre você /produtor/cadastro/1 (PRO-02) - smoke", () => {
