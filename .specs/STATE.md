@@ -69,10 +69,10 @@
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)
-- **Phase / Task**: Fase 1 (Fundação do projeto) **completa e commitada** — T1 a T6 ✅. Iniciando Fase 2 (Entrada e acesso — M1, T7–T12).
-- **Completed**: T1, T2, T3, T4, T5, T6 (commits `675adc7`, `473f7eb`, `14d9537`, `26ef9bb`, `455263a`, `3f8a76f` na branch `main`)
-- **In-progress**: nenhuma — próxima task a iniciar é T7 (Página inicial `/`).
-- **Next step**: Executar T7–T12 da Fase 2 (entrada sem senha, OTP, termos, redirecionamento por perfil, RLS de `profiles`).
-- **Blockers**: nenhum. `supabase start`/`db reset`/`test db` funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (o container de Storage falha healthcheck neste ambiente; reabilitar antes do T22, que é a primeira task a usar Storage). Questões jurídicas/parceiro seguem registradas como Assumptions em `spec.md`, sem bloquear o código.
+- **Phase / Task**: Fases 1 e 2 **completas e commitadas** — T1 a T12 ✅. Próxima: Fase 3 (Cadastro do produtor — dados e rascunho offline, T13–T17).
+- **Completed**: T1–T6 (Fase 1) e T7–T12 (Fase 2). Últimos commits: `019de9d` (T11), `5e26488` (T12), branch `feature/website-mvp` (a app criou essa branch de sessão automaticamente; `main` local parou em `3f8a76f`/T4).
+- **In-progress**: nenhuma — próxima task a iniciar é T13 (migração `businesses`, `business_revisions`, `evidences`, `certifications`, `partners`).
+- **Next step**: Executar a Fase 3 (T13–T17): schema de negócios, máquina de estados (`lib/business/state-machine.ts`), rascunho offline (IndexedDB) e o service worker escopado ao cadastro.
+- **Blockers**: nenhum. `supabase start`/`db reset`/`test db`/e2e funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (reabilitar antes do T22). `web/.env.local` (gitignored) precisa existir com as credenciais do Supabase local para os e2e rodarem — valores documentados em `.env.local.example` e obtidos via `supabase status -o env`. Questões jurídicas/parceiro seguem como Assumptions em `spec.md`, sem bloquear o código.
 - **Uncommitted files**: nenhum
-- **Branch**: main
+- **Branch**: feature/website-mvp
