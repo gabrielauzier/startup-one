@@ -175,10 +175,11 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `components/ui/{button,input,card,checkbox}.tsx` existem e renderizam sem erro de tipo
+- [x] `components/ui/{button,input,card,checkbox}.tsx` existem e renderizam sem erro de tipo
 
 **Tests**: none
 **Gate**: build
+**Status**: ✅ Complete (2026-09-27) — `web/components/ui/{button,input,card,checkbox}.tsx` via `shadcn@latest init` (style `base-nova`, Base UI + `cn` + `class-variance-authority` + `lucide-react`). SPEC_DEVIATION: o `init` do shadcn reescreveu `app/globals.css` e `app/layout.tsx` do T2 (fundo/primary voltaram para os tokens neutros padrão do shadcn e a fonte Geist foi reintroduzida); corrigido no mesmo commit para manter `--background`/`--primary`/`--font-heading`/`--font-sans` nos valores da PRD (verde `#1E5A3C`, creme `#F5F1E8`, Newsreader/Hanken Grotesk), sem reverter as demais variáveis do shadcn (border, ring, card, sidebar, chart) que os componentes precisam.
 
 ---
 
