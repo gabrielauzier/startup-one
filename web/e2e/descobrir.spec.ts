@@ -80,6 +80,6 @@ test.describe("Descoberta guiada /descobrir/[n]", () => {
     await page.getByRole("button", { name: "Pular esta pergunta" }).click();
 
     await expect(page).toHaveURL(/\/descobrir\/resultados$/);
-    await expect(page.getByText("Sem critério de impacto (pergunta pulada).")).toBeVisible();
+    await expect(page.getByText("Sem critério de impacto", { exact: true })).toBeVisible();
   });
 });

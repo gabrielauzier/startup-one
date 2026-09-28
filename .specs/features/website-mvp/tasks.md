@@ -931,11 +931,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Filtro "Com selo de certificadora" remove negócios sem selo conferido (CA-25.1)
-- [ ] Resultado empatado desempata por média das notas e depois verificação mais recente (RN-24)
+- [x] Filtro "Com selo de certificadora" remove negócios sem selo conferido (CA-25.1)
+- [x] Resultado empatado desempata por média das notas e depois verificação mais recente (RN-24)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/lib/matching/rank.ts` (`sortByAlignment`, extraído como função pura testável — ordena por alinhamento, depois média das 3 notas, depois `verificado_em`) + `web/lib/matching/__tests__/rank.test.ts` (4 unit), `web/app/(investor)/descobrir/resultados/page.tsx` (substitui por inteiro o placeholder do T33/T34: consulta `businesses` com `status='verificado'` pelo cliente de sessão — RLS pública do T25 já cobre —, `certifications` conferidas pelo cliente admin (sem RLS própria ainda), calcula o alinhamento de cada um com `calculateAlignment`, filtra ≥40% e ordena com `sortByAlignment`; chips do resumo das respostas; filtros Todos/Com selo/Recebe visitas como links com `?filtro=` na URL), `web/e2e/descobrir-resultados.spec.ts` (1 e2e: semeia 4 negócios verificados via REST com notas desenhadas para colidir no alinhamento arredondado (92%) e desempatar por média e depois por `verificado_em`, confirma a ordem A→D→C→B, depois confirma que o filtro "Com selo" deixa só o negócio certificado). SPEC_DEVIATION: o teste identifica "seus" negócios por um `runId` único embutido no nome, em vez de assumir a contagem total de cards — o banco local do e2e é compartilhado entre todos os arquivos de spec (sem reset entre eles) e outras suites já deixam negócios `verificado` para trás, então uma asserção de contagem absoluta seria frágil. `web/e2e/descobrir.spec.ts` (T33) teve 1 linha ajustada: o texto do placeholder antigo virou um chip ("Sem critério de impacto", sem o sufixo "(pergunta pulada)." do texto anterior).
 
 ---
 
