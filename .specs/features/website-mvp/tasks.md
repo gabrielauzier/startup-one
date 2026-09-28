@@ -721,12 +721,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] "Aprovar" fica desabilitado com item do checklist não conferido (CA-18.1)
-- [ ] Sem documento da terra, só "Pedir ajuste" está disponível (CA-08.2)
-- [ ] "Pedir ajuste"/"Reprovar" exigem motivo com 20+ caracteres
+- [x] "Aprovar" fica desabilitado com item do checklist não conferido (CA-18.1)
+- [x] Sem documento da terra, só "Pedir ajuste" está disponível (CA-08.2)
+- [x] "Pedir ajuste"/"Reprovar" exigem motivo com 20+ caracteres
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/lib/verification/checklist.ts` (`CHECKLIST_ITEMS`/`isChecklistComplete`/`isValidMotivo`, + 6 unit em `__tests__/checklist.test.ts`), `web/app/(verifier)/verificacao/[id]/{page.tsx,actions.ts,AnaliseForm.tsx,HistoryPanel.tsx}`, `web/e2e/verificacao-analise.spec.ts` (4 e2e: CA-18.1, CA-08.2, motivo 20+, ajuste bem-sucedido), `web/e2e/helpers/{auth.ts,db.ts}` (`loginAsVerifier`, `createBusiness`). `actions.ts` já inclui `requestAdjustment`/`reject` completos e um `approve` funcional (usado pelo botão Aprovar, mas sua validação dedicada de notas A/S/G — CA-19.1 — e os testes unitários ficam para o T28, que extrai essa lógica). Leitura de `businesses` via cliente de sessão (RLS do T25); evidências/certificações/verifications via cliente admin (sem policy própria ainda). **Correção de flakiness pré-existente encontrada durante a rodada dupla do gate**: `web/e2e/termos.spec.ts` (`getTermosAceitosEm`) usava `GET /auth/v1/admin/users?email=...` direto, sem o fix de `per_page=1000` + filtro client-side já aplicado em `e2e/helpers/db.ts` desde o T24 — sob a suíte completa (muitos usuários acumulados no banco local), `users[0]` pegava um usuário arbitrário e o teste falhava intermitentemente. Corrigido para reusar o mesmo padrão. Suíte completa rodada 2x seguidas após a correção: `npm run test:e2e` 31/31 nas duas rodadas.
 
 ---
 

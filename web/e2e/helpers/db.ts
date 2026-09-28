@@ -76,6 +76,31 @@ export async function promoteToVerifier(userId: string): Promise<void> {
   }
 }
 
+/**
+ * Cria um negocio direto via REST (service role), ja com os campos
+ * agregados que `submitBusiness` (T24) preencheria no envio - usado
+ * pelos e2e da fila/analise de verificacao (T26+) para nao precisar
+ * repetir o fluxo completo de 5 partes so' para chegar em `em_analise`.
+ */
+export async function createBusiness(
+  ownerId: string,
+  overrides: Record<string, unknown> = {}
+): Promise<string> {
+  const res = await fetch(`${API_URL}/rest/v1/businesses`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=representation" },
+    body: JSON.stringify({
+      owner_id: ownerId,
+      status: "em_analise",
+      nome: `Negócio de Teste ${Date.now()}`,
+      cnpj: null,
+      ...overrides,
+    }),
+  });
+  const rows = (await res.json()) as { id: string }[];
+  return rows[0].id;
+}
+
 export async function createPartner(nome: string): Promise<string> {
   const res = await fetch(`${API_URL}/rest/v1/partners`, {
     method: "POST",
