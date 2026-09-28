@@ -9,6 +9,7 @@ import {
   isValidMotivo,
   type ChecklistState,
 } from "@/lib/verification/checklist";
+import { validateNotas, seloValidoAte } from "@/lib/verification/notas";
 
 export interface DecisionResult {
   ok: boolean;
@@ -156,12 +157,6 @@ export interface ApproveInput {
   notaG: number;
 }
 
-const DOZE_MESES_MS = 365 * 24 * 60 * 60 * 1000;
-
-function isValidNota(nota: number): boolean {
-  return Number.isInteger(nota) && nota >= 0 && nota <= 100;
-}
-
 /**
  * RF-15/RN-18/RN-19: Aprovar exige todos os itens do checklist
  * conferidos (CA-18.1) e as 3 notas A/S/G inteiras 0-100 (CA-19.1,
@@ -176,10 +171,9 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
     return { ok: false, error: "Confira todos os itens do checklist antes de aprovar." };
   }
 
-  for (const nota of [input.notaA, input.notaS, input.notaG]) {
-    if (!isValidNota(nota)) {
-      return { ok: false, error: "As notas precisam ser números inteiros entre 0 e 100." };
-    }
+  const notasCheck = validateNotas(input.notaA, input.notaS, input.notaG);
+  if (!notasCheck.ok) {
+    return { ok: false, error: notasCheck.error };
   }
 
   const admin = createAdminClient();
@@ -201,7 +195,6 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
   }
 
   const now = new Date();
-  const seloValidoAte = new Date(now.getTime() + DOZE_MESES_MS);
 
   const { error: updateError } = await admin
     .from("businesses")
@@ -211,7 +204,7 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
       nota_s: input.notaS,
       nota_g: input.notaG,
       verificado_em: now.toISOString(),
-      selo_valido_ate: seloValidoAte.toISOString(),
+      selo_valido_ate: seloValidoAte(now).toISOString(),
       assigned_to: null,
       assigned_at: null,
     })

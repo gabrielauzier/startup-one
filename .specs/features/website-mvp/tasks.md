@@ -744,11 +744,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Nota decimal ou fora de 0–100 é rejeitada (CA-19.1) — reforça o `CHECK` da T13 na camada de aplicação
-- [ ] Decisão gravada com autor, data, hora e motivo, sem edição posterior (CA-18.2)
+- [x] Nota decimal ou fora de 0–100 é rejeitada (CA-19.1) — reforça o `CHECK` da T13 na camada de aplicação
+- [x] Decisão gravada com autor, data, hora e motivo, sem edição posterior (CA-18.2)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/verification/notas.ts` (`isValidNota`/`validateNotas`/`seloValidoAte`, extraído de `actions.ts` para ser puro e testável, + 9 unit em `__tests__/notas.test.ts` cobrindo CA-19.1: decimal, negativa, >100, NaN, e o cálculo exato de 12 meses), `web/app/(verifier)/verificacao/[id]/__tests__/approve.test.ts` (7 unit mockando os clientes Supabase, no mesmo padrão de `produtor/cadastro/__tests__/submit-business.test.ts`: rejeita checklist incompleto e nota inválida **sem escrever nada** no banco, grava `nota_a/s/g` + `verificado_em`/`selo_valido_ate` corretos ao aprovar, grava a decisão em `verifications` com `verifier_id`/`decisao`, confirma que não existe nenhuma função de update/delete de `verifications` exportada — decisão imutável por design, sem endpoint de edição). `approve()` (já criado no T27) não mudou de comportamento, só a validação de notas foi extraída do arquivo `actions.ts` para o módulo dedicado. `npm run test` (133/133), `typecheck`/`lint` limpos.
 
 ---
 
