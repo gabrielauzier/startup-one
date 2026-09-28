@@ -1391,11 +1391,13 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Rodar a rota 2x seguidas no mesmo dia produz o mesmo resultado (idempotente)
-- [ ] Cada uma das 4 expirações (rascunho, pedido, acesso, interesse) é coberta por um teste unitário isolado
+- [x] Rodar a rota 2x seguidas no mesmo dia produz o mesmo resultado (idempotente)
+- [x] Cada uma das 4 expirações (rascunho, pedido, acesso, interesse) é coberta por um teste unitário isolado
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Complete (2026-09-28) — `web/lib/cron/expiration.ts` (4 funções puras de decisão: `selectExpiredDrafts`, `selectExpiredPendingDocumentRequests`, `selectExpiredReleasedAccess`, `selectExpiredPendingInterests`) + `web/lib/cron/__tests__/expiration.test.ts` (10 testes) + `web/app/api/cron/daily/route.ts` (orquestra I/O em cima delas) + `web/app/api/cron/daily/__tests__/route.test.ts` (3 testes, incluindo idempotência: 2 chamadas seguidas, a 2ª já não encontra nada elegível). SPEC_DEVIATION menor: o campo `Reuses` da task citava `lib/business/state-machine.ts`, mas nenhuma das 4 expirações passa por `assertTransition` — são todas UPDATE direto de status (`pendente`/`liberado→expirado`, `pendente→expirado`) ou DELETE (rascunho), sem máquina de estados formal envolvida (o `state-machine.ts` só cobre `businesses.status`, e a única expiração que mexe em `businesses` é DELETE, não uma transição). `app/api/cron/expire-drafts` e `app/api/cron/expire-seals` (rotas antigas, T17/T29) continuam existindo e funcionando, fora do escopo desta task — os `TODO(T53)` de "faltam N dias" neles ficam como estão: nenhum dos 9 tipos de RF-31 cobre um aviso de "prazo se esgotando", só decisões já tomadas, então resolver esses TODOs exigiria um novo tipo de aviso fora do escopo definido — documentado no comentário do novo `route.ts`. Nenhuma das 4 expirações deste cron enfileira aviso via `enqueueNotification`, pelo mesmo motivo.
 
 ---
 
