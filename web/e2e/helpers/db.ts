@@ -15,13 +15,25 @@ export async function getUserIdByEmail(email: string): Promise<string> {
   // 50 usuarios, sem filtrar) - pede uma pagina grande e filtra aqui.
   // Bug real descoberto nesta task: sem isso, `users[0]` pega um usuario
   // arbitrario, nao o do teste, e todo lookup por owner_id falha.
-  const res = await fetch(`${API_URL}/auth/v1/admin/users?per_page=1000`, {
-    headers: headers(),
-  });
-  const { users } = (await res.json()) as { users: { id: string; email: string }[] };
-  const match = users.find((u) => u.email === email);
-  if (!match) throw new Error(`Usuário ${email} não encontrado`);
-  return match.id;
+  //
+  // Retry curto (T52): sob carga pesada (a suite completa rodando 5
+  // workers em paralelo, centenas de signups acumulados na mesma
+  // hora), o admin/users as vezes responde 1 linha atras do que acaba
+  // de ser criado - nao e' o mesmo bug de paginacao (per_page=1000
+  // continua trazendo todos os usuarios, confirmado via curl manual),
+  // e' uma corrida de curtissimo prazo sob carga. Poll de ate' 2s antes
+  // de desistir, mesmo padrao de retry ja usado por
+  // `getOtpCodeFromMailpit` neste mesmo arquivo de helpers.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const res = await fetch(`${API_URL}/auth/v1/admin/users?per_page=1000`, {
+      headers: headers(),
+    });
+    const { users } = (await res.json()) as { users: { id: string; email: string }[] };
+    const match = users.find((u) => u.email === email);
+    if (match) return match.id;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Usuário ${email} não encontrado`);
 }
 
 export async function getBusinessByOwnerId(
