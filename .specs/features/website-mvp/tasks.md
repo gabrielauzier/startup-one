@@ -196,12 +196,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Migração aplica sem erro num projeto Supabase local (`supabase db reset`)
-- [ ] RLS habilitada em `profiles` desde a criação (RNF-04)
+- [x] Migração aplica sem erro num projeto Supabase local (`supabase db reset`)
+- [x] RLS habilitada em `profiles` desde a criação (RNF-04)
 
 **Tests**: integration
 **Gate**: full
-**Status**: ⚠️ Partial (2026-09-27) — código escrito (`web/supabase/migrations/0001_init.sql`, `web/supabase/tests/profiles.sql`, `web/.env.local.example`), **não commitado**. `npx supabase start` não completou em 3 tentativas (2 canceladas em background por timeout, 1 cancelada manualmente pelo usuário); gate não rodou. Retomar rodando `npx supabase start` até o fim (sem cancelar) e depois `npx supabase test db` antes de marcar completo e commitar.
+**Status**: ✅ Complete (2026-09-27) — `web/supabase/migrations/0001_init.sql`, `web/supabase/tests/profiles.sql` (5 testes pgTAP), `web/.env.local.example`. `supabase start` e `supabase db reset` aplicam sem erro; `supabase test db` passa 5/5. SPEC_DEVIATION: `[storage] enabled = false` em `supabase/config.toml` — o container `supabase_storage_web` falha no healthcheck neste ambiente e nenhuma task até o T21 usa Storage; reabilitar antes do T22 (upload de fotos). Função pgTAP usada para checar RLS foi `ok((select relrowsecurity from pg_class ...))` em vez de `row_security_is_enabled` (essa função não existe no pgTAP instalado).
 
 ---
 

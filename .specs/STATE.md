@@ -69,10 +69,10 @@
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)
-- **Phase / Task**: Planejamento concluído (Specify + Design + Tasks aprovados pela validação determinística); Execute ainda não iniciado — nenhuma task começada.
-- **Completed**: none
-- **In-progress**: nenhum arquivo de código criado ainda — repositório segue sem `package.json`/app Next.js.
-- **Next step**: Confirmar com o usuário as duas perguntas abertas em `tasks.md` § "ASK About MCPs and Skills" (framework de teste Vitest+Playwright, e uso de skills/MCPs por task) e então iniciar a Fase 1 (T1–T6) do Execute.
-- **Blockers**: none — as questões jurídicas/parceiro (retorno proposto, parceiro financeiro) estão registradas como Assumptions em `spec.md` e não bloqueiam o início do código.
-- **Uncommitted files**: `.specs/STATE.md`, `.specs/features/website-mvp/{spec.md,design.md,tasks.md}` (novos, não commitados)
+- **Phase / Task**: Fase 1 (Fundação do projeto) **completa** — T1 a T6 ✅.
+- **Completed**: T1, T2, T3, T4, T5, T6 (Fase 1 inteira)
+- **In-progress**: nenhuma — Fase 1 fechada, aguardando o próximo commit desta sessão (T4 + ajuste de `.gitignore`).
+- **Next step**: Commitar T4 (`web/supabase/`, `web/.env.local.example`, `web/.gitignore`) e seguir para a Fase 2 (T7–T12, Entrada e acesso — M1).
+- **Blockers**: nenhum. `supabase start`/`db reset`/`test db` funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (o container de Storage falha healthcheck neste ambiente; reabilitar antes do T22, que é a primeira task a usar Storage). Questões jurídicas/parceiro seguem registradas como Assumptions em `spec.md`, sem bloquear o código.
+- **Uncommitted files**: nenhum após o próximo commit (ver Next step)
 - **Branch**: main
