@@ -148,3 +148,67 @@ export async function getInvestorAnswers(
   const rows = (await res.json()) as Record<string, unknown>[];
   return rows[0] ?? null;
 }
+
+/**
+ * Cria um documento direto via REST (service role) - o Storage local
+ * esta desabilitado neste ambiente (mesmo gap do T22, ver Status do
+ * T42 em tasks.md), entao os e2e que precisam de um documento ja
+ * "existente" inserem a linha direto em vez de fazer um upload real.
+ */
+export async function createDocument(
+  businessId: string,
+  overrides: Record<string, unknown> = {}
+): Promise<string> {
+  const res = await fetch(`${API_URL}/rest/v1/documents`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=representation" },
+    body: JSON.stringify({
+      business_id: businessId,
+      titulo: "Documento de teste",
+      tipo: "car",
+      storage_path: `${businessId}/car-fake.pdf`,
+      aberto_a_todos: false,
+      ...overrides,
+    }),
+  });
+  const rows = (await res.json()) as { id: string }[];
+  return rows[0].id;
+}
+
+/** Cria um pedido de acesso a documento direto via REST (service role). */
+export async function createDocumentRequest(
+  documentId: string,
+  investorId: string,
+  overrides: Record<string, unknown> = {}
+): Promise<string> {
+  const res = await fetch(`${API_URL}/rest/v1/document_requests`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=representation" },
+    body: JSON.stringify({
+      document_id: documentId,
+      investor_id: investorId,
+      status: "pendente",
+      ...overrides,
+    }),
+  });
+  const rows = (await res.json()) as { id: string }[];
+  return rows[0].id;
+}
+
+/** Le' um `document_requests` direto via REST (service role). */
+export async function getDocumentRequest(id: string): Promise<Record<string, unknown> | null> {
+  const res = await fetch(`${API_URL}/rest/v1/document_requests?id=eq.${id}&select=*`, {
+    headers: headers(),
+  });
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows[0] ?? null;
+}
+
+/** Le' os `document_views` de um documento direto via REST (service role). */
+export async function getDocumentViews(documentId: string): Promise<Record<string, unknown>[]> {
+  const res = await fetch(
+    `${API_URL}/rest/v1/document_views?document_id=eq.${documentId}&select=*`,
+    { headers: headers() }
+  );
+  return (await res.json()) as Record<string, unknown>[];
+}

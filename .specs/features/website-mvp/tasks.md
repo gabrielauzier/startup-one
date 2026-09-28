@@ -1050,11 +1050,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Após pedido enviado, situação vira "Pedido enviado" e o botão some (CA-32.1)
-- [ ] Pedido sem resposta em 7 dias expira e pode ser refeito (RN-32) — coberto pelo cron da T53
+- [x] Após pedido enviado, situação vira "Pedido enviado" e o botão some (CA-32.1)
+- [x] Pedido sem resposta em 7 dias expira e pode ser refeito (RN-32) — coberto pelo cron da T53
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/negocios/[slug]/documentos/page.tsx`, `web/app/(investor)/negocios/[slug]/documentos/actions.ts` (`requestDocumentAccess` + wrapper `requestDocumentAccessForm` para uso direto em `<form action>`), `web/lib/business/document-status.ts` (função pura `computeDocumentSituation`, testada com 9 casos unitários cobrindo as 6 situações e as bordas de 7/30 dias), `web/e2e/documentos-pedido.spec.ts` (2 testes: CA-32.1 e documento aberto a todos), `web/e2e/helpers/db.ts` (+`createDocument`, `createDocumentRequest`, `getDocumentRequest`, `getDocumentViews`, reuso para T42-T44). A expiração de 7 dias de um pedido `pendente` (RN-32, "coberto pelo cron da T53") é tratada na leitura por `computeDocumentSituation` mesmo antes do cron rodar: um pedido `pendente` com `created_at` há 7+ dias já volta a "Precisa de liberação" (pode ser refeito) independentemente do `status` gravado no banco — o cron do T53 só vai persistir esse mesmo resultado como `status='expirado'`, sem mudar o que a tela já mostra. Mesma lógica de leitura cobre CA-33.1 (acesso liberado há 31+ dias) e CA-32.3 (recusado/retirado), usadas pelas telas do T42/T43. Gate: lint + typecheck (rebuild `.next`) + `npm run test` (181, incluindo os 9 novos de `document-status`) + `npm run test:e2e -- documentos-pedido` (2/2) verdes.
 
 ---
 
