@@ -1,2 +1,5 @@
 .claude
 .DS_Store
+.agents
+.github
+.trash

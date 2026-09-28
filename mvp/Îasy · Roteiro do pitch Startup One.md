@@ -1,6 +1,8 @@
 # **Îasy · Roteiro do pitch Startup One**
 
-Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo Startup One, com base no deck *Îasy · Pitch Startup One* e no protótipo navegável.
+Roteiro falado de 5 minutos (cerca de 750 palavras) na estrutura sugerida pelo Startup One, com base no deck *Îasy · Pitch Startup One* e no protótipo navegável.
+
+**Ajuste de 27/09/2026:** a Dor agora tem dois lados do lado do produtor — falta de dado confiável (original) e falta de capital de giro para replantio/manejo depois da venda da safra (adicionado). A segunda dor é o motivo pelo qual a nota de Gestão do selo Verificado Îasy importa: ela não mede só se o negócio produz, mede se ele sabe controlar o capital que recebe. Isso também ecoou no Fechamento.
 
 * **Tempo:** 5 minutos é uma premissa. Se o limite for 3, cortar a concorrência em Mercado, os preços em Financeiro e metade do Protótipo.  
 * **Siglas:** na primeira vez que aparecem, vêm por extenso, com a sigla entre parênteses. Depois, só a sigla.  
@@ -16,7 +18,7 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > Nós somos a Îasy, e resolvemos exatamente esse problema."
 
-## **2\. Dor · 0:20 a 0:55**
+## **2\. Dor · 0:20 a 1:00**
 
 **Slide:** Raimunda, produtora, e Helena, investidora, lado a lado, com a nota "O capital existe".
 
@@ -26,15 +28,17 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > O controle está no caderno, os documentos da terra estão espalhados e o banco nega o crédito por falta de garantia.
 
+> E tem uma segunda dor, tão séria quanto essa: ela vende a safra inteira, usa o dinheiro pro sustento da família, e quando chega a hora de replantar ou cuidar da lavoura, não sobra capital de giro nenhum.
+
 > Do outro lado está a Helena, investidora de impacto.
 
-> Ela quer investir na floresta, mas desiste porque não tem dado confiável.
+> Ela quer investir na floresta, mas desiste porque não tem dado confiável — e, mesmo quando confia, teme que o aporte se dissolva do mesmo jeito que a renda da safra se dissolveu.
 
 > O dinheiro existe e a produção existe.
 
-> Falta informação em que os dois lados confiem."
+> Falta informação em que os dois lados confiem, e falta controle pra esse dinheiro virar resultado, não sumir no ciclo seguinte."
 
-## **3\. Mercado · 0:55 a 1:40**
+## **3\. Mercado · 1:00 a 1:40**
 
 **Slide:** slide 3, os três círculos: mercado total (TAM), mercado endereçável (SAM) e mercado alcançável (SOM), com a conta dos 54 mil aportes. Depois, o slide 4, a matriz de concorrência, passado rápido.
 
@@ -48,11 +52,7 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > "E quem já está aqui?
 
-> Bancos e fintechs de crédito rural não olham para esse produtor.
-
-> Consultorias ambientais, sociais e de governança (ESG) e plataformas de financiamento coletivo não verificam o dado na origem.
-
-> Ninguém verifica o dado do produtor amazônico."
+> Bancos, fintechs de crédito rural e plataformas de financiamento coletivo existem — mas nenhum verifica o dado do produtor amazônico na origem, e nenhum olha pra capacidade de gestão desse produtor depois que o dinheiro chega."
 
 ## **4\. Solução · 1:40 a 2:15**
 
@@ -62,7 +62,7 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > Organizar: o produtor registra produção, fotos e documentos pelo celular, e até a foto do caderno vale.
 
-> Verificar: conferimos cada informação e damos o selo Verificado Îasy, com notas ambiental, social e de gestão.
+> Verificar: conferimos cada informação e damos o selo Verificado Îasy, com notas ambiental, social e de gestão — a nota de gestão mede justamente se aquele negócio sabe controlar seu capital de giro, porque aporte sem controle financeiro vira safra vendida de novo, sem sobra.
 
 > Encontra: o investidor responde cinco perguntas e vê primeiro os negócios alinhados a ele.
 
@@ -106,7 +106,7 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > a partir dos feedbacks duas coisas viraram produto: os selos de impacto e a etapa de autorização para documentos sensíveis, que vocês acabaram de ver.
 
-> Além disso temos parceria encaminhada com o Opinião Amazônia, portal de economia amazônica, para divulgar os negócios verificados."
+> Também temos parceria encaminhada com o Opinião Amazônia para divulgar os negócios verificados."
 
 ## **7\. Financeiro · 3:30 a 4:10**
 
@@ -160,7 +160,7 @@ Roteiro falado de 5 minutos (cerca de 700 palavras) na estrutura sugerida pelo S
 
 > O dinheiro já foi anunciado.
 
-> Falta a ponte, e a ponte é confiança verificada.
+> Falta a ponte: confiança verificada e gestão que sustente o capital depois que ele chega.
 
 > Para o piloto, buscamos \[pedido\].
 
