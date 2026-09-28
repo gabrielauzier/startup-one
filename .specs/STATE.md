@@ -69,10 +69,10 @@
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)
-- **Phase / Task**: Fase 1 (Fundação do projeto) **completa** — T1 a T6 ✅.
-- **Completed**: T1, T2, T3, T4, T5, T6 (Fase 1 inteira)
-- **In-progress**: nenhuma — Fase 1 fechada, aguardando o próximo commit desta sessão (T4 + ajuste de `.gitignore`).
-- **Next step**: Commitar T4 (`web/supabase/`, `web/.env.local.example`, `web/.gitignore`) e seguir para a Fase 2 (T7–T12, Entrada e acesso — M1).
+- **Phase / Task**: Fase 1 (Fundação do projeto) **completa e commitada** — T1 a T6 ✅. Iniciando Fase 2 (Entrada e acesso — M1, T7–T12).
+- **Completed**: T1, T2, T3, T4, T5, T6 (commits `675adc7`, `473f7eb`, `14d9537`, `26ef9bb`, `455263a`, `3f8a76f` na branch `main`)
+- **In-progress**: nenhuma — próxima task a iniciar é T7 (Página inicial `/`).
+- **Next step**: Executar T7–T12 da Fase 2 (entrada sem senha, OTP, termos, redirecionamento por perfil, RLS de `profiles`).
 - **Blockers**: nenhum. `supabase start`/`db reset`/`test db` funcionam localmente com `[storage] enabled = false` em `supabase/config.toml` (o container de Storage falha healthcheck neste ambiente; reabilitar antes do T22, que é a primeira task a usar Storage). Questões jurídicas/parceiro seguem registradas como Assumptions em `spec.md`, sem bloquear o código.
-- **Uncommitted files**: nenhum após o próximo commit (ver Next step)
+- **Uncommitted files**: nenhum
 - **Branch**: main
