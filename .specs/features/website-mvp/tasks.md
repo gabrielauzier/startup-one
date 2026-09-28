@@ -976,13 +976,15 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test reproduz CA-29.1 (R$15k aceito + R$80k pendente de R$180k → "R$ 95 mil de R$ 180 mil")
-- [ ] Interesse recusado/cancelado sai da soma (CA-29.2)
+- [x] Unit test reproduz CA-29.1 (R$15k aceito + R$80k pendente de R$180k → "R$ 95 mil de R$ 180 mil")
+- [x] Interesse recusado/cancelado sai da soma (CA-29.2)
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(vitrine): card de negócio, resultados e vitrine pública`
+
+**Status**: ✅ Complete (2026-09-28) — `web/lib/business/interest-sum.ts` (`sumInterests`, `formatInterestSummary`), `web/lib/business/__tests__/interest-sum.test.ts` (5 unit: CA-29.1, CA-29.2, limite de 100% da barra mesmo com soma excedente, soma vazia, percentual proporcional). SPEC_DEVIATION documentado no próprio arquivo: a tabela `interests` só existe a partir do T45 (Fase 9) — o shape `Interest { valor, status }` usado aqui segue literalmente o modelo de dados já descrito na PRD (`mvp/prd-mvp.md`: `interests (id, business_id, investor_id, valor, mensagem, status, confirmacao_texto, confirmado_em)`) e a nomenclatura de status de RN-36 a RN-39 (`pendente`/`aceito`/`recusado`/`cancelado`/`expirado`); a integração real (query contra a tabela, ligada ao `BusinessCard`/página do negócio) fica para o T45 em diante, validada pelo e2e do T49 conforme o texto da própria task. `sumInterests` devolve a soma bruta (para o texto "R$ X de R$ Y", nunca limitado) separada do percentual da barra (0–100, limitado). Fase 7 fecha aqui.
 
 ---
 
