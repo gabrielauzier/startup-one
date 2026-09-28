@@ -40,14 +40,33 @@ test.describe("Service worker do cadastro do produtor (RNF-01)", () => {
     await page.getByRole("button", { name: "Confirmar" }).click();
     await page.waitForURL("/produtor");
 
-    await page.goto("/produtor/cadastro/1");
+    // T18: a Parte 1 agora exige um negocio em rascunho (criado nas
+    // boas-vindas) antes de aceitar a visita - sem isso, redireciona de
+    // volta para /produtor.
+    await page.getByRole("radio", { name: "Não" }).click();
+    await page.getByRole("button", { name: "Começar cadastro" }).click();
+    await page.waitForURL("/produtor/cadastro/1");
     await expect(
       page.getByRole("heading", { name: "Sobre você" })
     ).toBeVisible();
 
     // Espera o service worker terminar de instalar e ativar (o "install"
     // ja' deixa o shell em cache) antes de simular a queda de internet.
-    await page.evaluate(() => navigator.serviceWorker.ready);
+    // `serviceWorker.ready` so' resolve a partir da 2a navegacao sob o
+    // escopo controlado; como este e' o primeiro carregamento desta
+    // sessao, fazemos poll do registro em vez de depender de `ready`.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(async () => {
+            const reg = await navigator.serviceWorker.getRegistration(
+              "/produtor/cadastro/"
+            );
+            return !!reg?.active;
+          }),
+        { timeout: 10000 }
+      )
+      .toBe(true);
 
     await context.setOffline(true);
     await page.reload();

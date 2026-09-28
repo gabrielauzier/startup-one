@@ -515,11 +515,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] "Sim" sem parceiro escolhido destaca o campo "Qual?" (CA-11.1)
-- [ ] "Começar cadastro" cria o `business` em `rascunho` e leva à parte 1
+- [x] "Sim" sem parceiro escolhido destaca o campo "Qual?" (CA-11.1)
+- [x] "Começar cadastro" cria o `business` em `rascunho` e leva à parte 1
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/{page.tsx,boas-vindas-form.tsx,actions.ts}`, `web/e2e/produtor-boas-vindas.spec.ts` (2 e2e). `createBusiness` usa `createAdminClient()` + checagem manual de posse (owner_id), seguindo o padrão do Handoff (`businesses` ainda sem RLS própria, chega no T25). SPEC_DEVIATION: `e2e/cadastro-offline.spec.ts` (T16) precisou ser ajustado — a Parte 1 agora exige um negócio em rascunho antes de aceitar a visita (antes só existia o placeholder do shell), então o teste passou a completar as boas-vindas antes de navegar para `/produtor/cadastro/1`; também trocou `navigator.serviceWorker.ready` (nunca resolve na primeira navegação sob o escopo controlado neste Chromium) por um poll em `getRegistration(...).active`, sem enfraquecer a asserção de fundo (SW instalado e ativo antes de simular a queda de internet).
 
 ---
 
