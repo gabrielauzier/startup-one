@@ -1272,11 +1272,13 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Contadores de pedidos e interesses batem com os dados de `document_requests`/`interests` do negócio
-- [ ] Mesma pessoa visitando 3x no mesmo dia conta 1 visita (CA-35.1)
+- [x] Contadores de pedidos e interesses batem com os dados de `document_requests`/`interests` do negócio
+- [x] Mesma pessoa visitando 3x no mesmo dia conta 1 visita (CA-35.1)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/painel/page.tsx` (selo/data, notas A/S/G, link "Ver meu perfil como o investidor vê" para `/negocios/[slug]`, contador de visitas via `profile_visits` — dedupe por dia já garantido pelo índice único de T39/lógica de T40, RN-35 —, pedidos aguardando resposta via `computeDocumentSituation` de T41 sobre `document_requests`, investidores interessados via `interests.status='pendente'`), `web/components/producer/BottomNav.tsx` (Início/Pedidos/Interesses). `resolvePostLoginRedirect` (`app/(marketing)/entrar/redirect.ts`, T3) já mandava produtor com negócio existente para `/produtor/painel` desde antes desta task — essa rota devolvia 404 até agora; T50 fecha esse gap real do fluxo de login. `web/e2e/produtor-painel.spec.ts` (2 testes: contadores batem com os dados reais, CA-35.1 com 3 visitas do mesmo cookie de visitante anônimo). Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` (2/2 novos).
 
 ---
 
