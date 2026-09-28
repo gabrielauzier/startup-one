@@ -1344,11 +1344,13 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test: `enqueueNotification` grava o tipo e o payload corretos para cada um dos 9 tipos de aviso de RF-31
-- [ ] Interesse recebido entra na lista de envios do dia e o contador do painel atualiza (CA-41.1)
+- [x] Unit test: `enqueueNotification` grava o tipo e o payload corretos para cada um dos 9 tipos de aviso de RF-31
+- [x] Interesse recebido entra na lista de envios do dia e o contador do painel atualiza (CA-41.1)
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0009_events.sql` (nomeada 0009, não 0008 como o texto previa — 0008_interests.sql/T45 já ocupava o número, mesmo padrão de renumeração já usado 2x nesta feature), `web/lib/notifications/queue.ts`, `web/lib/notifications/__tests__/queue.test.ts` (13 testes). `events` recebe um discriminador `kind` ('aviso' | 'produto') pensando já no T56, que reusa a mesma tabela para os 5 eventos de produto — SPEC_DEVIATION sobre a interpretação: o design.md só diz "mesma tabela `events`" sem detalhar o schema; escolhi `kind` em vez de estender só `type` para deixar a query de cada consumidor (lista diária da equipe vs. métricas do MVP) trivial de filtrar sem colidir. RLS habilitada sem nenhuma policy (nega tudo para authenticated/anon; só o cliente admin lê/escreve) — documentado no comentário da migração. `enqueueNotification` implementa RN-41 com 2 canais: investidor (`documento_liberado`, `interesse_aceito`) recebe e-mail automático via `sendEmail` (T49) a cada novidade, 1 linha `canal='email'`; produtor (`cadastro_recebido`, `ajuste_pedido`, `selo_concedido`, `reprovacao`, `pedido_documento`, `interesse_recebido`) nunca dispara nada automaticamente — só grava `canal='whatsapp_manual'` com `enviado_em=null` formando a lista diária da equipe (CA-41.1), e em paralelo grava+dispara o e-mail (RN-41 "quando o produtor informou um" — neste MVP sempre verdadeiro via `auth.users`), 2 linhas no total; `apresentacao_parceiro` é o único tipo com destinatário externo (parceiro financeiro, não um `profiles.id`) — usa `emailTo` explícito em vez de `destinatarioId`. E-mail do destinatário resolvido via `admin.auth.admin.getUserById` (profiles não tem coluna email — só existe em `auth.users`). Segunda metade de CA-41.1 ("o contador do painel atualiza") já está coberta estruturalmente desde o T50/T52: `/produtor/painel` conta interessados direto da tabela `interests`, não de `events` — a fila de avisos é um registro paralelo, não a fonte do contador.
 
 ---
 
