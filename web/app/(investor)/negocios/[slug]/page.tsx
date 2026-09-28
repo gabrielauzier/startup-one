@@ -2,7 +2,8 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { RecordVisit } from "@/components/business/RecordVisit";
-import { sumInterests, formatInterestSummary } from "@/lib/business/interest-sum";
+import { sumInterests, formatInterestSummary, type Interest } from "@/lib/business/interest-sum";
+import { InterestModal } from "./_components/InterestModal";
 
 interface BusinessRow {
   id: string;
@@ -76,11 +77,15 @@ const TABS: { id: TabId; label: string; public: boolean }[] = [
  * middleware (lib/auth/roles.ts ROUTE_ACCESS), então só aparece como
  * link aqui, sem conteúdo próprio nesta página.
  *
- * SPEC_DEVIATION (RN-29): a tabela `interests` só é criada no T45
- * (Fase 9, fora deste lote) - o interesse somado usa `sumInterests([])`
- * por enquanto (soma zero), o mesmo desvio já documentado em
- * lib/business/interest-sum.ts (T38). O botão "Tenho interesse" citado
- * na PRD (RF-21) fica para o T46+ (Fase 9), que ainda não existe.
+ * RF-26/RN-36 a RN-38 (T46): botão "Tenho interesse" abre o
+ * `InterestModal`. Visitante sem sessão vê o botão como um link para
+ * `/entrar?redirect=...&interesse=1` (CA-36.1) - o parâmetro
+ * `interesse=1` sobrevive ao login (mesmo mecanismo de `redirect` já
+ * usado pelas abas privadas) e reabre o modal automaticamente ao
+ * voltar. Produtor logado não vê o botão (CA-36.3). Investidor/empresa
+ * com um interesse Pendente ou Aceito já registrado vê "Ver meu
+ * interesse" em vez do botão (CA-37.1, índice único parcial de T45
+ * garante que só existe 1 desses por investidor/negócio).
  *
  * SPEC_DEVIATION (RN-31/CA-31.1): o modelo de dados (PRD §7.3) não tem
  * uma tabela de "pessoas"/equipe do negócio - só `businesses.owner_id`.
@@ -93,6 +98,7 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
   const { slug } = await props.params;
   const searchParams = await props.searchParams;
   const abaParam = firstParam(searchParams.aba);
+  const autoOpenInteresse = firstParam(searchParams.interesse) === "1";
   const aba: TabId = (["producao", "negocio", "quem-cuida", "dinheiro"] as TabId[]).includes(
     abaParam as TabId
   )
@@ -155,8 +161,31 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
   );
 
   const canSeePrivateTabs = role === "investidor" || role === "empresa";
+  const isOwner = user != null && business.owner_id === user.id;
 
-  const { somaAbsoluta, percentualBarra } = sumInterests([], Number(business.valor_busca));
+  const { data: interestRows } = await admin
+    .from("interests")
+    .select("valor, status")
+    .eq("business_id", business.id);
+  const interests = (interestRows ?? []) as Interest[];
+
+  const { somaAbsoluta, percentualBarra } = sumInterests(interests, Number(business.valor_busca));
+
+  // RN-37/CA-37.1: se o investidor logado já tem um interesse
+  // Pendente/Aceito neste negócio, o botão vira "Ver meu interesse"
+  // em vez de abrir o modal de novo (o índice único parcial de T45
+  // já impediria um 2º envio, mas a UI evita a tentativa).
+  let ownActiveInterestId: string | null = null;
+  if (user && (role === "investidor" || role === "empresa")) {
+    const { data: ownInterest } = await supabase
+      .from("interests")
+      .select("id")
+      .eq("business_id", business.id)
+      .eq("investor_id", user.id)
+      .in("status", ["pendente", "aceito"])
+      .maybeSingle();
+    ownActiveInterestId = ownInterest?.id ?? null;
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-12">
@@ -321,17 +350,45 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
         </div>
 
-        <aside className="flex flex-col gap-2 rounded-lg bg-muted p-4">
-          <p className="font-body text-sm font-medium">Interesse de investidores</p>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-background">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${percentualBarra}%` }}
-            />
+        <aside className="flex flex-col gap-3 rounded-lg bg-muted p-4">
+          <div className="flex flex-col gap-2">
+            <p className="font-body text-sm font-medium">Interesse de investidores</p>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-background">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${percentualBarra}%` }}
+              />
+            </div>
+            <p className="font-body text-xs text-muted-foreground">
+              {formatInterestSummary(somaAbsoluta, Number(business.valor_busca))}
+            </p>
           </div>
-          <p className="font-body text-xs text-muted-foreground">
-            {formatInterestSummary(somaAbsoluta, Number(business.valor_busca))}
-          </p>
+
+          {!isOwner &&
+            (!user ? (
+              <Link
+                href={`/entrar?redirect=${encodeURIComponent(`/negocios/${slug}?interesse=1`)}`}
+                data-testid="botao-tenho-interesse"
+                className="rounded-lg bg-primary px-4 py-2 text-center font-body text-sm font-medium text-primary-foreground"
+              >
+                Tenho interesse
+              </Link>
+            ) : role === "produtor" || role === "verificador" ? null : ownActiveInterestId ? (
+              <Link
+                href={`/negocios/${slug}/interesse-enviado?id=${ownActiveInterestId}`}
+                data-testid="ver-meu-interesse"
+                className="rounded-lg border border-input px-4 py-2 text-center font-body text-sm font-medium"
+              >
+                Ver meu interesse
+              </Link>
+            ) : (
+              <InterestModal
+                slug={slug}
+                businessId={business.id}
+                valorBusca={Number(business.valor_busca)}
+                autoOpen={autoOpenInteresse}
+              />
+            ))}
         </aside>
       </div>
     </main>

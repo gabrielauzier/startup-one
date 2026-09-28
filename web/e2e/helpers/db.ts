@@ -212,3 +212,48 @@ export async function getDocumentViews(documentId: string): Promise<Record<strin
   );
   return (await res.json()) as Record<string, unknown>[];
 }
+
+/** Cria um interesse direto via REST (service role) - usado pelos e2e do T48/T49/T51. */
+export async function createInterest(
+  businessId: string,
+  investorId: string,
+  overrides: Record<string, unknown> = {}
+): Promise<string> {
+  const res = await fetch(`${API_URL}/rest/v1/interests`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=representation" },
+    body: JSON.stringify({
+      business_id: businessId,
+      investor_id: investorId,
+      valor: 5000,
+      status: "pendente",
+      confirmacao_texto: "Entendo que estou demonstrando interesse, e não investindo agora",
+      ...overrides,
+    }),
+  });
+  const rows = (await res.json()) as { id: string }[];
+  return rows[0].id;
+}
+
+/** Le' um `interests` direto via REST (service role). */
+export async function getInterest(id: string): Promise<Record<string, unknown> | null> {
+  const res = await fetch(`${API_URL}/rest/v1/interests?id=eq.${id}&select=*`, {
+    headers: headers(),
+  });
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows[0] ?? null;
+}
+
+/** Cria um evento de conexao direto via REST (service role) - usado pelos e2e do T49. */
+export async function createConnectionEvent(
+  interestId: string,
+  etapa: string,
+  autorId: string,
+  observacao?: string
+): Promise<void> {
+  await fetch(`${API_URL}/rest/v1/connection_events`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify({ interest_id: interestId, etapa, autor_id: autorId, observacao }),
+  });
+}

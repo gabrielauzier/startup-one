@@ -1173,13 +1173,15 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Valor acima do "Busca R$ X" mostra a mensagem de limite (CA-36.2)
-- [ ] Confirmação desmarcada mantém "Enviar interesse" desabilitado (CA-38.1)
-- [ ] Visitante sem sessão é levado a Entrar e volta ao formulário depois (CA-36.1)
-- [ ] Produtor logado não vê o botão "Tenho interesse" (CA-36.3)
+- [x] Valor acima do "Busca R$ X" mostra a mensagem de limite (CA-36.2)
+- [x] Confirmação desmarcada mantém "Enviar interesse" desabilitado (CA-38.1)
+- [x] Visitante sem sessão é levado a Entrar e volta ao formulário depois (CA-36.1)
+- [x] Produtor logado não vê o botão "Tenho interesse" (CA-36.3)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/negocios/[slug]/_components/InterestModal.tsx` (modal client controlado por `useState`, valor mín. R$1.000/máx. = `valor_busca`, mensagem ≤500 chars, checkbox de confirmação obrigatória), `web/app/(investor)/negocios/[slug]/actions.ts` (`createInterest`: valida papel investidor/empresa, confirmação, mensagem, limite de valor e status `verificado` do negócio antes de inserir; RLS `interests_insert_own`/índice único parcial de T45 cobrem a mesma regra no banco; grava evento inicial `pendente` em `connection_events`), `web/lib/business/interest-confirmation.ts` (texto de confirmação e limites fixados no servidor, nunca recebidos do client). `web/app/(investor)/negocios/[slug]/page.tsx` ganhou a integração real com `interests` (antes usava `sumInterests([])`, SPEC_DEVIATION do T38/T40 agora resolvida): botão "Tenho interesse" (investidor/empresa sem interesse ativo), link "Entrar" com `redirect=...&interesse=1` para visitante (CA-36.1, o parâmetro reabre o modal automaticamente ao voltar do login+termos), nada para produtor/verificador/dono (CA-36.3), "Ver meu interesse" quando já existe um interesse Pendente/Aceito (CA-37.1). `web/e2e/interesse-criar.spec.ts` (3 testes cobrindo CA-36.1 a CA-36.3, CA-38.1). Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `npx supabase db reset` + `test:e2e` (3/3 novos, suite completa confirmada no fechamento do lote).
 
 ---
 
@@ -1196,11 +1198,13 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Registro do interesse grava o texto de confirmação aceito e o horário (CA-38.2)
-- [ ] Enquanto Pendente, botão da página do negócio vira "Ver meu interesse" (CA-37.1)
+- [x] Registro do interesse grava o texto de confirmação aceito e o horário (CA-38.2)
+- [x] Enquanto Pendente, botão da página do negócio vira "Ver meu interesse" (CA-37.1)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/negocios/[slug]/interesse-enviado/page.tsx` (lê o interesse por `id` via RLS de sessão, mostra valor/mensagem, o texto de confirmação aceito e o horário gravados no T46 — CA-38.2 — e a `Timeline`), `web/components/connection/Timeline.tsx` (4 etapas, marca como concluída toda etapa igual ou anterior à última linha de `connection_events`). `createInterest` (T46) passou a redirecionar com `?id=<interestId>`. CA-37.1 já coberto pelo e2e do T46 (mesmo fluxo, mesma tela). `web/e2e/interesse-criar.spec.ts` (mesmo arquivo do T46) cobre CA-38.2 e a navegação até esta tela. Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` — 3/3 passando.
 
 ---
 
