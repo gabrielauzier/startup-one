@@ -59,6 +59,23 @@ export async function createEvidence(
   });
 }
 
+/**
+ * RN-01: nao existe fluxo de login normal para o papel `verificador` (so'
+ * a equipe credencia). Para os e2e, loga como produtor/investidor
+ * normalmente (cria a conta) e promove direto via REST com a
+ * service-role key, simulando esse credenciamento manual.
+ */
+export async function promoteToVerifier(userId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/rest/v1/profiles?id=eq.${userId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ role: "verificador" }),
+  });
+  if (!res.ok) {
+    throw new Error(`Falha ao promover ${userId} a verificador: ${res.status}`);
+  }
+}
+
 export async function createPartner(nome: string): Promise<string> {
   const res = await fetch(`${API_URL}/rest/v1/partners`, {
     method: "POST",

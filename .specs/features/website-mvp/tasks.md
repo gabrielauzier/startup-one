@@ -677,11 +677,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Busca por nome exato de negócio `em_analise` não retorna nada para investidor (CA-13.1)
-- [ ] Request direta às abas restritas sem sessão de investidor retorna 401/403 (CA-30.2)
+- [x] Busca por nome exato de negócio `em_analise` não retorna nada para investidor (CA-13.1)
+- [x] Request direta às abas restritas sem sessão de investidor retorna 401/403 (CA-30.2)
 
 **Tests**: integration
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0004_verifications_rls.sql` (tabela `verifications`, sem policy própria nesta fase — só o cliente admin lê/escreve, mesmo padrão de `businesses` antes deste migration; e as 3 policies de SELECT em `businesses`: público só `status='verificado'`, dono sempre vê o próprio negócio, verificador vê tudo via subquery em `profiles`), `web/e2e/rls-businesses.spec.ts` (5 e2e: CA-13.1, CA-30.2, dono, verificador, público), `web/e2e/helpers/db.ts` (`promoteToVerifier`, reusado pelos e2e de verificação das próximas tasks). SPEC_DEVIATION: CA-30.2 fala em "abas restritas" (401/403), mas essas telas são do M5 (T39-44), que ainda não existe — testado no nível de RLS/REST direto como a própria task permite: PostgREST nunca devolve 401/403 para um SELECT filtrado por RLS (a policy só restringe quais linhas aparecem, sempre 200); a garantia equivalente verificada é zero linhas vazando para quem não tem sessão de dono/verificador. `decisao` de `verifications` já inclui `'suspender'`/`'reativar'` (T29) além de `'aprovar'`/`'ajuste'`/`'reprovar'` (T27/T28) — antecipado no schema para não precisar de outra migração de `ALTER TABLE ... CHECK` nessas tasks. Suíte completa rodada: `npm run test` (99/99) e `npm run test:e2e` (27/27).
 
 ---
 
