@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { canRequestAccess, computeDocumentSituation } from "@/lib/business/document-status";
+import { createDocumentSignedUrl } from "@/lib/documents/signed-url";
 
 export interface RequestDocumentAccessResult {
   ok: boolean;
@@ -98,4 +100,103 @@ export async function requestDocumentAccess(
  */
 export async function requestDocumentAccessForm(slug: string, documentId: string): Promise<void> {
   await requestDocumentAccess(slug, documentId);
+}
+
+export interface ViewDocumentResult {
+  /** false = investidor não tem acesso a este documento (nunca chegou a gravar view nem gerar URL). */
+  authorized: boolean;
+  nome?: string;
+  signedUrl?: string;
+  expiresIn?: number;
+  authError?: string;
+  storageError?: string;
+}
+
+/**
+ * RF-24/RN-34/RN-35/AD-007: confere se o investidor logado tem acesso
+ * ao documento (aberto a todos, ou pedido `liberado` ainda dentro dos
+ * 30 dias - mesma `computeDocumentSituation` do T41), grava a
+ * visualização em `document_views` (CA-35.1) e só então gera a URL
+ * assinada de 5 minutos (CA-34.1/CA-34.2, `lib/documents/signed-url.ts`).
+ *
+ * A gravação de `document_views` acontece ANTES da tentativa de gerar
+ * a URL assinada, de propósito: abrir a tela do documento já conta
+ * como "aberto" (RN-35) mesmo se o Storage falhar depois - ver
+ * SPEC_DEVIATION no Status do T42 em tasks.md sobre o Storage local
+ * desabilitado neste ambiente.
+ */
+export async function viewDocument(documentId: string): Promise<ViewDocumentResult> {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { authorized: false, authError: "Sessão expirada. Entre novamente." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, nome")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "investidor" && profile?.role !== "empresa") {
+    return { authorized: false, authError: "Só investidores ou empresas podem ver documentos." };
+  }
+
+  const { data: document } = await supabase
+    .from("documents")
+    .select("id, storage_path, aberto_a_todos")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (!document) {
+    return { authorized: false, authError: "Documento não encontrado." };
+  }
+
+  if (!document.aberto_a_todos) {
+    const { data: existing } = await supabase
+      .from("document_requests")
+      .select("status, created_at, expira_em")
+      .eq("document_id", documentId)
+      .eq("investor_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const situation = computeDocumentSituation(
+      false,
+      existing
+        ? { status: existing.status, createdAt: existing.created_at, expiraEm: existing.expira_em }
+        : null
+    );
+
+    if (situation.kind !== "liberado") {
+      return { authorized: false, authError: "Você não tem acesso a este documento." };
+    }
+  }
+
+  await supabase.from("document_views").insert({
+    document_id: documentId,
+    investor_id: user.id,
+  });
+
+  const admin = createAdminClient();
+  const signed = await createDocumentSignedUrl(admin.storage, document.storage_path);
+
+  if (!signed.ok) {
+    return {
+      authorized: true,
+      nome: profile.nome,
+      storageError: "Não foi possível carregar o documento agora. Tente de novo em instantes.",
+    };
+  }
+
+  return {
+    authorized: true,
+    nome: profile.nome,
+    signedUrl: signed.signedUrl,
+    expiresIn: signed.expiresIn,
+  };
 }
