@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { calculateAlignment, type BusinessForMatching } from "@/lib/matching/score";
 import { sortByAlignment } from "@/lib/matching/rank";
 import { BusinessCard, type BusinessSummary } from "@/components/business/BusinessCard";
+import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 import { loadAnswers } from "../actions";
 import {
   FAIXA_VALOR_OPTIONS,
@@ -220,6 +221,8 @@ export default async function ResultadosPage(props: PageProps<"/descobrir/result
           return <BusinessCard key={business.id} business={summary} alignment={alignment} />;
         })}
       </div>
+
+      <ConnectionFooter />
     </main>
   );
 }

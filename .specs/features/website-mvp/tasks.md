@@ -1461,10 +1461,11 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] As 8 rotas de RN-04 são varridas e o teste falha ao encontrar qualquer termo proibido (CA-04.2) e confirma a presença literal do rodapé (CA-04.1)
+- [x] As 8 rotas de RN-04 são varridas e o teste falha ao encontrar qualquer termo proibido (CA-04.2) e confirma a presença literal do rodapé (CA-04.1)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/e2e/no-forbidden-terms.spec.ts` (8 testes, um por rota de CA-04.1). Gap de produto real encontrado e corrigido no mesmo commit: `<ConnectionFooter />` só estava montado em 3 das 8 telas exigidas — adicionado em `web/app/(investor)/descobrir/resultados/page.tsx`, `web/app/(investor)/negocios/page.tsx`, `web/app/(investor)/negocios/[slug]/page.tsx` (cobre também o formulário de interesse, que é a mesma rota com `InterestModal` aberto via `?interesse=1`), `web/app/(investor)/negocios/[slug]/interesse-enviado/page.tsx` e `web/app/(producer)/produtor/interesses/page.tsx`. Suíte de regressão (`home`, `descobrir-resultados`, `negocios-vitrine`, `negocio-pagina`, `interesse-criar`, `produtor-parte5`, `produtor-interesses`) roda limpa após as 5 adições, confirmando que o rodapé não quebrou nenhum layout/teste existente.
 
 ---
 

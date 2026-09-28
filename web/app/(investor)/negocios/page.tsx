@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BusinessCard, type BusinessSummary } from "@/components/business/BusinessCard";
+import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 import { PRODUTOS_OPTIONS } from "@/lib/business/impact-options";
 import { AMAZONIA_LEGAL_UFS } from "@/lib/validation/amazonia-legal";
 
@@ -182,6 +183,8 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
           Limpar filtros
         </Link>
       )}
+
+      <ConnectionFooter />
     </main>
   );
 }
