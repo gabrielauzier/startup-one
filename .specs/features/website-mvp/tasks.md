@@ -286,11 +286,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Botão "Entrar" fica desabilitado sem perfil marcado (CA-01.1)
-- [ ] `sendOtp` chama `supabase.auth.signInWithOtp` e retorna erro tratado se o e-mail for inválido
+- [x] Botão "Entrar" fica desabilitado sem perfil marcado (CA-01.1)
+- [x] `sendOtp` chama `supabase.auth.signInWithOtp` e retorna erro tratado se o e-mail for inválido
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-27) — `web/app/(marketing)/entrar/{page.tsx,actions.ts}` + `web/app/(marketing)/entrar/__tests__/actions.test.ts` (4 testes unit) + `web/e2e/entrar.spec.ts` (2 testes e2e, contra o Supabase local real). `sendOtp` redireciona para `/entrar/codigo?email=...&role=...` (T9 ainda não existe — a rota 404 momentaneamente até o T9).
 
 ---
 
