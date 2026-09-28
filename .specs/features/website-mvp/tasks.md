@@ -445,11 +445,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Teste unitário (fake-indexeddb) cobre salvar, ler e sincronizar sem duplicar (CA-07.1, CA-07.2)
-- [ ] Gate check passes: `npm run test`
+- [x] Teste unitário (fake-indexeddb) cobre salvar, ler e sincronizar sem duplicar (CA-07.1, CA-07.2)
+- [x] Gate check passes: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/offline/draft-store.ts` + `web/lib/offline/__tests__/draft-store.test.ts` (8 testes com `fake-indexeddb`). SPEC_DEVIATION: `flushWhenOnline(businessId, sync)` recebe um callback `sync` em vez da assinatura literal do design (`flushWhenOnline(businessId): Promise<void>`) — sem ele, este módulo puro de storage precisaria importar a Server Action de rede diretamente, misturando camadas; o callback é injetado por quem chama (o hook `useDraftSync` do T17).
 
 ---
 
