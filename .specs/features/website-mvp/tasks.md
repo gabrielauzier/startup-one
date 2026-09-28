@@ -603,12 +603,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test de `compress.ts`: imagem de 4000px sai com lado maior ≤1600px (CA-09.1)
-- [ ] Arquivo de 12MB ou `.docx` é recusado com a mensagem correta (CA-08.3)
-- [ ] Grupo obrigatório vazio bloqueia o avanço (CA-08.1)
+- [x] Unit test de `compress.ts`: imagem de 4000px sai com lado maior ≤1600px (CA-09.1)
+- [x] Arquivo de 12MB ou `.docx` é recusado com a mensagem correta (CA-08.3)
+- [x] Grupo obrigatório vazio bloqueia o avanço (CA-08.1)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/lib/upload/{compress.ts,validate.ts}` (+ 9 testes unit: 3 de compressão via `createImageBitmap`/canvas mockados, 6 de validação de tamanho/formato), `web/components/upload/PhotoUploader.tsx`, `web/app/(producer)/produtor/cadastro/4/{page.tsx,parte4-form.tsx,actions.ts}`, `web/e2e/produtor-parte4.spec.ts` (1 e2e smoke, cobertura extra). **Gap documentado (ver nota do prompt do lote)**: `[storage] enabled = true` foi testado de novo (`supabase stop && supabase start`) e voltou a falhar o healthcheck do `supabase_storage_web` neste ambiente — reverti para `enabled = false`. O código de integração real com Supabase Storage (`createUploadUrl`/`confirmEvidence`, URL assinada de upload) está implementado e correto, mas não pôde ser exercitado por e2e real de upload nesta sessão; o Done-when é coberto pelos testes unitários de compressão/validação (que não dependem de Storage) e pelo e2e de "grupo obrigatório vazio bloqueia o avanço", que usa a ausência de evidências no banco (sem precisar de um upload real). SPEC_DEVIATION: fila de retomada (RN-09, CA-09.2) implementada de forma simplificada — mostra erro por item e não persiste a fila entre reloads (sem duplicar arquivo em reenvio manual), sem o mecanismo completo de retomada automática ao reconectar.
 
 ---
 
