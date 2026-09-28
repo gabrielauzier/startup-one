@@ -58,6 +58,14 @@
 - **Date**: 2026-09-27
 - **Status**: active
 
+### AD-008
+- **Decision**: O código do Next.js mora em `/web` na raiz do repositório, não na raiz do repositório diretamente. Todo caminho `Where` em `tasks.md` (ex.: `package.json`, `app/`, `lib/`, `tailwind.config.ts`) é relativo a `web/` — ou seja, `package.json` significa `web/package.json`. Os comandos de gate (`npm run test`, etc.) rodam com `cwd=web/`.
+- **Reason**: Pedido explícito do usuário ao iniciar a Fase 1: isolar o código da aplicação da documentação de planejamento que já ocupa a raiz do repositório (`mvp/`, `atividades/`, `.specs/`).
+- **Trade-off**: Nenhum caminho em `tasks.md` foi reescrito com o prefixo `web/` para não gerar uma edição em massa fora do escopo da Fase 1; toda fase futura precisa lembrar dessa convenção ao interpretar os campos `Where`.
+- **Scope**: Toda a feature website-mvp (as 12 fases de `tasks.md`).
+- **Date**: 2026-09-27
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)

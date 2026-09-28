@@ -132,11 +132,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `npm run build`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:e2e` existem e rodam sem erro num projeto vazio
-- [ ] App Router (`app/layout.tsx`, `app/page.tsx`) responde em `/`
+- [x] `npm run build`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run test:e2e` existem e rodam sem erro num projeto vazio
+- [x] App Router (`app/layout.tsx`, `app/page.tsx`) responde em `/`
 
 **Tests**: none
 **Gate**: build
+**Status**: ✅ Complete (2026-09-27) — `web/package.json`, `web/vitest.config.ts`, `web/playwright.config.ts`. SPEC_DEVIATION: caminho é `web/package.json` etc. (raiz do app é `/web`, não a raiz do repo — ver AD-008 em `.specs/STATE.md`).
 
 ---
 
