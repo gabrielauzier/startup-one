@@ -11,6 +11,7 @@ import {
   INTEREST_MAX_MENSAGEM_LENGTH,
 } from "@/lib/business/interest-confirmation";
 import { enqueueNotification } from "@/lib/notifications/queue";
+import { trackEvent } from "@/lib/analytics/track";
 
 const VISITOR_COOKIE = "iasy_visitor";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -182,6 +183,15 @@ export async function createInterest(
       },
     });
   }
+
+  // RF-32/PRD 8.1: evento de produto - mesmo ponto do aviso
+  // interesse_recebido acima, mas registro separado (métrica, não
+  // aviso a alguém).
+  await trackEvent({
+    type: "interesse_enviado",
+    payload: { interestId: interest.id, businessId, valor },
+    atorId: user.id,
+  });
 
   redirect(`/negocios/${slug}/interesse-enviado?id=${interest.id}`);
 }

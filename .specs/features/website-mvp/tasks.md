@@ -1414,12 +1414,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Cada um dos 5 eventos é gravado no momento correto, verificado por teste unitário com um double de `events`
+- [x] Cada um dos 5 eventos é gravado no momento correto, verificado por teste unitário com um double de `events`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(avisos): fila de notificações, cron diário e eventos de produto`
+
+**Status**: ✅ Complete (2026-09-28) — `web/lib/analytics/track.ts` (`trackEvent`, mesma tabela `events` do T53, `kind='produto'`) + `web/lib/analytics/__tests__/track.test.ts` (6 testes, double de `events` via mock de `createAdminClient`). Os 5 pontos de instrumentação: `createBusiness` (`app/(producer)/produtor/actions.ts`, cadastro_iniciado — ao nascer o rascunho), `submitBusiness` (`app/(producer)/produtor/cadastro/actions.ts`, cadastro_enviado — mesmo ponto do aviso cadastro_recebido do T54, registro separado), `saveAnswers` (`app/(investor)/descobrir/actions.ts`, descoberta_concluida — usa o mesmo gate `isComplete()` já usado para persistir em `investor_answers`; SPEC_DEVIATION/interpretação: o texto da task fala em "5 perguntas respondidas por completo", mas `isComplete()` (já estabelecido no T32/RN-22) só exige as 4 obrigatórias, já que a pergunta 5 é opcional e pulável — reusar esse gate evita inventar um segundo critério de "completo" divergente do que o resto do código já usa), `createInterest` (`app/(investor)/negocios/[slug]/actions.ts`, interesse_enviado — mesmo ponto do aviso interesse_recebido do T54), `presentToPartner` (`app/(verifier)/verificacao/conexoes/actions.ts`, conexao_em_negociacao). SPEC_DEVIATION documentada (também no código): `conexao_em_negociacao` é registrada no mesmo ponto de `apresentacao_parceiro`, não numa transição formal para a etapa `em_negociacao` de `connection_events` — essa etapa não tem Server Action própria neste MVP (`connection_events` só implementa até `apresentada_ao_parceiro`, T49); é a aproximação mais próxima disponível sem criar uma tela/ação nova fora do escopo desta task, como o design.md já antecipava. 2 arquivos de teste existentes (`submit-business.test.ts`, `descobrir/__tests__/actions.test.ts`) ganharam mock de `@/lib/analytics/track` e 3 novas asserções. Gate completo final da Fase 11 (T53-T56): 221 unit + 68 e2e verdes, `npm run build`/`tsc --noEmit`/`eslint` limpos, `test:e2e` rodado 2x seguidas sem falha (confirmando estabilidade após o restart completo do Supabase local que resolveu o gotcha de Kong/OTP pós-`db reset`).
 
 ---
 

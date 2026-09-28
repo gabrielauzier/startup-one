@@ -37,6 +37,11 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(async () => cookieStore),
 }));
 
+const trackEventMock = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/lib/analytics/track", () => ({
+  trackEvent: trackEventMock,
+}));
+
 const COMPLETE_ANSWERS = {
   prioridade: "impacto" as const,
   faixaValor: "50_200k" as const,
@@ -50,6 +55,7 @@ beforeEach(() => {
   upsertMock.mockResolvedValue({ error: null });
   getUserMock.mockResolvedValue({ data: { user: null } });
   investorAnswersRow = { data: null };
+  trackEventMock.mockResolvedValue({ ok: true });
 });
 
 describe("saveAnswers (RN-22/RN-23)", () => {
@@ -108,6 +114,26 @@ describe("saveAnswers (RN-22/RN-23)", () => {
       expect.objectContaining({ impactos: [] }),
       { onConflict: "investor_id" }
     );
+  });
+
+  it("T56/RF-32: respostas completas dispara trackEvent('descoberta_concluida')", async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    const { saveAnswers } = await import("../actions");
+
+    await saveAnswers(COMPLETE_ANSWERS);
+
+    expect(trackEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "descoberta_concluida", atorId: "user-1" })
+    );
+  });
+
+  it("T56/RF-32: respostas incompletas NÃO dispara trackEvent", async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    const { saveAnswers } = await import("../actions");
+
+    await saveAnswers({ prioridade: "impacto" });
+
+    expect(trackEventMock).not.toHaveBeenCalled();
   });
 });
 

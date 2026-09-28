@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
+import { trackEvent } from "@/lib/analytics/track";
 import { isComplete, type DiscoveryAnswers } from "./types";
 
 const COOKIE_NAME = "iasy_descobrir_respostas";
@@ -61,6 +62,15 @@ export async function saveAnswers(answers: DiscoveryAnswers): Promise<{ ok: bool
 
   if (user && isComplete(answers)) {
     await persistToDb(user.id, answers);
+
+    // RF-32/PRD 8.1: evento de produto - só quando as 5 perguntas
+    // estão completas (não uma resposta parcial), mesmo gate de
+    // `isComplete` usado para persistir.
+    await trackEvent({
+      type: "descoberta_concluida",
+      payload: {},
+      atorId: user.id,
+    });
   }
 
   return { ok: true };

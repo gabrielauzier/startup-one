@@ -8,6 +8,7 @@ import { validateRequiredFields } from "@/lib/business/required-fields";
 import { buildBusinessSlug } from "@/lib/business/slug";
 import { assertTransition, InvalidBusinessTransitionError } from "@/lib/business/state-machine";
 import { enqueueNotification } from "@/lib/notifications/queue";
+import { trackEvent } from "@/lib/analytics/track";
 
 export interface SaveDraftPartResult {
   ok: boolean;
@@ -179,6 +180,14 @@ export async function submitBusiness(
       subject: "Îasy - cadastro recebido",
       body: `Recebemos o cadastro de ${nomeNegocio} e ele já está em análise pela nossa equipe.`,
     },
+  });
+
+  // RF-32/PRD 8.1: evento de produto - mesmo ponto do aviso acima, mas
+  // registro separado (métrica, não aviso a alguém).
+  await trackEvent({
+    type: "cadastro_enviado",
+    payload: { businessId },
+    atorId: user.id,
   });
 
   redirect("/produtor/cadastro/enviado");

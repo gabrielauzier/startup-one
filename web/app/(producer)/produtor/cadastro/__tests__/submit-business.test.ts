@@ -69,6 +69,11 @@ vi.mock("@/lib/notifications/queue", () => ({
   enqueueNotification: enqueueNotificationMock,
 }));
 
+const trackEventMock = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/lib/analytics/track", () => ({
+  trackEvent: trackEventMock,
+}));
+
 function completeRevisions() {
   return [
     {
@@ -115,6 +120,7 @@ beforeEach(() => {
   updateMock.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   revisionsInsertMock.mockResolvedValue({ error: null });
   enqueueNotificationMock.mockResolvedValue({ ok: true });
+  trackEventMock.mockResolvedValue({ ok: true });
 });
 
 describe("submitBusiness (RF-12, RF-13, RN-14)", () => {
@@ -167,6 +173,18 @@ describe("submitBusiness (RF-12, RF-13, RN-14)", () => {
         type: "cadastro_recebido",
         destinatarioId: "user-1",
       })
+    );
+  });
+
+  it("T56/RF-32: registra o evento de produto cadastro_enviado via trackEvent", async () => {
+    const { submitBusiness } = await import("../actions");
+
+    await expect(submitBusiness("biz-1", {}, new FormData())).rejects.toThrow(
+      "REDIRECT:/produtor/cadastro/enviado"
+    );
+
+    expect(trackEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "cadastro_enviado", atorId: "user-1" })
     );
   });
 

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueueNotification } from "@/lib/notifications/queue";
+import { trackEvent } from "@/lib/analytics/track";
 
 export interface ConexaoActionResult {
   ok: boolean;
@@ -123,6 +124,21 @@ export async function presentToPartner(interestId: string): Promise<ConexaoActio
   if (error) {
     return { ok: false, error: "Não foi possível registrar a apresentação." };
   }
+
+  // RF-32/PRD 8.1/SPEC_DEVIATION (T56): registra o evento de produto
+  // `conexao_em_negociacao` neste mesmo ponto, embora a etapa formal
+  // gravada acima seja `apresentada_ao_parceiro`, não `em_negociacao`
+  // - `connection_events` (T45/T49) implementa as etapas até
+  // `apresentada_ao_parceiro`; a transição explícita para
+  // `em_negociacao` não tem Server Action própria neste MVP (fica
+  // para o painel de conexões evoluir depois). Este é o evento mais
+  // próximo que a Fase 9 implementou para aproximar a métrica da PRD
+  // 8.1 sem inventar uma tela/ação nova fora do escopo desta task.
+  await trackEvent({
+    type: "conexao_em_negociacao",
+    payload: { interestId, businessId: business.id },
+    atorId: auth.userId,
+  });
 
   revalidatePath("/verificacao/conexoes");
   return { ok: true };

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveBusinessForOwner } from "@/lib/business/draft";
+import { trackEvent } from "@/lib/analytics/track";
 
 export interface CreateBusinessState {
   error?: string;
@@ -55,6 +56,13 @@ export async function createBusiness(
   if (error || !business) {
     return { error: "Não foi possível iniciar o cadastro. Tente de novo." };
   }
+
+  // RF-32/PRD 8.1: evento de produto - o rascunho nasce.
+  await trackEvent({
+    type: "cadastro_iniciado",
+    payload: { businessId: business.id },
+    atorId: user.id,
+  });
 
   redirect("/produtor/cadastro/1");
 }
