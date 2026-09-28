@@ -1367,10 +1367,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] E2E cobre ao menos 2 dos 9 gatilhos ponta a ponta (interesse recebido e selo concedido) confirmando o registro em `events`
+- [x] E2E cobre ao menos 2 dos 9 gatilhos ponta a ponta (interesse recebido e selo concedido) confirmando o registro em `events`
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — os 9 gatilhos ligados: `submitBusiness` (`app/(producer)/produtor/cadastro/actions.ts`, cadastro_recebido), `requestAdjustment`/`reject`/`approve` (`app/(verifier)/verificacao/[id]/actions.ts`, ajuste_pedido/reprovacao/selo_concedido), `requestDocumentAccess` (`app/(investor)/negocios/[slug]/documentos/actions.ts`, pedido_documento), `respondDocumentRequest` (`app/(producer)/produtor/pedidos/actions.ts`, documento_liberado só no ramo `liberar`), `createInterest` (`app/(investor)/negocios/[slug]/actions.ts`, interesse_recebido), `decideInterest` (`app/(producer)/produtor/interesses/actions.ts`, interesse_aceito só no ramo `aceitar`), `presentToPartner` (`app/(verifier)/verificacao/conexoes/actions.ts`, apresentacao_parceiro — trocou a chamada direta a `sendEmail` por `enqueueNotification` com `emailTo` explícito, já que o parceiro financeiro não é um `profiles.id`). Todos os comentários `TODO(T53)` removidos dos 5 arquivos que os tinham. `web/e2e/avisos-eventos.spec.ts` (2 testes) cobre interesse_recebido e selo_concedido ponta a ponta, confirmando via `getEventsByType` (novo helper em `web/e2e/helpers/db.ts`) que as 2 linhas esperadas (`canal='whatsapp_manual'` + `canal='email'`) aparecem em `events` com o `destinatario_id` certo. 2 testes unitários novos (`submit-business.test.ts`, `approve.test.ts`) confirmam a chamada a `enqueueNotification` com o tipo/destinatário certos, mockando `@/lib/notifications/queue`. Gate completo: 199 unit + 68 e2e verdes (1 flake transitório de OTP em `produtor-parte3.spec.ts` sob 5 workers concorrentes, reproduzido e confirmado como o gotcha de exaustão de rede do Docker local já documentado em STATE.md — passa isolado/com menos workers, não é regressão desta task).
+
+---
 
 ---
 

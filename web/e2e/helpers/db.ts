@@ -259,6 +259,25 @@ export async function getInterest(id: string): Promise<Record<string, unknown> |
   return rows[0] ?? null;
 }
 
+/**
+ * Le' as linhas de `events` de um tipo (T53/T54, RF-31) direto via
+ * REST (service role) - usado pelos e2e que confirmam o registro do
+ * aviso ao enfileirar (`enqueueNotification`), sem depender de UI que
+ * exponha a fila (tabela interna de operacao, sem policy de RLS de
+ * leitura para nenhum perfil).
+ */
+export async function getEventsByType(
+  type: string,
+  destinatarioId?: string
+): Promise<Record<string, unknown>[]> {
+  const filter = destinatarioId ? `&destinatario_id=eq.${destinatarioId}` : "";
+  const res = await fetch(
+    `${API_URL}/rest/v1/events?type=eq.${type}${filter}&select=*&order=created_at.desc`,
+    { headers: headers() }
+  );
+  return (await res.json()) as Record<string, unknown>[];
+}
+
 /** Cria um evento de conexao direto via REST (service role) - usado pelos e2e do T49. */
 export async function createConnectionEvent(
   interestId: string,

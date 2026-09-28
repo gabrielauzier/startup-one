@@ -10,6 +10,7 @@ import {
   type ChecklistState,
 } from "@/lib/verification/checklist";
 import { validateNotas, seloValidoAte } from "@/lib/verification/notas";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface DecisionResult {
   ok: boolean;
@@ -64,7 +65,7 @@ export async function requestAdjustment(
   const admin = createAdminClient();
   const { data: business } = await admin
     .from("businesses")
-    .select("id, status")
+    .select("id, status, owner_id, nome")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -94,6 +95,18 @@ export async function requestAdjustment(
     itens_ajuste: itensAjuste,
   });
 
+  // RF-31/RN-41: avisa o produtor que um ajuste foi pedido (WhatsApp
+  // manual da equipe + e-mail em paralelo).
+  await enqueueNotification({
+    type: "ajuste_pedido",
+    payload: { businessId, motivo },
+    destinatarioId: business.owner_id,
+    email: {
+      subject: "Îasy - ajuste pedido no seu cadastro",
+      body: `Pedimos um ajuste no cadastro de ${business.nome ?? "seu negócio"}: ${motivo}`,
+    },
+  });
+
   redirect("/verificacao");
 }
 
@@ -116,7 +129,7 @@ export async function reject(
   const admin = createAdminClient();
   const { data: business } = await admin
     .from("businesses")
-    .select("id, status")
+    .select("id, status, owner_id, nome")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -144,6 +157,18 @@ export async function reject(
     motivo,
     checklist,
     itens_ajuste: [],
+  });
+
+  // RF-31/RN-41: avisa o produtor da reprovação (WhatsApp manual da
+  // equipe + e-mail em paralelo).
+  await enqueueNotification({
+    type: "reprovacao",
+    payload: { businessId, motivo },
+    destinatarioId: business.owner_id,
+    email: {
+      subject: "Îasy - cadastro não aprovado",
+      body: `O cadastro de ${business.nome ?? "seu negócio"} não foi aprovado: ${motivo}`,
+    },
   });
 
   redirect("/verificacao");
@@ -179,7 +204,7 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
   const admin = createAdminClient();
   const { data: business } = await admin
     .from("businesses")
-    .select("id, status")
+    .select("id, status, owner_id, nome")
     .eq("id", input.businessId)
     .maybeSingle();
 
@@ -195,6 +220,7 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
   }
 
   const now = new Date();
+  const seloAte = seloValidoAte(now);
 
   const { error: updateError } = await admin
     .from("businesses")
@@ -204,7 +230,7 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
       nota_s: input.notaS,
       nota_g: input.notaG,
       verificado_em: now.toISOString(),
-      selo_valido_ate: seloValidoAte(now).toISOString(),
+      selo_valido_ate: seloAte.toISOString(),
       assigned_to: null,
       assigned_at: null,
     })
@@ -218,6 +244,18 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
     motivo: null,
     checklist: input.checklist,
     itens_ajuste: [],
+  });
+
+  // RF-31/RN-41: avisa o produtor do selo concedido (WhatsApp manual
+  // da equipe + e-mail em paralelo).
+  await enqueueNotification({
+    type: "selo_concedido",
+    payload: { businessId: input.businessId, seloValidoAte: seloAte.toISOString() },
+    destinatarioId: business.owner_id,
+    email: {
+      subject: "Îasy - selo Verificado Îasy concedido",
+      body: `${business.nome ?? "Seu negócio"} recebeu o selo Verificado Îasy, válido até ${seloAte.toLocaleDateString("pt-BR")}.`,
+    },
   });
 
   redirect("/verificacao");

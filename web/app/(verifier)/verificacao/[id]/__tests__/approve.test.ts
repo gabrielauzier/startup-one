@@ -16,8 +16,13 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 
-let businessResult: { data: { id: string; status: string } | null } = {
-  data: { id: "biz-1", status: "em_analise" },
+const enqueueNotificationMock = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/lib/notifications/queue", () => ({
+  enqueueNotification: enqueueNotificationMock,
+}));
+
+let businessResult: { data: { id: string; status: string; owner_id?: string; nome?: string } | null } = {
+  data: { id: "biz-1", status: "em_analise", owner_id: "owner-1", nome: "Negócio Teste" },
 };
 const updateMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 const verificationsInsertMock = vi.fn().mockResolvedValue({ error: null });
@@ -59,9 +64,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   getUserMock.mockResolvedValue({ data: { user: { id: "verifier-1" } } });
   sessionProfileSelectMock.mockResolvedValue({ data: { role: "verificador" } });
-  businessResult = { data: { id: "biz-1", status: "em_analise" } };
+  businessResult = { data: { id: "biz-1", status: "em_analise", owner_id: "owner-1", nome: "Negócio Teste" } };
   updateMock.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   verificationsInsertMock.mockResolvedValue({ error: null });
+  enqueueNotificationMock.mockResolvedValue({ ok: true });
 });
 
 describe("approve (RF-15, RN-18, RN-19)", () => {
@@ -136,6 +142,27 @@ describe("approve (RF-15, RN-18, RN-19)", () => {
     const verificadoEm = new Date(call.verificado_em);
     const seloValidoAte = new Date(call.selo_valido_ate);
     expect(seloValidoAte.getUTCFullYear()).toBe(verificadoEm.getUTCFullYear() + 1);
+  });
+
+  it("T54/RF-31: avisa o produtor do selo concedido via enqueueNotification", async () => {
+    const { approve } = await import("../actions");
+
+    await expect(
+      approve({
+        businessId: "biz-1",
+        checklist: COMPLETE_CHECKLIST,
+        notaA: 94,
+        notaS: 91,
+        notaG: 86,
+      })
+    ).rejects.toThrow("REDIRECT:/verificacao");
+
+    expect(enqueueNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "selo_concedido",
+        destinatarioId: "owner-1",
+      })
+    );
   });
 
   it("grava a decisao em verifications com autor e sem endpoint de edicao (RF-16/CA-18.2)", async () => {

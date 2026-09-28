@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendEmail } from "@/lib/notifications/send-email";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface ConexaoActionResult {
   ok: boolean;
@@ -38,10 +38,12 @@ async function requireVerifier(): Promise<
 /**
  * RF-30/RN-40/CA-40.1/CA-40.2: apresenta as partes de um interesse
  * Aceito ao parceiro financeiro do negócio (`businesses.indicado_por`
- * -> `partners.email_contato`) - envia o e-mail (via `sendEmail`,
- * SPEC_DEVIATION documentada lá: a fila real chega no T53) e grava o
- * evento `apresentada_ao_parceiro` em `connection_events`, avançando a
- * etapa consumida pela Timeline do investidor (T47).
+ * -> `partners.email_contato`) - envia o e-mail via
+ * `enqueueNotification` (T53/RF-31, tipo `apresentacao_parceiro` -
+ * único tipo com destinatário externo, por isso usa `emailTo` em vez
+ * de `destinatarioId`, que é um `profiles.id`) e grava o evento
+ * `apresentada_ao_parceiro` em `connection_events`, avançando a etapa
+ * consumida pela Timeline do investidor (T47).
  *
  * CA-40.1: só avança a partir de `aceita` - um interesse ainda
  * `pendente` (Timeline em `pendente`) ou já apresentado antes é
@@ -101,10 +103,14 @@ export async function presentToPartner(interestId: string): Promise<ConexaoActio
     return { ok: false, error: "O parceiro indicado não tem e-mail de contato cadastrado." };
   }
 
-  await sendEmail({
-    to: partner.email_contato,
-    subject: `Îasy - apresentação de partes: ${business.nome}`,
-    body: `O interesse ${interestId} no negócio ${business.nome} foi aceito e está pronto para conversa com o parceiro financeiro.`,
+  await enqueueNotification({
+    type: "apresentacao_parceiro",
+    payload: { interestId, businessId: business.id, partnerName: partner.nome },
+    emailTo: partner.email_contato,
+    email: {
+      subject: `Îasy - apresentação de partes: ${business.nome}`,
+      body: `O interesse ${interestId} no negócio ${business.nome} foi aceito e está pronto para conversa com o parceiro financeiro.`,
+    },
   });
 
   const { error } = await supabase.from("connection_events").insert({

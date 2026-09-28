@@ -10,6 +10,7 @@ import {
   INTEREST_MIN_VALOR,
   INTEREST_MAX_MENSAGEM_LENGTH,
 } from "@/lib/business/interest-confirmation";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 const VISITOR_COOKIE = "iasy_visitor";
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -82,9 +83,9 @@ export interface CreateInterestResult {
  * Grava também o evento inicial `pendente` em `connection_events`
  * (RN-40, linha do tempo consumida pelo T47/T49).
  *
- * TODO(T53): enfileirar o aviso à produtora via
- * lib/notifications/queue.ts (mesmo TODO já usado em
- * requestDocumentAccess, T41) - a fila só existe a partir do T53.
+ * RN-36: ao enviar, enfileira o aviso `interesse_recebido` à produtora
+ * via lib/notifications/queue.ts (T53) - WhatsApp manual da equipe +
+ * e-mail em paralelo.
  */
 export async function createInterest(
   slug: string,
@@ -130,7 +131,7 @@ export async function createInterest(
 
   const { data: business } = await supabase
     .from("businesses")
-    .select("id, valor_busca, status")
+    .select("id, valor_busca, status, owner_id, nome")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -169,6 +170,18 @@ export async function createInterest(
     etapa: "pendente",
     autor_id: user.id,
   });
+
+  if (business.owner_id) {
+    await enqueueNotification({
+      type: "interesse_recebido",
+      payload: { interestId: interest.id, businessId, valor },
+      destinatarioId: business.owner_id,
+      email: {
+        subject: "Îasy - novo interesse recebido",
+        body: `Um investidor demonstrou interesse em ${business.nome ?? "seu negócio"}, no valor de R$ ${valor}.`,
+      },
+    });
+  }
 
   redirect(`/negocios/${slug}/interesse-enviado?id=${interest.id}`);
 }

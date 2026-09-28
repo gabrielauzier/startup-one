@@ -64,6 +64,11 @@ vi.mock("next/navigation", () => ({
   redirect: redirectMock,
 }));
 
+const enqueueNotificationMock = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/lib/notifications/queue", () => ({
+  enqueueNotification: enqueueNotificationMock,
+}));
+
 function completeRevisions() {
   return [
     {
@@ -109,6 +114,7 @@ beforeEach(() => {
   evidencesData = [{ grupo: "onde_produz" }, { grupo: "produto" }];
   updateMock.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
   revisionsInsertMock.mockResolvedValue({ error: null });
+  enqueueNotificationMock.mockResolvedValue({ ok: true });
 });
 
 describe("submitBusiness (RF-12, RF-13, RN-14)", () => {
@@ -145,6 +151,21 @@ describe("submitBusiness (RF-12, RF-13, RN-14)", () => {
         nome: "Cooperativa",
         status: "em_analise",
         retorno_proposto: 14.8,
+      })
+    );
+  });
+
+  it("T54/RF-31: avisa o produtor do cadastro recebido via enqueueNotification", async () => {
+    const { submitBusiness } = await import("../actions");
+
+    await expect(submitBusiness("biz-1", {}, new FormData())).rejects.toThrow(
+      "REDIRECT:/produtor/cadastro/enviado"
+    );
+
+    expect(enqueueNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "cadastro_recebido",
+        destinatarioId: "user-1",
       })
     );
   });

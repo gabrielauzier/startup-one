@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface RespondDocumentRequestResult {
   ok: boolean;
@@ -46,9 +48,11 @@ async function requireProducer(): Promise<
  * investidor (T41, SITUATION_LABELS) já mostra só "A produtora optou
  * por não liberar" para `status='recusado'`, sem campo de motivo aqui.
  *
- * TODO(T53): enfileirar o aviso ao investidor via
- * lib/notifications/queue.ts (RN-39 padrão de aviso de decisão) - a
- * fila só existe a partir do T53.
+ * Quando `decisao='liberar'`, enfileira o aviso `documento_liberado`
+ * ao investidor via lib/notifications/queue.ts (T53) - e-mail
+ * automático (RN-41, investidor sempre recebe e-mail a cada
+ * novidade). Uma recusa não avisa ninguém (RF-31 só lista
+ * `documento_liberado`, não uma versão "recusado" deste tipo).
  */
 export async function respondDocumentRequest(
   requestId: string,
@@ -61,7 +65,7 @@ export async function respondDocumentRequest(
 
   const { data: request } = await supabase
     .from("document_requests")
-    .select("id, status")
+    .select("id, status, investor_id, document_id")
     .eq("id", requestId)
     .maybeSingle();
 
@@ -82,6 +86,25 @@ export async function respondDocumentRequest(
 
   if (error) {
     return { ok: false, error: "Não foi possível registrar a decisão." };
+  }
+
+  if (decisao === "liberar") {
+    const admin = createAdminClient();
+    const { data: document } = await admin
+      .from("documents")
+      .select("titulo")
+      .eq("id", request.document_id)
+      .maybeSingle();
+
+    await enqueueNotification({
+      type: "documento_liberado",
+      payload: { requestId, documentId: request.document_id },
+      destinatarioId: request.investor_id,
+      email: {
+        subject: "Îasy - documento liberado",
+        body: `O documento "${document?.titulo ?? "solicitado"}" foi liberado para você.`,
+      },
+    });
   }
 
   revalidatePath("/produtor/pedidos");

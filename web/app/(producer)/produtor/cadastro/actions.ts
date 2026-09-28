@@ -7,6 +7,7 @@ import { getDraftData } from "@/lib/business/draft";
 import { validateRequiredFields } from "@/lib/business/required-fields";
 import { buildBusinessSlug } from "@/lib/business/slug";
 import { assertTransition, InvalidBusinessTransitionError } from "@/lib/business/state-machine";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface SaveDraftPartResult {
   ok: boolean;
@@ -166,6 +167,18 @@ export async function submitBusiness(
     business_id: businessId,
     dados: { part: "submit", submittedAt: new Date().toISOString() },
     status: "em_analise",
+  });
+
+  // RF-31/RN-41: avisa o produtor que o cadastro foi recebido e entrou
+  // em análise (WhatsApp manual da equipe + e-mail em paralelo).
+  await enqueueNotification({
+    type: "cadastro_recebido",
+    payload: { businessId, nome: nomeNegocio },
+    destinatarioId: business.owner_id,
+    email: {
+      subject: "Îasy - cadastro recebido",
+      body: `Recebemos o cadastro de ${nomeNegocio} e ele já está em análise pela nossa equipe.`,
+    },
   });
 
   redirect("/produtor/cadastro/enviado");

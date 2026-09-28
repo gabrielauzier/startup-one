@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canRequestAccess, computeDocumentSituation } from "@/lib/business/document-status";
 import { createDocumentSignedUrl } from "@/lib/documents/signed-url";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface RequestDocumentAccessResult {
   ok: boolean;
@@ -18,9 +19,9 @@ export interface RequestDocumentAccessResult {
  * - usa o cliente de sessão (não admin) de propósito, mesmo padrão de
  * `investor_answers` (saveAnswers, T32).
  *
- * TODO(T53): enfileirar o aviso à produtora via lib/notifications/queue.ts
- * (RN-32 "e SHALL notificar a produtora") - a fila só existe a partir
- * do T53 (mesmo padrão TODO já usado em app/api/cron/expire-seals).
+ * RN-32: ao enviar o pedido, enfileira o aviso à produtora via
+ * lib/notifications/queue.ts (T53) - WhatsApp manual da equipe +
+ * e-mail em paralelo.
  */
 export async function requestDocumentAccess(
   slug: string,
@@ -47,7 +48,7 @@ export async function requestDocumentAccess(
 
   const { data: document } = await supabase
     .from("documents")
-    .select("id, aberto_a_todos")
+    .select("id, titulo, aberto_a_todos, business_id")
     .eq("id", documentId)
     .maybeSingle();
 
@@ -85,6 +86,25 @@ export async function requestDocumentAccess(
 
   if (error) {
     return { ok: false, error: "Não foi possível enviar o pedido. Tente de novo." };
+  }
+
+  const admin = createAdminClient();
+  const { data: business } = await admin
+    .from("businesses")
+    .select("owner_id, nome")
+    .eq("id", document.business_id)
+    .maybeSingle();
+
+  if (business?.owner_id) {
+    await enqueueNotification({
+      type: "pedido_documento",
+      payload: { documentId, businessId: document.business_id, titulo: document.titulo },
+      destinatarioId: business.owner_id,
+      email: {
+        subject: "Îasy - novo pedido de documento",
+        body: `Um investidor pediu acesso ao documento "${document.titulo}" de ${business.nome ?? "seu negócio"}.`,
+      },
+    });
   }
 
   revalidatePath(`/negocios/${slug}/documentos`);

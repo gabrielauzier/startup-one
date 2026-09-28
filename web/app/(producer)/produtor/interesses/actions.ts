@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 export interface DecideInterestResult {
   ok: boolean;
@@ -46,9 +47,10 @@ async function requireProducer(): Promise<
  * nenhum nem expõe contato - a tela "Meus interesses" do investidor
  * (T51) mostra só "Não aceito pela produtora" para `status='recusado'`.
  *
- * TODO(T53): enfileirar o aviso ao investidor via
- * lib/notifications/queue.ts (mesmo TODO já usado em
- * respondDocumentRequest, T43) - a fila só existe a partir do T53.
+ * Quando `decisao='aceitar'`, enfileira o aviso `interesse_aceito` ao
+ * investidor via lib/notifications/queue.ts (T53) - e-mail automático
+ * (RN-41, investidor sempre recebe e-mail a cada novidade). Recusar
+ * não avisa ninguém (CA-39.2: sem exposição de motivo/contato).
  */
 export async function decideInterest(
   interestId: string,
@@ -61,7 +63,7 @@ export async function decideInterest(
 
   const { data: interest } = await supabase
     .from("interests")
-    .select("id, status")
+    .select("id, status, investor_id, business_id")
     .eq("id", interestId)
     .maybeSingle();
 
@@ -88,6 +90,16 @@ export async function decideInterest(
       interest_id: interestId,
       etapa: "aceita",
       autor_id: auth.userId,
+    });
+
+    await enqueueNotification({
+      type: "interesse_aceito",
+      payload: { interestId, businessId: interest.business_id },
+      destinatarioId: interest.investor_id,
+      email: {
+        subject: "Îasy - seu interesse foi aceito",
+        body: "A produtora aceitou o seu interesse. Em breve apresentaremos as partes ao parceiro financeiro.",
+      },
     });
   }
 
