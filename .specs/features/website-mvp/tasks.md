@@ -1003,11 +1003,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] RLS: investidor só lê `document_requests` próprios; produtor lê todos os do seu negócio
-- [ ] `CHECK`/trigger garante `expira_em = decidido_em + 30 dias` quando liberado
+- [x] RLS: investidor só lê `document_requests` próprios; produtor lê todos os do seu negócio
+- [x] `CHECK`/trigger garante `expira_em = decidido_em + 30 dias` quando liberado
 
 **Tests**: integration
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0007_documents.sql` (nomeada 0007, não 0006 como tasks.md previa — 0006 já ocupada por `0006_investor_answers.sql` do Lote 3), `web/supabase/tests/documents.sql` (pgTAP, 5 asserts). Cria `documents`, `document_requests`, `document_views`, `profile_visits` com RLS real (mesmo padrão de `investor_answers`, não admin-client): investidor só lê os próprios `document_requests`/`document_views`; produtora dona do negócio lê todos os do seu negócio; documento `aberto_a_todos=true` é público (anon+authenticated); trigger `set_document_request_expira_em` grava `expira_em = decidido_em + 30 dias` sempre que `status='liberado'` (testado via pgTAP). SPEC_DEVIATION (decisão de identificação de visitante, RN-35): `profile_visits` usa `investor_id` (logado) OU `session_id` (cookie `iasy_visitor`, visitante anônimo) com índice único parcial-like em `(business_id, coalesce(investor_id::text, session_id), dia)` — design.md não detalha essa escolha; documentado no comentário da migração. Gate: lint + typecheck + `npm run test` (172 testes) verdes; `npx supabase db reset` + `npx supabase test db` verdes (20 testes pgTAP, incluindo os 5 novos).
 
 ---
 
