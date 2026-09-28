@@ -953,12 +953,13 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Busca "solidaria" encontra "Castanha Solidária Xingu" (CA-27.1)
-- [ ] Busca sem resultado mostra "Nenhum negócio encontrado" e "Limpar filtros" (CA-27.2)
-- [ ] Filtros combinados persistem na URL (RN-27)
+- [x] Busca "solidaria" encontra "Castanha Solidária Xingu" (CA-27.1)
+- [x] Busca sem resultado mostra "Nenhum negócio encontrado" e "Limpar filtros" (CA-27.2)
+- [x] Filtros combinados persistem na URL (RN-27)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/negocios/page.tsx`: consulta `businesses` com `status='verificado'` (cliente de sessão, RLS pública do T25) e `certifications` conferidas (cliente admin, mesmo padrão do T36); busca por nome/cidade normalizando acento e maiúsculas em JS (`.normalize("NFD")` + strip de diacríticos) sobre o conjunto já filtrado — volume baixo do piloto dispensa `unaccent` no Postgres; filtros "produto" (reusa `PRODUTOS_OPTIONS` de `lib/business/impact-options.ts`, já existente desde o T21) e "uf" (reusa `AMAZONIA_LEGAL_UFS` de `lib/validation/amazonia-legal.ts`, já existente desde o T20) via `<form method="get">`, o que já mantém tudo na URL por natureza (RN-27) sem JS extra; contador "N negócios"; estado vazio com "Nenhum negócio encontrado" + "Limpar filtros" (CA-27.2). `web/e2e/negocios-vitrine.spec.ts` (3 e2e: CA-27.1, CA-27.2, e RN-27 com os 3 filtros combinados, incluindo reload da URL para confirmar persistência). SPEC_DEVIATION: os cards linkam para `/negocios/[slug]`, rota que só é criada no T40 (Fase 8, fora deste lote) — 404 esperado e temporário até lá, mesmo padrão de dependência futura já usado em tasks anteriores (ex.: T22→Storage).
 
 ---
 
