@@ -626,11 +626,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Valor fora do intervalo mostra os limites (CA-10.1)
-- [ ] Retorno "14,8" é persistido e formatado como "Retorno proposto 14,8% ao ano" em preview (CA-10.2)
+- [x] Valor fora do intervalo mostra os limites (CA-10.1)
+- [x] Retorno "14,8" é persistido e formatado como "Retorno proposto 14,8% ao ano" em preview (CA-10.2)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/cadastro/5/{page.tsx,parte5-form.tsx,actions.ts,constants.ts}`, `web/app/(producer)/produtor/cadastro/5/__tests__/actions.test.ts` (6 unit, cobrindo CA-10.1 com os limites exatos abaixo/acima/fora do passo de R$5 mil, prazo inválido e retorno fora de 0–30%), `web/e2e/produtor-parte5.spec.ts` (2 e2e: limites/explicação do retorno + preview "Retorno proposto 14,8% ao ano", CA-10.2). SPEC_DEVIATION: `VALOR_MIN/VALOR_MAX/VALOR_STEP` foram para `constants.ts` separado (sem `"use server"`) — um arquivo `"use server"` só pode exportar funções assíncronas; exportar essas constantes de `actions.ts` quebrava silenciosamente todos os exports do módulo (`next build` acusou "The module has no exports at all").
 
 ---
 
