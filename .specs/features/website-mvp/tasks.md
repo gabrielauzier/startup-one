@@ -401,11 +401,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `CHECK` rejeita nota fora de 0–100 ou com decimal (CA-19.1) e valor fora de R$50k–200k (CA-10.1) direto no banco
-- [ ] Índice único parcial impede 2º negócio ativo para o mesmo CNPJ (CA-05.3)
+- [x] `CHECK` rejeita nota fora de 0–100 ou com decimal (CA-19.1) e valor fora de R$50k–200k (CA-10.1) direto no banco
+- [x] Índice único parcial impede 2º negócio ativo para o mesmo CNPJ (CA-05.3)
 
 **Tests**: integration
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0003_businesses.sql` (5 tabelas), `web/supabase/tests/businesses.sql` (10 testes pgTAP). Notas usam `numeric` + `check (nota = trunc(nota))` em vez de `integer`: uma coluna `integer` arredonda silenciosamente 94.5 para 95 no INSERT antes de qualquer CHECK rodar, então nunca rejeitaria o valor decimal exigido por CA-19.1 (confirmado empiricamente antes de escrever a migração). Colunas de `businesses` preenchidas progressivamente pelas 5 partes do cadastro (cnpj, nome, slug, tipo_org, cidade_ibge, uf, familias, anos_atividade, produção, finalidade/valor/prazo/retorno) são nullable — só `id`/`owner_id`/`status` são obrigatórios na criação do rascunho (T18); a obrigatoriedade de RN-06 é aplicada na camada de aplicação no envio final (T24), não no schema.
 
 ---
 
