@@ -110,3 +110,15 @@ export async function createPartner(nome: string): Promise<string> {
   const rows = (await res.json()) as { id: string }[];
   return rows[0].id;
 }
+
+/** RN-23/T32: le' a linha de `investor_answers` de um investidor direto via REST. */
+export async function getInvestorAnswers(
+  investorId: string
+): Promise<Record<string, unknown> | null> {
+  const res = await fetch(
+    `${API_URL}/rest/v1/investor_answers?investor_id=eq.${investorId}&select=*`,
+    { headers: headers() }
+  );
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows[0] ?? null;
+}

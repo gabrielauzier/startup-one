@@ -883,12 +883,14 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] "Alterar respostas" nos resultados volta à pergunta 1 com marcações atuais (CA-23.2)
+- [x] "Alterar respostas" nos resultados volta à pergunta 1 com marcações atuais (CA-23.2)
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(descoberta): motor de alinhamento e as 5 perguntas`
+
+**Status**: ✅ Complete (2026-09-28) — link "Alterar respostas" adicionado ao placeholder de `web/app/(investor)/descobrir/resultados/page.tsx` (T33), apontando para `/descobrir/1`; nenhuma mudança extra foi necessária em `actions.ts` ("adicionar update" do `Where` original) porque `saveAnswers` já fazia upsert por `investor_id` desde o T32 — reabrir a pergunta 1 já mostra as respostas atuais marcadas automaticamente, pois `DescobrirForm` já inicializa seu estado a partir de `loadAnswers()` (fonte: banco se logado). `web/e2e/helpers/auth.ts` ganhou `loginAsInvestor` (login + aceite de termos, reutilizável por specs futuras) e `web/e2e/helpers/db.ts` ganhou `getInvestorAnswers`; `web/e2e/descobrir-alterar-respostas.spec.ts` (1 e2e) cobre CA-23.2 ponta a ponta: completa a descoberta, confirma a prioridade salva, clica "Alterar respostas", confirma a marcação atual, troca a prioridade, refaz o fluxo e confirma que a linha em `investor_answers` foi substituída (mesmo `investor_id`, novo valor). Conforme a nota do lote sobre o rótulo `**Commit**` de tasks.md: esta task recebe seu próprio commit atômico (mensagem abaixo), não reaproveita literalmente a frase de fase — a Fase 6 fecha aqui.
 
 ---
 

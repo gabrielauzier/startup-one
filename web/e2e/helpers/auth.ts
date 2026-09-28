@@ -46,6 +46,31 @@ export async function loginAsProducer(page: Page, emailPrefix: string): Promise<
 }
 
 /**
+ * RF-02 a RF-04: loga como investidor via OTP real e aceita os Termos
+ * de Uso/Política de Privacidade (RN-03) - todo investidor passa por
+ * esse gate no primeiro acesso antes de qualquer outra rota, inclusive
+ * `/descobrir/*`. Devolve o e-mail usado.
+ */
+export async function loginAsInvestor(page: Page, emailPrefix: string): Promise<string> {
+  const email = `${emailPrefix}-${Date.now()}@example.com`;
+
+  await page.goto("/entrar");
+  await page.getByRole("radio", { name: "Quero investir" }).click();
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.waitForURL(/\/entrar\/codigo\?/);
+
+  const code = await getOtpCodeFromMailpit(email);
+  await page.getByLabel("Código de 6 dígitos").fill(code);
+  await page.getByRole("button", { name: "Confirmar" }).click();
+
+  await page.waitForURL(/\/termos/);
+  await page.getByRole("button", { name: "Aceitar e continuar" }).click();
+
+  return email;
+}
+
+/**
  * RN-01: nao existe fluxo de login normal para `verificador` - so' a
  * equipe credencia. Loga como investidor via OTP real e promove via
  * REST/service-role (helpers/db.ts `promoteToVerifier`), simulando esse
