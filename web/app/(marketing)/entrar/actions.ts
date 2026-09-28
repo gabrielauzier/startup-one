@@ -66,8 +66,9 @@ export interface VerifyOtpState {
  * RN-02: confirma o codigo de 6 digitos. Depois de 5 tentativas
  * erradas, para de tentar e pede um novo codigo (CA-02.1). Na primeira
  * confirmacao de um e-mail sem conta, cria o profile com o papel
- * escolhido (CA-02.2) - usa o cliente admin porque ainda nao existe
- * policy de insert para o proprio usuario (essa vem no T12).
+ * escolhido (CA-02.2). O upsert usa o cliente com a sessao do proprio
+ * usuario (nao o admin): a policy de insert do T12 (RN-01, CA-01.3) ja
+ * permite e ainda bloqueia role='verificador' direto no banco.
  */
 export async function verifyOtp(
   prevState: VerifyOtpState,
@@ -106,15 +107,14 @@ export async function verifyOtp(
     };
   }
 
-  const admin = createAdminClient();
-  await admin
+  await supabase
     .from("profiles")
     .upsert(
       { id: data.user.id, role, nome: email.split("@")[0] },
       { onConflict: "id", ignoreDuplicates: true }
     );
 
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role, termos_aceitos_em")
     .eq("id", data.user.id)
@@ -138,5 +138,9 @@ export async function verifyOtp(
     redirect(redirectTo);
   }
 
+  // resolvePostLoginRedirect ainda consulta businesses/investor_answers
+  // via admin: essas tabelas (T13, T32) nao existem neste ponto do plano
+  // e ainda nao tem RLS propria.
+  const admin = createAdminClient();
   redirect(await resolvePostLoginRedirect(admin, data.user.id, actualRole));
 }

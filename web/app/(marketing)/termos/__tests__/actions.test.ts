@@ -1,19 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const getUserMock = vi.fn();
-const createServerClientMock = vi.fn().mockResolvedValue({
-  auth: { getUser: getUserMock },
-});
-
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: createServerClientMock,
-}));
-
-const updateMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
-let profileRoleResult: { data: { role: string } | null } = {
-  data: { role: "investidor" },
-};
-
 function selectChain(result: unknown) {
   return {
     eq: () => ({
@@ -23,14 +9,30 @@ function selectChain(result: unknown) {
   };
 }
 
-const fromMock = vi.fn((table: string) => {
-  if (table === "profiles") {
-    return { update: updateMock, select: () => selectChain(profileRoleResult) };
-  }
-  // businesses / investor_answers: sem cadastro/respostas nestes testes.
-  return { select: () => selectChain({ data: null }) };
+const getUserMock = vi.fn();
+const updateMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+let profileRoleResult: { data: { role: string } | null } = {
+  data: { role: "investidor" },
+};
+
+const sessionFromMock = vi.fn(() => ({
+  update: updateMock,
+  select: () => selectChain(profileRoleResult),
+}));
+
+const createServerClientMock = vi.fn().mockResolvedValue({
+  auth: { getUser: getUserMock },
+  from: sessionFromMock,
 });
-const createAdminClientMock = vi.fn().mockReturnValue({ from: fromMock });
+
+vi.mock("@/lib/supabase/server", () => ({
+  createServerClient: createServerClientMock,
+}));
+
+// businesses / investor_answers (resolvePostLoginRedirect) seguem vindo
+// do cliente admin - sem cadastro/respostas nestes testes.
+const adminFromMock = vi.fn(() => ({ select: () => selectChain({ data: null }) }));
+const createAdminClientMock = vi.fn().mockReturnValue({ from: adminFromMock });
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: createAdminClientMock,
@@ -67,7 +69,7 @@ describe("acceptTerms (CA-03.2)", () => {
       acceptTerms({}, formData({ redirect: "" }))
     ).rejects.toThrow("REDIRECT:/descobrir/1");
 
-    expect(fromMock).toHaveBeenCalledWith("profiles");
+    expect(sessionFromMock).toHaveBeenCalledWith("profiles");
     expect(updateMock).toHaveBeenCalledTimes(1);
     const payload = updateMock.mock.calls[0][0];
     expect(payload.termos_versao).toBeTruthy();

@@ -1,48 +1,59 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+function selectChain(result: unknown) {
+  return {
+    eq: () => ({
+      single: () => Promise.resolve(result),
+      maybeSingle: () => Promise.resolve(result),
+    }),
+  };
+}
+
 const verifyOtpMock = vi.fn();
+const upsertMock = vi.fn().mockResolvedValue({ error: null });
+
+// Estado configuravel por teste: o que "profiles.select('role')" deve
+// responder no cliente com a sessao do usuario. termos_aceitos_em ja'
+// vem preenchido por padrao para nao acoplar os testes de CA-02.2/
+// CA-02.3 ao gate de termos do T11 (esse tem seus proprios testes
+// dedicados mais abaixo).
+let profileRoleResult: {
+  data: { role: string; termos_aceitos_em: string | null } | null;
+} = {
+  data: { role: "investidor", termos_aceitos_em: "2026-01-01T00:00:00Z" },
+};
+
+const sessionFromMock = vi.fn(() => ({
+  upsert: upsertMock,
+  select: () => selectChain(profileRoleResult),
+}));
+
 const createServerClientMock = vi.fn().mockResolvedValue({
   auth: { verifyOtp: verifyOtpMock },
+  from: sessionFromMock,
 });
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 
-const upsertMock = vi.fn().mockResolvedValue({ error: null });
-
-// Estado configuravel por teste: o que "profiles.select('role')",
-// "businesses" e "investor_answers" devem responder no admin fake.
-// termos_aceitos_em ja' vem preenchido por padrao para nao acoplar os
-// testes de CA-02.2/CA-02.3 ao gate de termos do T11 (esse tem seus
-// proprios testes dedicados mais abaixo).
-let profileRoleResult: {
-  data: { role: string; termos_aceitos_em: string | null } | null;
-} = {
-  data: { role: "investidor", termos_aceitos_em: "2026-01-01T00:00:00Z" },
-};
+// "businesses" e "investor_answers" (resolvePostLoginRedirect) seguem
+// vindo do cliente admin - essas tabelas ainda nao tem RLS propria.
 let businessesResult: { data: { id: string } | null } = { data: null };
 let investorAnswersResult: { data: { investor_id: string } | null } = {
   data: null,
 };
 
-function selectChain(result: unknown) {
-  return { eq: () => ({ single: () => Promise.resolve(result), maybeSingle: () => Promise.resolve(result) }) };
-}
-
-const fromMock = vi.fn((table: string) => {
-  if (table === "profiles") {
-    return { upsert: upsertMock, select: () => selectChain(profileRoleResult) };
-  }
+const adminFromMock = vi.fn((table: string) => {
   if (table === "businesses") {
     return { select: () => selectChain(businessesResult) };
   }
   if (table === "investor_answers") {
     return { select: () => selectChain(investorAnswersResult) };
   }
-  throw new Error(`tabela inesperada no mock: ${table}`);
+  throw new Error(`tabela inesperada no mock admin: ${table}`);
 });
-const createAdminClientMock = vi.fn().mockReturnValue({ from: fromMock });
+const createAdminClientMock = vi.fn().mockReturnValue({ from: adminFromMock });
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: createAdminClientMock,
@@ -134,7 +145,7 @@ describe("verifyOtp", () => {
       )
     ).rejects.toThrow("REDIRECT:/descobrir/1");
 
-    expect(fromMock).toHaveBeenCalledWith("profiles");
+    expect(sessionFromMock).toHaveBeenCalledWith("profiles");
     expect(upsertMock).toHaveBeenCalledWith(
       { id: "user-123", role: "investidor", nome: "helena" },
       { onConflict: "id", ignoreDuplicates: true }

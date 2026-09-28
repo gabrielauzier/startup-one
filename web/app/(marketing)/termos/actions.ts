@@ -37,8 +37,7 @@ export async function acceptTerms(
     redirect("/entrar");
   }
 
-  const admin = createAdminClient();
-  await admin
+  await supabase
     .from("profiles")
     .update({
       termos_versao: TERMS_VERSION,
@@ -50,12 +49,13 @@ export async function acceptTerms(
     redirect(redirectTo);
   }
 
-  const { data: profile } = await admin
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();
 
   const role = (profile?.role as ProfileRole | undefined) ?? "investidor";
+  const admin = createAdminClient();
   redirect(await resolvePostLoginRedirect(admin, user.id, role));
 }

@@ -374,13 +374,15 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Request anônima tentando criar profile com `role='verificador'` recebe 403 (CA-01.3)
-- [ ] Gate check passes: `npm run test:e2e -- rls`
+- [x] Request anônima tentando criar profile com `role='verificador'` recebe 403 (CA-01.3)
+- [x] Gate check passes: `npm run test:e2e -- rls`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(auth): entrada sem senha com OTP e controle de acesso por papel`
+
+**Status**: ✅ Complete (2026-09-28) — `web/supabase/migrations/0002_profiles_rls.sql` (select/insert/update "own", bloqueando `role='verificador'`), `web/e2e/rls-profiles.spec.ts` (3 testes via chamadas diretas ao PostgREST, sem browser). SPEC_DEVIATION no código de status: request totalmente anônima (papel `anon`, sem nenhum grant) recebe **401**; um usuário autenticado que viola o `WITH CHECK` (tenta virar `verificador`) recebe **403** — o texto da task citava só 403, mas o comportamento real do PostgREST distingue os dois casos (401 = sem grant algum, 403 = grant existe mas checagem falha); os dois casos garantem RN-01/CA-01.3 (nenhuma linha criada), cobertos separadamente no teste. Refatorado como parte desta task: `entrar/actions.ts` e `termos/actions.ts` deixaram de usar o cliente admin para ler/escrever `profiles` (agora usam o cliente da própria sessão, permitido pelas novas policies), mantendo o admin só para `businesses`/`investor_answers` em `resolvePostLoginRedirect` (tabelas sem RLS própria ainda, chegam no T13/T32).
 
 ---
 
