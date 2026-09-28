@@ -859,13 +859,14 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Pergunta 3 sem produto marcado mantém "Continuar" desabilitado (CA-22.1)
-- [ ] Marcar "Todos" desmarca as demais opções (CA-22.2)
-- [ ] "Pular esta pergunta" na 5ª segue para os resultados sem critério de impacto (CA-22.3)
-- [ ] Voltar preserva a resposta anterior e mostra "Pergunta N de 5" correto (CA-22.4)
+- [x] Pergunta 3 sem produto marcado mantém "Continuar" desabilitado (CA-22.1)
+- [x] Marcar "Todos" desmarca as demais opções (CA-22.2)
+- [x] "Pular esta pergunta" na 5ª segue para os resultados sem critério de impacto (CA-22.3)
+- [x] Voltar preserva a resposta anterior e mostra "Pergunta N de 5" correto (CA-22.4)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/descobrir/questions-data.ts` (opções literais de RN-22), `web/app/(investor)/descobrir/[n]/{page.tsx,DescobrirForm.tsx}`, `web/e2e/descobrir.spec.ts` (4 e2e: CA-22.1 a CA-22.4). Estado do rascunho fica todo em `useState` no client (inicializado das respostas já salvas via `loadAnswers`) e é persistido a cada Voltar/Continuar/Pular via `saveAnswers` (chamada direta da Server Action, sem `<form action>` - cada pergunta tem um tipo de input diferente e o fluxo é multi-página, não um único formulário). SPEC_DEVIATIONS: (1) criado `web/app/(investor)/descobrir/resultados/page.tsx` como placeholder mínimo (só lê `loadAnswers` e mostra se há critério de impacto) - necessário para a pergunta 5 ter um destino real; substituído por completo no T36; (2) a pergunta 2 de RN-22 pede "Perfil (Pessoa física qualificada/Pela minha família/Empresa) **e** valor" no mesmo texto, mas o modelo de dados da PRD (`investor_answers`) e a fórmula RN-24 nunca usam "perfil" - implementado só o campo "valor" (faixa), que é o único persistido/usado; "perfil" não aparece em nenhum CA nem em RF-17, então foi omitido da UI para não introduzir um campo morto; (3) `questions-data.ts` documenta a divergência (já existente desde o T21) entre a lista de impactos do produtor (`lib/business/impact-options.ts`) e a lista literal de RN-22 usada aqui para a pergunta 5 - reconciliação fica para uma correção futura, fora do escopo deste lote.
 
 ---
 
