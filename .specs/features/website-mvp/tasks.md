@@ -766,11 +766,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Envio de interesse por link antigo de negócio suspenso é bloqueado (CA-21.1)
-- [ ] URL de negócio suspenso mostra "Negócio indisponível no momento" (CA-13.2)
+- [x] Envio de interesse por link antigo de negócio suspenso é bloqueado (CA-21.1)
+- [x] URL de negócio suspenso mostra "Negócio indisponível no momento" (CA-13.2)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(verifier)/verificacao/[id]/actions.ts` (`suspend`/`reactivate`, adicionados), `web/app/(verifier)/verificacao/[id]/SuspensaoPanel.tsx`, `web/e2e/verificacao-suspensao.spec.ts` (3 e2e). Histórico (`HistoryPanel.tsx`, criado no T27) lista as decisões **mais recente primeiro** — decisão documentada aqui: é a leitura mais útil ao reabrir a análise, já reflete o estado atual do negócio sem precisar rolar até o fim. CA-13.2: como a página pública do negócio (M5, T39-44) ainda não existe, testado no nível de RLS/REST — a policy pública do T25 já filtra só `status='verificado'`, então `suspenso` fica automaticamente invisível (confirmado por teste: `isPubliclyVisible` volta a `false` após suspender e `true` após reativar); a mensagem literal "Negócio indisponível no momento" é responsabilidade da página do T39+. SPEC_DEVIATION: CA-21.1 (bloqueio de interesse por link antigo) não é testável nesta fase — o módulo de interesse (M6, T45-49) ainda não existe; revisitar no T46. Suíte completa rodada 2x seguidas: `npm run test:e2e` 34/34 nas duas rodadas, `npm run test` 133/133, `lint` limpo.
 
 ---
 

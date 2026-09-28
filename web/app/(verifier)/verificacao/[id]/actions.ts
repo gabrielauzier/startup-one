@@ -222,3 +222,96 @@ export async function approve(input: ApproveInput): Promise<DecisionResult> {
 
   redirect("/verificacao");
 }
+
+/**
+ * RF-16/RN-21: suspende um negocio Verificado com motivo obrigatorio
+ * (mesma regra de 20+ caracteres de RN-18). Tira o negocio da vitrine
+ * (RN-13 ja filtra so' `status='verificado'` como publico, entao
+ * `suspenso` deixa de aparecer automaticamente - T25) e bloqueia novos
+ * interesses/pedidos de documento (M6, ainda nao existe - ver
+ * SPEC_DEVIATION no Status desta task em tasks.md).
+ */
+export async function suspend(businessId: string, motivo: string): Promise<DecisionResult> {
+  const auth = await requireVerifier();
+  if (!auth.ok) return auth;
+
+  if (!isValidMotivo(motivo)) {
+    return { ok: false, error: "O motivo precisa ter ao menos 20 caracteres." };
+  }
+
+  const admin = createAdminClient();
+  const { data: business } = await admin
+    .from("businesses")
+    .select("id, status")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (!business) return { ok: false, error: "Negócio não encontrado." };
+
+  try {
+    assertTransition(business.status, "suspenso");
+  } catch (err) {
+    if (err instanceof InvalidBusinessTransitionError) {
+      return { ok: false, error: err.message };
+    }
+    throw err;
+  }
+
+  const { error: updateError } = await admin
+    .from("businesses")
+    .update({ status: "suspenso" })
+    .eq("id", businessId);
+  if (updateError) return { ok: false, error: "Não foi possível registrar a decisão." };
+
+  await admin.from("verifications").insert({
+    business_id: businessId,
+    verifier_id: auth.userId,
+    decisao: "suspender",
+    motivo,
+    checklist: {},
+    itens_ajuste: [],
+  });
+
+  return { ok: true };
+}
+
+/** RF-16/RN-21: reativa um negocio suspenso, sem exigir motivo. */
+export async function reactivate(businessId: string): Promise<DecisionResult> {
+  const auth = await requireVerifier();
+  if (!auth.ok) return auth;
+
+  const admin = createAdminClient();
+  const { data: business } = await admin
+    .from("businesses")
+    .select("id, status")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (!business) return { ok: false, error: "Negócio não encontrado." };
+
+  try {
+    assertTransition(business.status, "verificado");
+  } catch (err) {
+    if (err instanceof InvalidBusinessTransitionError) {
+      return { ok: false, error: err.message };
+    }
+    throw err;
+  }
+
+  const { error: updateError } = await admin
+    .from("businesses")
+    .update({ status: "verificado" })
+    .eq("id", businessId);
+  if (updateError) return { ok: false, error: "Não foi possível registrar a decisão." };
+
+  await admin.from("verifications").insert({
+    business_id: businessId,
+    verifier_id: auth.userId,
+    decisao: "reativar",
+    motivo: null,
+    checklist: {},
+    itens_ajuste: [],
+  });
+
+  return { ok: true };
+}

@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AnaliseForm } from "./AnaliseForm";
 import { HistoryPanel } from "./HistoryPanel";
+import { SuspensaoPanel } from "./SuspensaoPanel";
 
 /**
  * RF-15/RN-18 a RN-21: dados e evidencias lado a lado, checklist,
@@ -121,15 +122,19 @@ export default async function AnalisePage({
         </div>
       </section>
 
-      <AnaliseForm
-        businessId={business.id}
-        hasTerraEvidence={evidenceCounts.terra > 0}
-        certifications={(certificationRows ?? []).map((c) => ({
-          id: c.id,
-          certificadora: c.certificadora,
-          conferido: c.conferido,
-        }))}
-      />
+      {business.status === "em_analise" && (
+        <AnaliseForm
+          businessId={business.id}
+          hasTerraEvidence={evidenceCounts.terra > 0}
+          certifications={(certificationRows ?? []).map((c) => ({
+            id: c.id,
+            certificadora: c.certificadora,
+            conferido: c.conferido,
+          }))}
+        />
+      )}
+
+      <SuspensaoPanel businessId={business.id} status={business.status} />
 
       <HistoryPanel
         entries={(verificationRows ?? []).map((v) => ({
