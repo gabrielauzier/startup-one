@@ -467,10 +467,11 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Com o SW registrado e a rede desligada (Playwright `context.setOffline(true)`), a rota `/produtor/cadastro/1` ainda carrega o shell
+- [x] Com o SW registrado e a rede desligada (Playwright `context.setOffline(true)`), a rota `/produtor/cadastro/1` ainda carrega o shell
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/public/sw-cadastro.js`, `web/app/(producer)/produtor/cadastro/{layout.tsx,register-sw.tsx}`, `web/e2e/cadastro-offline.spec.ts`. SPEC_DEVIATION: criado `app/(producer)/produtor/cadastro/1/page.tsx` como placeholder mínimo do shell (só o cabeçalho "Parte 1 de 5 · Salvo") — a rota real com o formulário da Parte 1 (RF-06) é do T19; sem alguma página em `/produtor/cadastro/1`, não haveria rota nenhuma para o SW cachear e testar offline.
 
 ---
 
