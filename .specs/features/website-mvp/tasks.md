@@ -1440,10 +1440,11 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Todas as tabelas do modelo de dados (PRD §7.3) têm ao menos 1 caso permitido e 1 negado testado
+- [x] Todas as tabelas do modelo de dados (PRD §7.3) têm ao menos 1 caso permitido e 1 negado testado
 
 **Tests**: integration
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/e2e/rls-full.spec.ts` (10 testes: 2 blocos por tabela — `businesses`, `documents`, `document_requests`, `interests`, `connection_events` — cada um com 1 caso permitido e 1 negado). `profiles` não duplicada aqui (já coberta por `web/e2e/rls-profiles.spec.ts`); `businesses` ganhou um bloco mínimo neste arquivo consolidado além da cobertura já mais profunda de `web/e2e/rls-businesses.spec.ts`, para o Done-when ficar verificável num único arquivo sem reabrir aquela suíte. Reusa `randomValidCnpj` de `e2e/helpers/cnpj.ts` e `promoteToVerifier`/`createBusiness`/`createDocument`/`createDocumentRequest`/`createInterest`/`createConnectionEvent` de `e2e/helpers/db.ts`.
 
 ---
 
