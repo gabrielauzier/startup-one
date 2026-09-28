@@ -909,11 +909,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit/component test confirma que nenhum termo proibido de RN-04 aparece no markup renderizado (CA-28.2)
-- [ ] Todos os campos obrigatórios do card (selo, notas, busca, prazo, retorno) estão presentes (CA-28.1)
+- [x] Unit/component test confirma que nenhum termo proibido de RN-04 aparece no markup renderizado (CA-28.2)
+- [x] Todos os campos obrigatórios do card (selo, notas, busca, prazo, retorno) estão presentes (CA-28.1)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/components/business/BusinessCard.tsx` (`BusinessSummary`, `BusinessCard`), `web/components/business/__tests__/BusinessCard.test.tsx` (5 unit, com `@testing-library/react` — primeiro teste de componente do repo; `@testing-library/react`/`jest-dom` já estavam instalados e configurados em `vitest.setup.ts` desde o T1, sem uso até agora). Card inteiro é um `<Link>` para `/negocios/[slug]` (RN-28: "o card inteiro leva à página do negócio"). `interesseSomado` é uma prop opcional (default 0) — a soma real vem de `lib/business/interest-sum.ts` (T38, ainda não implementada nesta task); a barra de interesse já renderiza corretamente com 0 até lá. `alignment` também é opcional: presente nos resultados (T36), ausente na vitrine pública (T37).
 
 ---
 
