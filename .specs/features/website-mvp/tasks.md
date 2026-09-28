@@ -352,11 +352,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Investidor sem aceite registrado é redirecionado a `/termos` no primeiro acesso pós-login
-- [ ] `profiles.termos_versao`/`termos_aceitos_em` gravados após aceite (CA-03.2)
+- [x] Investidor sem aceite registrado é redirecionado a `/termos` no primeiro acesso pós-login
+- [x] `profiles.termos_versao`/`termos_aceitos_em` gravados após aceite (CA-03.2)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/app/(marketing)/termos/{page.tsx,termos-form.tsx,actions.ts}`, gate de termos em `entrar/actions.ts` (`verifyOtp`), `web/e2e/termos.spec.ts` (1 e2e, verificando `profiles.termos_aceitos_em` via PostgREST com a service-role key), `web/app/(marketing)/termos/__tests__/actions.test.ts` (3 unit). O gate só se aplica a investidor/empresa (RN-03); produtor nunca é mandado para `/termos` (o aceite dele é o checkbox da parte 1 do cadastro, T19) — coberto por teste dedicado. Texto de Termos/Política é placeholder de produto, não é redação jurídica final.
 
 ---
 

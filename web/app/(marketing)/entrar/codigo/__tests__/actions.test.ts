@@ -13,8 +13,13 @@ const upsertMock = vi.fn().mockResolvedValue({ error: null });
 
 // Estado configuravel por teste: o que "profiles.select('role')",
 // "businesses" e "investor_answers" devem responder no admin fake.
-let profileRoleResult: { data: { role: string } | null } = {
-  data: { role: "investidor" },
+// termos_aceitos_em ja' vem preenchido por padrao para nao acoplar os
+// testes de CA-02.2/CA-02.3 ao gate de termos do T11 (esse tem seus
+// proprios testes dedicados mais abaixo).
+let profileRoleResult: {
+  data: { role: string; termos_aceitos_em: string | null } | null;
+} = {
+  data: { role: "investidor", termos_aceitos_em: "2026-01-01T00:00:00Z" },
 };
 let businessesResult: { data: { id: string } | null } = { data: null };
 let investorAnswersResult: { data: { investor_id: string } | null } = {
@@ -62,7 +67,9 @@ function formData(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   upsertMock.mockResolvedValue({ error: null });
-  profileRoleResult = { data: { role: "investidor" } };
+  profileRoleResult = {
+    data: { role: "investidor", termos_aceitos_em: "2026-01-01T00:00:00Z" },
+  };
   businessesResult = { data: null };
   investorAnswersResult = { data: null };
 });
@@ -172,5 +179,48 @@ describe("verifyOtp", () => {
         })
       )
     ).rejects.toThrow("REDIRECT:/descobrir/1");
+  });
+
+  it("investidor sem termos aceitos e' levado a /termos antes de qualquer outro destino (RF-04)", async () => {
+    verifyOtpMock.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+      error: null,
+    });
+    profileRoleResult = {
+      data: { role: "investidor", termos_aceitos_em: null },
+    };
+    const { verifyOtp } = await import("../../actions");
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({
+          email: "helena@example.com",
+          role: "investidor",
+          code: "123456",
+          redirect: "/negocios/coop-acai-mujuu/documentos",
+        })
+      )
+    ).rejects.toThrow(
+      "REDIRECT:/termos?redirect=%2Fnegocios%2Fcoop-acai-mujuu%2Fdocumentos"
+    );
+  });
+
+  it("produtor nunca e' mandado para /termos, mesmo sem termos_aceitos_em (o aceite dele e' o checkbox da parte 1)", async () => {
+    verifyOtpMock.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+      error: null,
+    });
+    profileRoleResult = {
+      data: { role: "produtor", termos_aceitos_em: null },
+    };
+    const { verifyOtp } = await import("../../actions");
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({ email: "raimunda@example.com", role: "produtor", code: "123456" })
+      )
+    ).rejects.toThrow("REDIRECT:/produtor");
   });
 });

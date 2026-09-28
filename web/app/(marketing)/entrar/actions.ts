@@ -114,16 +114,29 @@ export async function verifyOtp(
       { onConflict: "id", ignoreDuplicates: true }
     );
 
-  if (isSafeRedirect(redirectTo)) {
-    redirect(redirectTo);
-  }
-
   const { data: profile } = await admin
     .from("profiles")
-    .select("role")
+    .select("role, termos_aceitos_em")
     .eq("id", data.user.id)
     .single();
 
   const actualRole = (profile?.role as ProfileRole | undefined) ?? (role as ProfileRole);
+
+  // RN-03/RF-04: investidor e empresa precisam aceitar os Termos de Uso e a
+  // Politica de Privacidade no primeiro acesso, antes de qualquer outra
+  // rota - inclusive antes de honrar um redirect de URL privada (CA-02.3).
+  if (
+    (actualRole === "investidor" || actualRole === "empresa") &&
+    !profile?.termos_aceitos_em
+  ) {
+    const params = new URLSearchParams();
+    if (isSafeRedirect(redirectTo)) params.set("redirect", redirectTo);
+    redirect(`/termos?${params.toString()}`);
+  }
+
+  if (isSafeRedirect(redirectTo)) {
+    redirect(redirectTo);
+  }
+
   redirect(await resolvePostLoginRedirect(admin, data.user.id, actualRole));
 }
