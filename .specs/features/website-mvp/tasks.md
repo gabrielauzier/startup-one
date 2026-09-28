@@ -1318,12 +1318,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] E2E: negócio marcado "recebe visitas" aparece com a etiqueta na página e é mantido pelo filtro correspondente nos resultados
+- [x] E2E: negócio marcado "recebe visitas" aparece com a etiqueta na página e é mantido pelo filtro correspondente nos resultados
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(paineis): painel do produtor e meus interesses do investidor`
+
+**Status**: ✅ Complete (2026-09-28) — verificação confirmou que `recebe_visitas` já estava corretamente ligado de ponta a ponta desde o T36/T40 (nenhum código de produção precisou mudar): a etiqueta em `web/app/(investor)/negocios/[slug]/page.tsx` e o filtro em `web/app/(investor)/descobrir/resultados/page.tsx` já liam a mesma coluna. `web/e2e/recebe-visitas.spec.ts` fecha o gap de cobertura em si (nenhum teste anterior provava a ligação ponta a ponta com um negócio SEM a marcação para confirmar que o filtro exclui de verdade) — 2 negócios (com/sem `recebe_visitas`), confirma a etiqueta em cada página pública e que o filtro "Recebe visitas" dos resultados mantém só o marcado. Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` (1/1 novo).
 
 ---
 
