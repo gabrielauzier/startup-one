@@ -240,11 +240,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test: dado um mapa de rota → papéis, `resolveAccess()` retorna permitido/negado corretamente para cada combinação de papel e rota
-- [ ] Gate check passes: `npm run test`
+- [x] Unit test: dado um mapa de rota → papéis, `resolveAccess()` retorna permitido/negado corretamente para cada combinação de papel e rota
+- [x] Gate check passes: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-27) — `web/lib/auth/roles.ts` (+ teste com 6 casos) e `web/proxy.ts`. SPEC_DEVIATION: o arquivo raiz não é `middleware.ts` — a versão instalada do Next.js (16.3.6) depreciou essa convenção em favor de `proxy.ts`/`export function proxy()` (mesma API, só o nome do arquivo/função muda; `config.matcher` é idêntico). Gate rodado no nível **build** (não apenas quick) por ser a última task da Fase 1, conforme a tabela de gates de `tasks.md`.
 
 ---
 
