@@ -1221,12 +1221,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] "Aceitar e seguir" muda a situação para Aceito, avança a etapa e avisa o investidor (CA-39.1)
-- [ ] "Recusar" mostra "Não aceito pela produtora" ao investidor sem revelar contato (CA-39.2)
+- [x] "Aceitar e seguir" muda a situação para Aceito, avança a etapa e avisa o investidor (CA-39.1)
+- [x] "Recusar" mostra "Não aceito pela produtora" ao investidor sem revelar contato (CA-39.2)
 - [ ] Interesse Novo sem resposta em 10 dias expira (RN-39) — coberto pelo cron da T53
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/interesses/page.tsx` (lista Novos/Já respondidos com investidor/data/situação/valor/mensagem), `web/app/(producer)/produtor/interesses/actions.ts` (`decideInterest`: RLS `interests_update_owner_business_decision` de T45 já restringe a decisão à produtora dona do negócio e só a partir de `pendente`; ao aceitar, grava evento `aceita` em `connection_events` para a Timeline do investidor, T47, e o painel de conexões do verificador, T49; "avisar o investidor" de CA-39.1 fica com o mesmo TODO(T53) já usado em `respondDocumentRequest`, T43 — sem fila de notificação real neste lote). `web/e2e/produtor-interesses.spec.ts` (2 testes: CA-39.1, CA-39.2). "Interesse Novo sem resposta em 10 dias expira" (RN-39) explicitamente adiado para o cron do T53, como o próprio texto da task já previa. Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `test:e2e` (2/2 novos).
 
 ---
 
