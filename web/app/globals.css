@@ -63,7 +63,16 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /*
+   * T60/RNF-07: oklch(0.556 0 0) (~#737373) so' fecha contraste
+   * 4.2-4.34:1 contra os fundos claros do tema (--muted #f5f5f5 e
+   * --background #f5f1e8) - abaixo do minimo 4.5:1 do WCAG 2.1 AA
+   * (1.4.3), achado pela auditoria axe-core do T60 num gap real de
+   * produto (nao so' de teste). Escurecido para 0.45 (~#6e6e6e),
+   * que sobe o contraste para ~4.6-4.8:1 nos mesmos fundos sem trocar
+   * a paleta (continua acromatico, so' mais escuro).
+   */
+  --muted-foreground: oklch(0.45 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
