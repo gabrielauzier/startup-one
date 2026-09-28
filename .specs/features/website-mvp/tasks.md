@@ -1482,10 +1482,11 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] Os 5 specs passam de ponta a ponta contra um banco Supabase local seedado
+- [x] Os 5 specs passam de ponta a ponta contra um banco Supabase local seedado
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-28) — `web/e2e/flow-cadastro.spec.ts`, `web/e2e/flow-verificacao.spec.ts`, `web/e2e/flow-vitrine.spec.ts`, `web/e2e/flow-documento.spec.ts`, `web/e2e/flow-interesse.spec.ts` (5 arquivos, 1 teste corrido cada, um assert por etapa). Estratégia (a) da task (preferida): specs de ponta a ponta DE VERDADE, escritos do zero, atravessando o fluxo inteiro numa sequência contínua (login → múltiplas telas/perfis → estado final no banco), reusando só os helpers de `e2e/helpers/` (`auth.ts`, `db.ts`, `cnpj.ts`) — não os specs fragmentados já existentes (`produtor-cadastro-completo`, `verificacao-analise`, `descobrir-resultados`/`negocios-vitrine`, `documentos-pedido`/`documento-visualizador`, `interesse-criar`/`produtor-interesses`/`verificacao-conexoes`), que continuam cobrindo CAs isoladas e permanecem no lugar. `flow-verificacao`/`flow-documento`/`flow-interesse` usam múltiplos `browser.newContext()` (produtor/investidor/verificador como sessões reais simultâneas, não trocando de conta na mesma aba) para simular o handoff entre perfis sem atalho. Todos os 5 passam isolados e em paralelo (5 workers).
 
 ---
 
