@@ -14,7 +14,15 @@ const INITIAL_VERIFY_STATE: VerifyOtpState = { attempts: 0 };
 const INITIAL_SEND_STATE: SendOtpState = {};
 const MAX_ATTEMPTS = 5;
 
-export function CodigoForm({ email, role }: { email: string; role: string }) {
+export function CodigoForm({
+  email,
+  role,
+  redirectTo,
+}: {
+  email: string;
+  role: string;
+  redirectTo: string;
+}) {
   const [state, formAction, pending] = useActionState(
     verifyOtp,
     INITIAL_VERIFY_STATE
@@ -41,6 +49,7 @@ export function CodigoForm({ email, role }: { email: string; role: string }) {
       >
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="role" value={role} />
+        <input type="hidden" name="redirect" value={redirectTo} />
 
         <Input
           type="text"
@@ -65,6 +74,7 @@ export function CodigoForm({ email, role }: { email: string; role: string }) {
       <form action={resendAction} className="flex flex-col gap-2">
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="role" value={role} />
+        <input type="hidden" name="redirect" value={redirectTo} />
         {resendState.error && (
           <p className="font-body text-sm text-destructive">
             {resendState.error}

@@ -3,8 +3,14 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  isSafeRedirect,
+  resolvePostLoginRedirect,
+  type EntrarRole,
+  type ProfileRole,
+} from "./redirect";
 
-export type EntrarRole = "investidor" | "empresa" | "produtor";
+export type { EntrarRole };
 
 const VALID_ROLES: EntrarRole[] = ["investidor", "empresa", "produtor"];
 const MAX_OTP_ATTEMPTS = 5;
@@ -23,6 +29,7 @@ export async function sendOtp(
 ): Promise<SendOtpState> {
   const email = String(formData.get("email") ?? "").trim();
   const role = String(formData.get("role") ?? "");
+  const redirectTo = String(formData.get("redirect") ?? "");
 
   if (!email) {
     return { error: "Informe um e-mail." };
@@ -43,7 +50,11 @@ export async function sendOtp(
     };
   }
 
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&role=${role}`);
+  const params = new URLSearchParams({ email, role });
+  if (isSafeRedirect(redirectTo)) {
+    params.set("redirect", redirectTo);
+  }
+  redirect(`/entrar/codigo?${params.toString()}`);
 }
 
 export interface VerifyOtpState {
@@ -72,6 +83,7 @@ export async function verifyOtp(
   const email = String(formData.get("email") ?? "");
   const role = String(formData.get("role") ?? "");
   const code = String(formData.get("code") ?? "");
+  const redirectTo = String(formData.get("redirect") ?? "");
 
   if (!email || !VALID_ROLES.includes(role as EntrarRole)) {
     return {
@@ -102,5 +114,16 @@ export async function verifyOtp(
       { onConflict: "id", ignoreDuplicates: true }
     );
 
-  redirect("/");
+  if (isSafeRedirect(redirectTo)) {
+    redirect(redirectTo);
+  }
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  const actualRole = (profile?.role as ProfileRole | undefined) ?? (role as ProfileRole);
+  redirect(await resolvePostLoginRedirect(admin, data.user.id, actualRole));
 }

@@ -70,6 +70,7 @@ test.describe("Tela Código de acesso /entrar/codigo", () => {
     await page.getByLabel("Código de 6 dígitos").fill(code);
     await page.getByRole("button", { name: "Confirmar" }).click();
 
-    await page.waitForURL("/");
+    // RF-03: produtor sem cadastro enviado ainda cai nas boas-vindas.
+    await page.waitForURL("/produtor");
   });
 });

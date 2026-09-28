@@ -330,11 +330,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Unit test cobre as 4 combinações de papel × redirecionamento
-- [ ] E2E: login como produtor sem cadastro cai em `/produtor`; com cadastro enviado cai em `/produtor/painel`
+- [x] Unit test cobre as 4 combinações de papel × redirecionamento
+- [x] E2E: login como produtor sem cadastro cai em `/produtor`; com cadastro enviado cai em `/produtor/painel`
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-28) — `web/app/(marketing)/entrar/redirect.ts` (`resolvePostLoginRedirect`, `isSafeRedirect`), fiado em `actions.ts`; `web/app/(marketing)/entrar/__tests__/redirect.test.ts` (8 unit, cobrindo os 4 papéis e os dois casos "já enviou/respondeu" de cada). O e2e do T9 (`entrar-codigo.spec.ts`) já cobre "produtor sem cadastro → `/produtor`" contra o Supabase local real; o caso "com cadastro enviado → `/produtor/painel`" é coberto só por unit test com mock, porque a tabela `businesses` ainda não existe (chega no T13). SPEC_DEVIATIONS: (1) `isSafeRedirect`/`resolvePostLoginRedirect` foram para um arquivo novo `redirect.ts` sem `"use server"` — um arquivo `"use server"` exige que toda função exportada seja uma Server Action assíncrona, e essas duas não são chamáveis pelo cliente; (2) para viabilizar CA-02.3 (preservar a URL original), also editei `entrar/page.tsx` (virou Server Component lendo `searchParams.redirect`, com a UI movida para `entrar-form.tsx`) e `entrar/codigo/{page.tsx,codigo-form.tsx}` — fora do `Where` original da task, mas necessário para propagar o parâmetro `redirect` ponta a ponta.
 
 ---
 

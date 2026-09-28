@@ -10,7 +10,33 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 const upsertMock = vi.fn().mockResolvedValue({ error: null });
-const fromMock = vi.fn().mockReturnValue({ upsert: upsertMock });
+
+// Estado configuravel por teste: o que "profiles.select('role')",
+// "businesses" e "investor_answers" devem responder no admin fake.
+let profileRoleResult: { data: { role: string } | null } = {
+  data: { role: "investidor" },
+};
+let businessesResult: { data: { id: string } | null } = { data: null };
+let investorAnswersResult: { data: { investor_id: string } | null } = {
+  data: null,
+};
+
+function selectChain(result: unknown) {
+  return { eq: () => ({ single: () => Promise.resolve(result), maybeSingle: () => Promise.resolve(result) }) };
+}
+
+const fromMock = vi.fn((table: string) => {
+  if (table === "profiles") {
+    return { upsert: upsertMock, select: () => selectChain(profileRoleResult) };
+  }
+  if (table === "businesses") {
+    return { select: () => selectChain(businessesResult) };
+  }
+  if (table === "investor_answers") {
+    return { select: () => selectChain(investorAnswersResult) };
+  }
+  throw new Error(`tabela inesperada no mock: ${table}`);
+});
 const createAdminClientMock = vi.fn().mockReturnValue({ from: fromMock });
 
 vi.mock("@/lib/supabase/admin", () => ({
@@ -36,6 +62,9 @@ function formData(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   upsertMock.mockResolvedValue({ error: null });
+  profileRoleResult = { data: { role: "investidor" } };
+  businessesResult = { data: null };
+  investorAnswersResult = { data: null };
 });
 
 describe("verifyOtp", () => {
@@ -96,12 +125,52 @@ describe("verifyOtp", () => {
         { attempts: 0 },
         formData({ email: "helena@example.com", role: "investidor", code: "123456" })
       )
-    ).rejects.toThrow("REDIRECT:/");
+    ).rejects.toThrow("REDIRECT:/descobrir/1");
 
     expect(fromMock).toHaveBeenCalledWith("profiles");
     expect(upsertMock).toHaveBeenCalledWith(
       { id: "user-123", role: "investidor", nome: "helena" },
       { onConflict: "id", ignoreDuplicates: true }
     );
+  });
+
+  it("depois de confirmar, volta para a URL original em vez do destino por papel (CA-02.3)", async () => {
+    verifyOtpMock.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+      error: null,
+    });
+    const { verifyOtp } = await import("../../actions");
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({
+          email: "helena@example.com",
+          role: "investidor",
+          code: "123456",
+          redirect: "/negocios/coop-acai-mujuu/documentos",
+        })
+      )
+    ).rejects.toThrow("REDIRECT:/negocios/coop-acai-mujuu/documentos");
+  });
+
+  it("ignora um redirect inseguro (URL externa) e usa o destino por papel", async () => {
+    verifyOtpMock.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+      error: null,
+    });
+    const { verifyOtp } = await import("../../actions");
+
+    await expect(
+      verifyOtp(
+        { attempts: 0 },
+        formData({
+          email: "helena@example.com",
+          role: "investidor",
+          code: "123456",
+          redirect: "https://evil.com",
+        })
+      )
+    ).rejects.toThrow("REDIRECT:/descobrir/1");
   });
 });
