@@ -308,11 +308,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Código vencido ou errado 5x exige novo código (CA-02.1)
-- [ ] Confirmação de código para e-mail sem conta cria o profile com o papel escolhido (CA-02.2)
+- [x] Código vencido ou errado 5x exige novo código (CA-02.1)
+- [x] Confirmação de código para e-mail sem conta cria o profile com o papel escolhido (CA-02.2)
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-27) — `web/app/(marketing)/entrar/codigo/{page.tsx,codigo-form.tsx}`, `verifyOtp` em `actions.ts`, `web/e2e/entrar-codigo.spec.ts` (2 e2e, com código real lido do Mailpit local), `web/app/(marketing)/entrar/codigo/__tests__/actions.test.ts` (4 unit). SPEC_DEVIATIONS: (1) criado `web/lib/supabase/admin.ts` (cliente com service-role) — `verifyOtp` precisa criar o profile do usuário antes de existir qualquer policy de insert (essa só chega no T12), então usa o cliente admin para esse bootstrap específico, não listado no `Where` original da task; (2) customizado `supabase/templates/magic_link.html` e `[auth.email.template.magic_link]` em `config.toml` para incluir `{{ .Token }}` — o template padrão do Supabase local só manda o link mágico (fluxo PKCE), sem o código de 6 dígitos que a RN-02 exige mostrar; (3) `codigo-form.tsx` tem um atributo `data-attempts` no form (não visível) só para o e2e conseguir esperar deterministicamente o fim de cada round-trip do Server Action, já que a mensagem de erro é idêntica entre tentativas.
 
 ---
 
