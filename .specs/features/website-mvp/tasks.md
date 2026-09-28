@@ -1101,12 +1101,14 @@ Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184, incluindo os 3 n
 - Skill: NONE
 
 **Done when**:
-- [ ] "Recusar" mostra "A produtora optou por não liberar" ao investidor, sem motivo (CA-32.3)
-- [ ] Retirar um acesso liberado nega a próxima página do documento imediatamente (CA-33.2)
-- [ ] Acesso liberado há 31 dias mostra "Acesso expirado, solicite novamente" ao investidor (CA-33.1)
+- [x] "Recusar" mostra "A produtora optou por não liberar" ao investidor, sem motivo (CA-32.3)
+- [x] Retirar um acesso liberado nega a próxima página do documento imediatamente (CA-33.2)
+- [x] Acesso liberado há 31 dias mostra "Acesso expirado, solicite novamente" ao investidor (CA-33.1)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(producer)/produtor/pedidos/page.tsx` (fila "Aguardando resposta" + "Já respondidos"), `web/app/(producer)/produtor/pedidos/actions.ts` (`respondDocumentRequest`, `revokeDocumentAccess` + wrappers de form), `web/e2e/produtor-pedidos.spec.ts` (3 testes: CA-32.3, CA-33.2, CA-33.1). CA-32.3/CA-33.1 reaproveitam a mesma `computeDocumentSituation`/mensagem do T41 na tela do investidor (`nao_liberado` → "A produtora optou por não liberar"; `acesso_expirado` → "Acesso expirado, solicite novamente") — nenhuma lógica nova de leitura precisou ser criada, só as ações de escrita (liberar/recusar/retirar) e a fila da produtora. CA-33.2 confirmado com 2 sessões (contextos de browser separados): investidor abre o documento normalmente enquanto liberado, produtora retira o acesso, e a mesma URL do documento passa a negar acesso na próxima requisição, sem esperar nenhum cron. Gate: lint + typecheck (rebuild `.next`) + `npm run test` (184) + `npm run test:e2e -- produtor-pedidos` (3/3) verdes.
 
 ---
 
