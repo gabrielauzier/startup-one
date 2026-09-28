@@ -101,6 +101,32 @@ export async function createBusiness(
   return rows[0].id;
 }
 
+/**
+ * Cria um usuário de auth + profile diretamente via REST (service
+ * role), sem passar pelo fluxo de OTP - usado quando o teste só
+ * precisa de um dono/investidor "de fundo" para satisfazer uma FK
+ * (ex.: owner_id de um negócio), não de uma sessão logada de verdade.
+ */
+export async function createProfileWithAuth(
+  prefix: string,
+  role: "investidor" | "empresa" | "produtor" | "verificador",
+  nome = "Perfil de Teste"
+): Promise<string> {
+  const email = `${prefix}-${Date.now()}@example.com`;
+  const res = await fetch(`${API_URL}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ email, email_confirm: true }),
+  });
+  const user = (await res.json()) as { id: string };
+  await fetch(`${API_URL}/rest/v1/profiles`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify({ id: user.id, role, nome }),
+  });
+  return user.id;
+}
+
 export async function createPartner(nome: string): Promise<string> {
   const res = await fetch(`${API_URL}/rest/v1/partners`, {
     method: "POST",

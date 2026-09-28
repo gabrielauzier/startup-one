@@ -1026,12 +1026,14 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Visitante que clica em "O dinheiro" é convidado a entrar (CA-26.1)
-- [ ] Aba "A produção" só mostra as práticas marcadas pelo produtor (CA-30.1)
-- [ ] Aba "Quem cuida" nunca exibe telefone/e-mail (CA-31.1)
+- [x] Visitante que clica em "O dinheiro" é convidado a entrar (CA-26.1)
+- [x] Aba "A produção" só mostra as práticas marcadas pelo produtor (CA-30.1)
+- [x] Aba "Quem cuida" nunca exibe telefone/e-mail (CA-31.1)
 
 **Tests**: e2e
 **Gate**: full
+
+**Status**: ✅ Complete (2026-09-28) — `web/app/(investor)/negocios/[slug]/page.tsx` (cabeçalho + abas via `?aba=`), `web/app/(investor)/negocios/[slug]/actions.ts` (`recordProfileVisit`, RN-35), `web/components/business/RecordVisit.tsx` (client component que dispara o registro de visita ao montar), `web/e2e/negocio-pagina.spec.ts` (3 testes: CA-26.1, CA-30.1, CA-31.1), `web/e2e/helpers/db.ts` (+`createProfileWithAuth`, reuso para T41+). Negócio não-verificado (rascunho/suspenso/etc.) mostra "Negócio indisponível no momento" (RN-13/CA-13.2), até para o próprio dono acessando a página pública. Aba "Documentos" é só um link para a rota separada `/negocios/[slug]/documentos` (T41/T42), já protegida pelo middleware. SPEC_DEVIATION (RN-29): interesse somado usa `sumInterests([])` (soma zero) — tabela `interests` só existe a partir do T45 (Fase 9), mesmo desvio já assumido em `lib/business/interest-sum.ts` (T38); botão "Tenho interesse" da RF-21 fica para o módulo de interesse (T46+). SPEC_DEVIATION (RN-31/CA-31.1): o modelo de dados (PRD §7.3) não tem tabela de "pessoas"/equipe do negócio — a aba "Quem cuida" mostra `profiles.nome` do dono do cadastro com a função fixa "Responsável pelo negócio"; nenhum campo de telefone/e-mail/CPF é sequer consultado. Gate: lint + typecheck (rebuild `.next` antes) + `npm run test` (172) + `npm run test:e2e` completo (46/46, incluindo os 3 novos) verdes.
 
 ---
 
