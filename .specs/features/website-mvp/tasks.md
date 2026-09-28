@@ -264,11 +264,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] `/` renderiza os 4 passos, os dois botões e o rodapé de RN-04 com o texto exato
-- [ ] Nenhum termo proibido de RN-04 ("investir agora", "rendimento", "retorno garantido", "captado", "captação") aparece no HTML renderizado
+- [x] `/` renderiza os 4 passos, os dois botões e o rodapé de RN-04 com o texto exato
+- [x] Nenhum termo proibido de RN-04 ("investir agora", "rendimento", "retorno garantido", "captado", "captação") aparece no HTML renderizado
 
 **Tests**: e2e
 **Gate**: full
+**Status**: ✅ Complete (2026-09-27) — `web/app/(marketing)/page.tsx`, `web/components/marketing/FourSteps.tsx`, `web/components/shared/ConnectionFooter.tsx`, `web/e2e/home.spec.ts` (2 testes). Requer `web/.env.local` com as credenciais do Supabase local (o `proxy.ts` do T6 consulta `profiles` em toda requisição); criado e mantido fora do git (gitignored), valores documentados em `.env.local.example` e obtidos via `supabase status -o env`.
 
 ---
 
