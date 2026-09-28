@@ -201,6 +201,7 @@ T57 → T58 → T59 → T60
 
 **Tests**: integration
 **Gate**: full
+**Status**: ⚠️ Partial (2026-09-27) — código escrito (`web/supabase/migrations/0001_init.sql`, `web/supabase/tests/profiles.sql`, `web/.env.local.example`), **não commitado**. `npx supabase start` não completou em 3 tentativas (2 canceladas em background por timeout, 1 cancelada manualmente pelo usuário); gate não rodou. Retomar rodando `npx supabase start` até o fim (sem cancelar) e depois `npx supabase test db` antes de marcar completo e commitar.
 
 ---
 
@@ -217,11 +218,12 @@ T57 → T58 → T59 → T60
 - Skill: NONE
 
 **Done when**:
-- [ ] Um Server Component de teste consegue ler `auth.getUser()` via `createServerClient`
-- [ ] Nenhuma chave de serviço aparece em código client-side (RNF-05)
+- [x] Um Server Component de teste consegue ler `auth.getUser()` via `createServerClient`
+- [x] Nenhuma chave de serviço aparece em código client-side (RNF-05)
 
 **Tests**: unit
 **Gate**: quick
+**Status**: ✅ Complete (2026-09-27) — `web/lib/supabase/{server,client,middleware}.ts` + `web/lib/supabase/__tests__/{server,client}.test.ts` (4 testes). T4 (schema) segue ⚠️ Partial (verificação local do Supabase pendente), mas não bloqueia T5: as fábricas de cliente não dependem de um banco rodando para compilar/testar.
 
 ---
 
