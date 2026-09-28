@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsProducer } from "./helpers/auth";
+import { randomValidCnpj } from "./helpers/cnpj";
 
 async function chegarNaParte5(page: import("@playwright/test").Page) {
   await loginAsProducer(page, "parte5");
@@ -9,7 +10,7 @@ async function chegarNaParte5(page: import("@playwright/test").Page) {
 
   await page.getByLabel("Seu nome").fill("Raimunda Souza");
   await page.getByLabel("Telefone com WhatsApp").fill("91999999999");
-  await page.getByLabel("CNPJ").fill("11444777000161");
+  await page.getByLabel("CNPJ").fill(randomValidCnpj());
   await page.getByRole("checkbox", { name: /Autorizo a Îasy/ }).click();
   await page.getByRole("button", { name: "Continuar" }).click();
   await page.waitForURL("/produtor/cadastro/2");

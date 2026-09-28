@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { loginAsProducer } from "./helpers/auth";
 import { getUserIdByEmail, getBusinessByOwnerId, createEvidence } from "./helpers/db";
+import { randomValidCnpj } from "./helpers/cnpj";
 
 test.describe("Cadastro completo do produtor (T24, PRO-07/PRO-08)", () => {
   test("parte 1 a 5, revisar e enviar - cadastro chega em em_analise", async ({
@@ -14,7 +15,7 @@ test.describe("Cadastro completo do produtor (T24, PRO-07/PRO-08)", () => {
 
     await page.getByLabel("Seu nome").fill("Raimunda Souza");
     await page.getByLabel("Telefone com WhatsApp").fill("91999999999");
-    await page.getByLabel("CNPJ").fill("11444777000161");
+    await page.getByLabel("CNPJ").fill(randomValidCnpj());
     await page.getByRole("checkbox", { name: /Autorizo a Îasy/ }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.waitForURL("/produtor/cadastro/2");

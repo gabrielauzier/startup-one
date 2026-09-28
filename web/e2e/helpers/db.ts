@@ -11,13 +11,17 @@ function headers() {
 }
 
 export async function getUserIdByEmail(email: string): Promise<string> {
-  const res = await fetch(
-    `${API_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
-    { headers: headers() }
-  );
-  const { users } = (await res.json()) as { users: { id: string }[] };
-  if (users.length === 0) throw new Error(`Usuário ${email} não encontrado`);
-  return users[0].id;
+  // O GoTrue local ignora o filtro `email=` (sempre devolve a 1a pagina,
+  // 50 usuarios, sem filtrar) - pede uma pagina grande e filtra aqui.
+  // Bug real descoberto nesta task: sem isso, `users[0]` pega um usuario
+  // arbitrario, nao o do teste, e todo lookup por owner_id falha.
+  const res = await fetch(`${API_URL}/auth/v1/admin/users?per_page=1000`, {
+    headers: headers(),
+  });
+  const { users } = (await res.json()) as { users: { id: string; email: string }[] };
+  const match = users.find((u) => u.email === email);
+  if (!match) throw new Error(`Usuário ${email} não encontrado`);
+  return match.id;
 }
 
 export async function getBusinessByOwnerId(

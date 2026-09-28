@@ -1,5 +1,6 @@
 import { test } from "@playwright/test";
 import { loginAsProducer } from "./helpers/auth";
+import { randomValidCnpj } from "./helpers/cnpj";
 
 test.describe("Parte 1 Sobre você /produtor/cadastro/1 (PRO-02) - smoke", () => {
   test("preenche e avança para a parte 2 com CNPJ valido", async ({ page }) => {
@@ -10,7 +11,7 @@ test.describe("Parte 1 Sobre você /produtor/cadastro/1 (PRO-02) - smoke", () =>
 
     await page.getByLabel("Seu nome").fill("Raimunda Souza");
     await page.getByLabel("Telefone com WhatsApp").fill("91999999999");
-    await page.getByLabel("CNPJ").fill("11444777000161");
+    await page.getByLabel("CNPJ").fill(randomValidCnpj());
     await page.getByRole("checkbox", { name: /Autorizo a Îasy/ }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
 

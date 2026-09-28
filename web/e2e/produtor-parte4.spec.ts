@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { loginAsProducer } from "./helpers/auth";
+import { randomValidCnpj } from "./helpers/cnpj";
 
 test.describe("Parte 4 Fotos e documentos /produtor/cadastro/4 (PRO-05) - smoke", () => {
   test("grupo obrigatório vazio bloqueia o avanço (CA-08.1)", async ({ page }) => {
@@ -10,7 +11,7 @@ test.describe("Parte 4 Fotos e documentos /produtor/cadastro/4 (PRO-05) - smoke"
 
     await page.getByLabel("Seu nome").fill("Raimunda Souza");
     await page.getByLabel("Telefone com WhatsApp").fill("91999999999");
-    await page.getByLabel("CNPJ").fill("11444777000161");
+    await page.getByLabel("CNPJ").fill(randomValidCnpj());
     await page.getByRole("checkbox", { name: /Autorizo a Îasy/ }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.waitForURL("/produtor/cadastro/2");
