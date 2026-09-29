@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTransition } from "@/lib/business/state-machine";
+import { selectSealsNearingExpiry } from "@/lib/cron/expiration";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 /**
  * RN-19/CA-19.2: move negocios `verificado` cujo `selo_valido_ate` ja
  * passou para `expirado` (RN-12 permite verificado -> expirado). So'
  * seleciona negocios com `status='verificado'`, entao rodar 2x no
  * mesmo dia e' idempotente - depois da 1a passada, ja nao ha mais
- * `verificado` vencido para mover.
- *
- * TODO(T53): antes de expirar, enfileirar o aviso "faltam 30 dias" via
- * lib/notifications/queue.ts (a fila so' existe a partir do T53).
+ * `verificado` vencido para mover. Antes disso, avisa o produtor
+ * (CA-19.2: "faltam 30 dias") os negocios cujo selo ainda nao venceu
+ * mas vence dentro de 30 dias - `selo_expirando_em_breve` (Fix 5,
+ * rodada 1 do Verifier; ate' entao TODO(T53), pois RF-31 nao tinha
+ * esse tipo).
  */
 export async function POST(request: Request) {
   const secret = request.headers.get("x-cron-secret");
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
 
   const { data: verificados, error: fetchError } = await admin
     .from("businesses")
-    .select("id, selo_valido_ate")
+    .select("id, selo_valido_ate, owner_id, nome")
     .eq("status", "verificado");
 
   if (fetchError) {
@@ -34,10 +37,31 @@ export async function POST(request: Request) {
     .filter((b) => b.selo_valido_ate && new Date(b.selo_valido_ate) < now)
     .map((b) => b.id);
 
+  const nearingExpiryIds = selectSealsNearingExpiry(
+    (verificados ?? []).map((b) => ({ id: b.id, seloValidoAte: b.selo_valido_ate })),
+    now
+  );
+
+  const byId = new Map((verificados ?? []).map((b) => [b.id, b]));
+  for (const id of nearingExpiryIds) {
+    const business = byId.get(id);
+    if (!business) continue;
+
+    await enqueueNotification({
+      type: "selo_expirando_em_breve",
+      payload: { businessId: id, seloValidoAte: business.selo_valido_ate },
+      destinatarioId: business.owner_id,
+      email: {
+        subject: "Îasy - seu selo Verificado Îasy expira em breve",
+        body: `Faltam 30 dias para o selo Verificado Îasy de ${business.nome ?? "seu negócio"} expirar. Entre em contato para renovar a verificação.`,
+      },
+    });
+  }
+
   if (expiredIds.length > 0) {
     assertTransition("verificado", "expirado");
     await admin.from("businesses").update({ status: "expirado" }).in("id", expiredIds);
   }
 
-  return NextResponse.json({ ok: true, expired: expiredIds.length });
+  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados: nearingExpiryIds.length });
 }

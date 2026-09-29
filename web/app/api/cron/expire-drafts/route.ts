@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+import { selectExpiredDrafts, selectDraftsNearingExpiry } from "@/lib/cron/expiration";
+import { enqueueNotification } from "@/lib/notifications/queue";
 
 /**
  * RN-07/CA-07.3: apaga rascunhos (negocios em status "rascunho") sem
  * atividade ha 90 dias. "Atividade" e' a revisao mais recente em
  * business_revisions, ou a criacao do negocio se ele nunca teve nenhuma
- * parte salva.
- *
- * TODO(T53): antes de apagar, enfileirar o aviso "faltam 7 dias" via
- * lib/notifications/queue.ts para rascunhos entre 83 e 90 dias sem
- * atividade (a fila de notificacoes so' existe a partir do T53).
+ * parte salva. Antes de apagar, avisa o produtor (CA-07.3: "faltam 7
+ * dias") os rascunhos que ainda nao expiraram mas ja passaram de 83
+ * dias sem atividade - `rascunho_expirando_em_breve` (Fix 5, rodada 1
+ * do Verifier; ate' entao TODO(T53), pois RF-31 nao tinha esse tipo).
  */
 export async function POST(request: Request) {
   const secret = request.headers.get("x-cron-secret");
@@ -20,19 +19,18 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
-  const cutoff = Date.now() - NINETY_DAYS_MS;
+  const now = new Date();
 
   const { data: drafts, error: draftsError } = await admin
     .from("businesses")
-    .select("id, created_at")
+    .select("id, created_at, owner_id, nome")
     .eq("status", "rascunho");
 
   if (draftsError) {
     return NextResponse.json({ error: draftsError.message }, { status: 500 });
   }
 
-  const expiredIds: string[] = [];
-
+  const draftRows = [];
   for (const draft of drafts ?? []) {
     const { data: lastRevision } = await admin
       .from("business_revisions")
@@ -42,18 +40,35 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
 
-    const lastActivity = new Date(
-      lastRevision?.created_at ?? draft.created_at
-    ).getTime();
+    draftRows.push({
+      id: draft.id,
+      createdAt: draft.created_at,
+      lastRevisionAt: lastRevision?.created_at ?? null,
+    });
+  }
 
-    if (lastActivity < cutoff) {
-      expiredIds.push(draft.id);
-    }
+  const expiredIds = selectExpiredDrafts(draftRows, now);
+  const nearingExpiryIds = selectDraftsNearingExpiry(draftRows, now);
+
+  const byId = new Map((drafts ?? []).map((d) => [d.id, d]));
+  for (const id of nearingExpiryIds) {
+    const draft = byId.get(id);
+    if (!draft) continue;
+
+    await enqueueNotification({
+      type: "rascunho_expirando_em_breve",
+      payload: { businessId: id },
+      destinatarioId: draft.owner_id,
+      email: {
+        subject: "Îasy - seu rascunho de cadastro expira em breve",
+        body: `Faltam 7 dias para apagarmos o rascunho de ${draft.nome ?? "seu negócio"} por inatividade. Continue de onde parou para não perder o que já foi preenchido.`,
+      },
+    });
   }
 
   if (expiredIds.length > 0) {
     await admin.from("businesses").delete().in("id", expiredIds);
   }
 
-  return NextResponse.json({ ok: true, expired: expiredIds.length });
+  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados: nearingExpiryIds.length });
 }

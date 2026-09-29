@@ -2,8 +2,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/notifications/send-email";
 
 /**
- * RF-31: os 9 tipos de aviso da PRD. `NotificationType` espelha 1:1 o
- * `check` de `events.type` (0009_events.sql).
+ * RF-31: os 9 tipos de aviso da PRD, mais os 4 tipos de "prazo se
+ * esgotando"/suspensão do Fix 5 (rodada 1 do Verifier) - RF-31 não
+ * cobria "aviso de prazo se esgotando" nem "aviso de suspensão"
+ * (spec-precision gap apontado pelo Verifier). `NotificationType`
+ * espelha 1:1 o `check` de `events.type`
+ * (0009_events.sql/0011_notification_types_avisos_prazo.sql).
  */
 export type NotificationType =
   | "cadastro_recebido"
@@ -14,7 +18,11 @@ export type NotificationType =
   | "documento_liberado"
   | "interesse_recebido"
   | "interesse_aceito"
-  | "apresentacao_parceiro";
+  | "apresentacao_parceiro"
+  | "rascunho_expirando_em_breve"
+  | "selo_expirando_em_breve"
+  | "suspensao_negocio"
+  | "suspensao_negocio_investidor";
 
 /**
  * RN-41: "O produtor recebe WhatsApp para ajuste pedido, selo
@@ -30,12 +38,16 @@ const PRODUCER_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
   "reprovacao",
   "pedido_documento",
   "interesse_recebido",
+  "rascunho_expirando_em_breve",
+  "selo_expirando_em_breve",
+  "suspensao_negocio",
 ]);
 
 /** RN-41: "O investidor recebe e-mail a cada novidade". */
 const INVESTOR_NOTIFICATION_TYPES: ReadonlySet<NotificationType> = new Set([
   "documento_liberado",
   "interesse_aceito",
+  "suspensao_negocio_investidor",
 ]);
 
 export interface EmailContent {

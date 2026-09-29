@@ -1,10 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 let businessesResult: {
-  data: { id: string; selo_valido_ate: string | null }[] | null;
+  data:
+    | {
+        id: string;
+        selo_valido_ate: string | null;
+        owner_id?: string;
+        nome?: string;
+      }[]
+    | null;
   error: unknown;
 } = { data: [], error: null };
 const updateInMock = vi.fn().mockResolvedValue({ error: null });
+const enqueueNotificationMock = vi.fn().mockResolvedValue({ ok: true });
+
+vi.mock("@/lib/notifications/queue", () => ({
+  enqueueNotification: enqueueNotificationMock,
+}));
 
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
@@ -28,6 +40,7 @@ beforeEach(() => {
   process.env.CRON_SECRET = "segredo-de-teste";
   businessesResult = { data: [], error: null };
   updateInMock.mockResolvedValue({ error: null });
+  enqueueNotificationMock.mockResolvedValue({ ok: true });
 });
 
 function request(headers: Record<string, string> = {}) {
@@ -65,12 +78,12 @@ describe("POST /api/cron/expire-seals (RN-19/CA-19.2)", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual({ ok: true, expired: 1 });
+    expect(body).toEqual({ ok: true, expired: 1, avisados: 0 });
     expect(updateInMock).toHaveBeenCalledWith("id", ["biz-expirado"]);
   });
 
-  it("nao expira um selo ainda valido", async () => {
-    const futuro = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  it("nao expira um selo ainda valido e distante do vencimento (60 dias)", async () => {
+    const futuro = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
     businessesResult = {
       data: [{ id: "biz-valido", selo_valido_ate: futuro }],
       error: null,
@@ -80,7 +93,7 @@ describe("POST /api/cron/expire-seals (RN-19/CA-19.2)", () => {
     const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
 
     const body = await res.json();
-    expect(body).toEqual({ ok: true, expired: 0 });
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 0 });
     expect(updateInMock).not.toHaveBeenCalled();
   });
 
@@ -103,7 +116,36 @@ describe("POST /api/cron/expire-seals (RN-19/CA-19.2)", () => {
     const second = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
     const secondBody = await second.json();
 
-    expect(secondBody).toEqual({ ok: true, expired: 0 });
+    expect(secondBody).toEqual({ ok: true, expired: 0, avisados: 0 });
     expect(updateInMock).not.toHaveBeenCalled();
+  });
+
+  it("avisa (CA-19.2) um selo que vence em 25 dias, sem expirar (Fix 5, rodada 1 do Verifier)", async () => {
+    const em25dias = new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString();
+    businessesResult = {
+      data: [
+        {
+          id: "biz-vencendo",
+          selo_valido_ate: em25dias,
+          owner_id: "owner-1",
+          nome: "Cooperativa Teste",
+        },
+      ],
+      error: null,
+    };
+    const { POST } = await import("../route");
+
+    const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
+    const body = await res.json();
+
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 1 });
+    expect(updateInMock).not.toHaveBeenCalled();
+    expect(enqueueNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "selo_expirando_em_breve",
+        destinatarioId: "owner-1",
+        payload: expect.objectContaining({ businessId: "biz-vencendo" }),
+      })
+    );
   });
 });

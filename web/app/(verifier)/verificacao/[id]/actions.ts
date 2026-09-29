@@ -284,7 +284,7 @@ export async function suspend(businessId: string, motivo: string): Promise<Decis
   const admin = createAdminClient();
   const { data: business } = await admin
     .from("businesses")
-    .select("id, status")
+    .select("id, status, owner_id, nome")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -313,6 +313,40 @@ export async function suspend(businessId: string, motivo: string): Promise<Decis
     checklist: {},
     itens_ajuste: [],
   });
+
+  // CA-21.1/Fix 5 (rodada 1 do Verifier): avisa o produtor e todo
+  // interessado em aberto (Pendente ou Aceito) que o negocio foi
+  // suspenso. RF-31 nao tinha um tipo para isso (spec-precision gap
+  // apontado pelo Verifier) - "suspensao_negocio" (produtor,
+  // whatsapp+email) e "suspensao_negocio_investidor" (investidor, so'
+  // email) sao os 2 tipos novos que cobrem os 2 destinatarios.
+  await enqueueNotification({
+    type: "suspensao_negocio",
+    payload: { businessId, motivo },
+    destinatarioId: business.owner_id,
+    email: {
+      subject: "Îasy - seu negócio foi suspenso",
+      body: `${business.nome ?? "Seu negócio"} foi suspenso pela equipe de verificação: ${motivo}`,
+    },
+  });
+
+  const { data: interessesAbertos } = await admin
+    .from("interests")
+    .select("investor_id")
+    .eq("business_id", businessId)
+    .in("status", ["pendente", "aceito"]);
+
+  for (const interesse of interessesAbertos ?? []) {
+    await enqueueNotification({
+      type: "suspensao_negocio_investidor",
+      payload: { businessId },
+      destinatarioId: interesse.investor_id,
+      email: {
+        subject: "Îasy - negócio de interesse foi suspenso",
+        body: `${business.nome ?? "O negócio"} em que você demonstrou interesse foi suspenso pela equipe de verificação e não está mais disponível na vitrine.`,
+      },
+    });
+  }
 
   return { ok: true };
 }

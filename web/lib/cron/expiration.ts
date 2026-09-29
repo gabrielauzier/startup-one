@@ -33,6 +33,29 @@ export function selectExpiredDrafts(
     .map((d) => d.id);
 }
 
+/**
+ * CA-07.3 (Fix 5, rodada 1 do Verifier): rascunhos que ainda NAO
+ * expiraram (`selectExpiredDrafts` não os pega), mas cuja última
+ * atividade já passou de `cutoffDays - warningDays` dias - a janela de
+ * "faltam `warningDays` dias" antes de `expire-drafts` apagar de
+ * verdade.
+ */
+export function selectDraftsNearingExpiry(
+  drafts: DraftRow[],
+  now: Date = new Date(),
+  cutoffDays = 90,
+  warningDays = 7
+): string[] {
+  const expiredCutoff = now.getTime() - cutoffDays * DAY_MS;
+  const warningCutoff = now.getTime() - (cutoffDays - warningDays) * DAY_MS;
+  return drafts
+    .filter((d) => {
+      const lastActivity = new Date(d.lastRevisionAt ?? d.createdAt).getTime();
+      return lastActivity < warningCutoff && lastActivity >= expiredCutoff;
+    })
+    .map((d) => d.id);
+}
+
 export interface CreatedAtRow {
   id: string;
   createdAt: string;
@@ -92,4 +115,31 @@ export function selectExpiredPendingInterests(
 ): string[] {
   const cutoff = now.getTime() - cutoffDays * DAY_MS;
   return rows.filter((r) => new Date(r.createdAt).getTime() < cutoff).map((r) => r.id);
+}
+
+export interface SealRow {
+  id: string;
+  /** `businesses.selo_valido_ate`. */
+  seloValidoAte: string | null;
+}
+
+/**
+ * CA-19.2 (Fix 5, rodada 1 do Verifier): negocios `verificado` cujo
+ * selo ainda NAO venceu, mas vence dentro de `warningDays` dias - a
+ * janela de "faltam 30 dias" antes de `expire-seals` mover para
+ * `expirado`.
+ */
+export function selectSealsNearingExpiry(
+  rows: SealRow[],
+  now: Date = new Date(),
+  warningDays = 30
+): string[] {
+  const warningCutoff = now.getTime() + warningDays * DAY_MS;
+  return rows
+    .filter((r) => {
+      if (!r.seloValidoAte) return false;
+      const validoAte = new Date(r.seloValidoAte).getTime();
+      return validoAte > now.getTime() && validoAte <= warningCutoff;
+    })
+    .map((r) => r.id);
 }

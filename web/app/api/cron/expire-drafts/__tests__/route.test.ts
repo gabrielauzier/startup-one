@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 let draftsResult: {
-  data: { id: string; created_at: string }[] | null;
+  data:
+    | { id: string; created_at: string; owner_id?: string; nome?: string }[]
+    | null;
   error: unknown;
 } = { data: [], error: null };
 let lastRevisionByBusiness: Record<string, string | null> = {};
 const deleteInMock = vi.fn().mockResolvedValue({ error: null });
+const enqueueNotificationMock = vi.fn().mockResolvedValue({ ok: true });
+
+vi.mock("@/lib/notifications/queue", () => ({
+  enqueueNotification: enqueueNotificationMock,
+}));
 
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
@@ -48,6 +55,7 @@ beforeEach(() => {
   draftsResult = { data: [], error: null };
   lastRevisionByBusiness = {};
   deleteInMock.mockResolvedValue({ error: null });
+  enqueueNotificationMock.mockResolvedValue({ ok: true });
 });
 
 function request(headers: Record<string, string> = {}) {
@@ -86,7 +94,7 @@ describe("POST /api/cron/expire-drafts (RN-07/CA-07.3)", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual({ ok: true, expired: 1 });
+    expect(body).toEqual({ ok: true, expired: 1, avisados: 0 });
     expect(deleteInMock).toHaveBeenCalledWith("id", ["biz-velho"]);
   });
 
@@ -103,7 +111,7 @@ describe("POST /api/cron/expire-drafts (RN-07/CA-07.3)", () => {
     const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
 
     const body = await res.json();
-    expect(body).toEqual({ ok: true, expired: 0 });
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 0 });
     expect(deleteInMock).not.toHaveBeenCalled();
   });
 
@@ -119,7 +127,35 @@ describe("POST /api/cron/expire-drafts (RN-07/CA-07.3)", () => {
     const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
 
     const body = await res.json();
-    expect(body).toEqual({ ok: true, expired: 0 });
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 0 });
     expect(deleteInMock).not.toHaveBeenCalled();
+  });
+
+  it("avisa (CA-07.3) um rascunho com 85 dias de inatividade, sem apagar (Fix 5, rodada 1 do Verifier)", async () => {
+    draftsResult = {
+      data: [
+        {
+          id: "biz-quase-expirando",
+          created_at: new Date(NOW - 85 * DAY_MS).toISOString(),
+          owner_id: "owner-1",
+          nome: "Cooperativa Teste",
+        },
+      ],
+      error: null,
+    };
+    const { POST } = await import("../route");
+
+    const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
+    const body = await res.json();
+
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 1 });
+    expect(deleteInMock).not.toHaveBeenCalled();
+    expect(enqueueNotificationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "rascunho_expirando_em_breve",
+        destinatarioId: "owner-1",
+        payload: expect.objectContaining({ businessId: "biz-quase-expirando" }),
+      })
+    );
   });
 });

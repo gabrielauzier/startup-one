@@ -4,6 +4,8 @@ import {
   selectExpiredPendingDocumentRequests,
   selectExpiredReleasedAccess,
   selectExpiredPendingInterests,
+  selectDraftsNearingExpiry,
+  selectSealsNearingExpiry,
 } from "../expiration";
 
 const NOW = new Date("2026-09-28T12:00:00.000Z");
@@ -82,6 +84,56 @@ describe("selectExpiredPendingInterests (RN-39, T55 - primeira implementação r
 
   it("nao expira interesse pendente com menos de 10 dias", () => {
     const ids = selectExpiredPendingInterests([{ id: "i1", createdAt: daysAgo(2) }], NOW);
+    expect(ids).toEqual([]);
+  });
+});
+
+describe("selectDraftsNearingExpiry (CA-07.3, Fix 5 - rodada 1 do Verifier)", () => {
+  it("avisa um rascunho com 84 dias sem atividade (dentro da janela de 7 dias antes dos 90)", () => {
+    const ids = selectDraftsNearingExpiry(
+      [{ id: "a", createdAt: daysAgo(84), lastRevisionAt: null }],
+      NOW
+    );
+    expect(ids).toEqual(["a"]);
+  });
+
+  it("nao avisa um rascunho com 82 dias sem atividade (ainda fora da janela)", () => {
+    const ids = selectDraftsNearingExpiry(
+      [{ id: "a", createdAt: daysAgo(82), lastRevisionAt: null }],
+      NOW
+    );
+    expect(ids).toEqual([]);
+  });
+
+  it("nao avisa de novo um rascunho ja' expirado (91 dias) - so' apaga", () => {
+    const ids = selectDraftsNearingExpiry(
+      [{ id: "a", createdAt: daysAgo(91), lastRevisionAt: null }],
+      NOW
+    );
+    expect(ids).toEqual([]);
+  });
+});
+
+describe("selectSealsNearingExpiry (CA-19.2, Fix 5 - rodada 1 do Verifier)", () => {
+  const inDays = (n: number) => new Date(NOW.getTime() + n * DAY_MS).toISOString();
+
+  it("avisa um selo que vence em 29 dias (dentro da janela de 30 dias)", () => {
+    const ids = selectSealsNearingExpiry([{ id: "b1", seloValidoAte: inDays(29) }], NOW);
+    expect(ids).toEqual(["b1"]);
+  });
+
+  it("nao avisa um selo que vence em 31 dias (ainda fora da janela)", () => {
+    const ids = selectSealsNearingExpiry([{ id: "b1", seloValidoAte: inDays(31) }], NOW);
+    expect(ids).toEqual([]);
+  });
+
+  it("nao avisa um selo que ja' venceu (isso e' expiracao, nao aviso)", () => {
+    const ids = selectSealsNearingExpiry([{ id: "b1", seloValidoAte: daysAgo(1) }], NOW);
+    expect(ids).toEqual([]);
+  });
+
+  it("ignora negocio sem selo_valido_ate", () => {
+    const ids = selectSealsNearingExpiry([{ id: "b1", seloValidoAte: null }], NOW);
     expect(ids).toEqual([]);
   });
 });
