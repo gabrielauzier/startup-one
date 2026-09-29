@@ -31,16 +31,33 @@ export function useDraftSync(businessId: string, part: 1 | 2 | 3 | 4 | 5) {
     }
 
     setStatus("sincronizando");
-    await flushWhenOnline(businessId, async (snapshot) => {
-      for (const [snapshotPart, data] of Object.entries(snapshot.parts)) {
-        await saveDraftPart(
-          businessId,
-          Number(snapshotPart) as 1 | 2 | 3 | 4 | 5,
-          data as Record<string, unknown>
-        );
-      }
-    });
-    setStatus(isOffline() ? "salvo_no_celular" : "salvo");
+    try {
+      await flushWhenOnline(businessId, async (snapshot) => {
+        for (const [snapshotPart, data] of Object.entries(snapshot.parts)) {
+          const result = await saveDraftPart(
+            businessId,
+            Number(snapshotPart) as 1 | 2 | 3 | 4 | 5,
+            data as Record<string, unknown>
+          );
+          // Gap 4 (Minor, rodada 2 do Verifier): antes, um `{ok:false}`
+          // (rede caiu de novo no meio do flush, ou o servidor
+          // rejeitou) era ignorado aqui - `flushWhenOnline` marcava o
+          // rascunho como sincronizado (`dirty:false`) mesmo assim,
+          // perdendo a edicao local sem nunca reenviar. Lancar aqui
+          // propaga a falha para `flushWhenOnline`, que so' zera
+          // `dirty` depois que este callback resolve com sucesso.
+          if (!result.ok) {
+            throw new Error(result.error ?? "Falha ao sincronizar o rascunho.");
+          }
+        }
+      });
+      setStatus(isOffline() ? "salvo_no_celular" : "salvo");
+    } catch {
+      // Mantem "salvo_no_celular": o rascunho continua `dirty` no
+      // IndexedDB (flushWhenOnline nao chegou a limpar a flag) e sera
+      // reenviado no proximo evento `online` ou no proximo poll.
+      setStatus("salvo_no_celular");
+    }
   }, [businessId]);
 
   useEffect(() => {

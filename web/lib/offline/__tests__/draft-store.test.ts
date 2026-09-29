@@ -101,4 +101,22 @@ describe("flushWhenOnline (CA-07.2)", () => {
     await flushWhenOnline("negocio-sem-rascunho", sync);
     expect(sync).not.toHaveBeenCalled();
   });
+
+  // Gap 4 (Minor, rodada 2 do Verifier): antes, `dirty` era zerado
+  // incondicionalmente depois de `await sync(snapshot)`, mesmo quando o
+  // chamador (useDraftSync) engolia um `{ok:false}` de `saveDraftPart`
+  // sem lancar - uma falha no meio do flush (rede caiu de novo, ou o
+  // servidor rejeitou) marcava o rascunho como sincronizado mesmo assim,
+  // perdendo a edicao local pra sempre (nunca mais reenviada). Aqui
+  // testamos a metade de `flushWhenOnline`: quando `sync` lanca, `dirty`
+  // continua `true` para a proxima tentativa.
+  it("quando sync falha (lanca), mantem dirty=true - nao marca como sincronizado (Gap 4)", async () => {
+    await saveLocalDraft("negocio-7", 1, { nome: "Raimunda" });
+
+    const sync = vi.fn().mockRejectedValue(new Error("falha ao salvar"));
+    await expect(flushWhenOnline("negocio-7", sync)).rejects.toThrow("falha ao salvar");
+
+    const snapshot = await getLocalDraft("negocio-7");
+    expect(snapshot?.dirty).toBe(true);
+  });
 });
