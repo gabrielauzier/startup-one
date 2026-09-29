@@ -1,13 +1,120 @@
 # Website MVP Îasy Validation
 
 **Spec**: `.specs/features/website-mvp/spec.md`
-**Verifier**: independent sub-agent (author ≠ verifier), fresh context in both rounds
-**Fix→re-verify cycle**: round 2 of 3
+**Verifier**: independent sub-agent (author ≠ verifier), fresh context in every round
+**Fix→re-verify cycle**: **round 3 of 3 (final)**. Per the skill, no 4th automatic round: anything left goes to the user.
 
 | Round | Verified at | Date | Verdict |
 | --- | --- | --- | --- |
 | 1 | `355ac38` (whole branch) | 2026-09-28 | FAIL ❌: 59/77 ACs, sensor 8/13 |
-| 2 | `720ab27` (fix commits `d2aab22`..`a3e5c46` + STATE `720ab27`) | 2026-09-28 | **FAIL ❌: 65/77 ACs, sensor 10/10** |
+| 2 | `720ab27` (fix commits `d2aab22`..`a3e5c46` + STATE `720ab27`) | 2026-09-28 | FAIL ❌: 65/77 ACs, sensor 10/10 |
+| 3 | `72399c8` (fix commits `c4a1432`..`34a4d20` + STATE `72399c8`) | 2026-09-29 | **FAIL ❌ (Minor only): 67/77 ACs, every remaining ❌/⚠️ is accepted debt; sensor 6/7 (1 Minor test-strength survivor)** |
+
+## Validation: website-mvp - Rodada 3 (final) - FAIL ❌ (Minor only, escalate to user)
+
+Round 3 is surgical. It re-checks the 4 round-2 gaps (Fix A-D in `tasks.md` "Fix Tasks — Rodada 2"), runs a sensor on the new code those fixes added, runs the full gate, and spot-checks that the accepted debt (Fix 6/8/9) is unchanged. The rest of the feature is not re-verified; rounds 1/2 below stay authoritative for it.
+
+**Why FAIL and not PASS**: all 4 round-2 gaps are resolved with evidence, and every in-scope AC passes. But one sensor mutant on round-2 code (S4, the dedup window) survives. `validate.md` says surviving mutants become fix tasks before the feature is marked done. The production behavior was checked live against local PostgREST and is correct; only the unit tests fail to pin it. **No Blocker, no Major.** Since this is the final round, the one item goes to the user: accept it as debt next to Fix 6/8/9, or apply the ~10-line test fix below.
+
+---
+
+## Round 3: Gap-by-gap re-derivation (evidence-or-zero)
+
+| Round-2 gap | AC (spec line) | Spec-defined outcome | Evidence (code + test assertion) | Result |
+| --- | --- | --- | --- | --- |
+| Gap 1 / Fix A | CA-14.1 (`spec.md:100`) | Reopened ajuste cadastro: **permitir editar somente os campos marcados**, each with its comment | **Client**: locked text/number inputs are `readOnly` (e.g. `web/app/(producer)/produtor/cadastro/2/parte2-form.tsx:119,159,176`). Locked select/checkbox/range stay `disabled` plus a sibling hidden input (`LockedHiddenValue`, `parte2-form.tsx:144`; `web/components/cadastro/AjusteFieldNote.tsx`), so the value reaches `FormData`. **Server**: `saveDraftPart` merges only `itens_ajuste` fields over the stored draft (`web/app/(producer)/produtor/cadastro/actions.ts:69` `if (ajuste.camposEditaveis.has(key))`). `submitParte1` rewrites `businesses.cnpj` only when `parte1.cnpj` is flagged. `ADJUSTABLE_FIELDS` keys were checked against the keys each `submitParte{1,2,3,5}` passes to `saveDraftPart`, and all match. **Tests (real submit)**: `web/e2e/ajuste-por-campo.spec.ts:85-87`: producer fills Cidade, clicks Continuar, `waitForURL("/produtor/cadastro/3")`. `:90` `expect(parte2Revisao?.cidade).toBe("Cametá")`. `:93-96` locked `nome/uf/familias/anosAtividade` keep their seeded values. Same for Part 1 at `:150-160` (telefone changed, `nome`/`cnpj` intact, route → `/cadastro/2`). Unit anti-tamper: `web/app/(producer)/produtor/cadastro/__tests__/actions.test.ts:170,184` (a tampered posted value for a locked field is ignored in the `insert` payload). `web/app/(producer)/produtor/cadastro/1/__tests__/actions.test.ts:242` `expect(cnpjUpdateEqMock).not.toHaveBeenCalled()`. Both e2e tests passed in the full run | ✅ |
+| Gap 2 / Fix B | CA-07.3 (`spec.md:91`) | Delete after 90 days, **warning 7 days before**, in the designed scheduled cron (`design.md:91`, `/api/cron/daily`) | `web/app/api/cron/daily/route.ts:85` `selectDraftsNearingExpiry(draftRows, now)` → `enqueueNotification({type:"rascunho_expirando_em_breve"})`, before the 90-day delete. Seals (RN-19/CA-19.2) are now also processed in `daily` (`:175`), reusing the same pure selectors (no duplicated cutoffs). The stale TODO comment was rewritten. Test: `web/app/api/cron/daily/__tests__/route.test.ts:224` 85-day draft → `:234` `expect(body.avisados.rascunhos).toBe(1)`, `:235` `expect(businessesDeleteInMock).not.toHaveBeenCalled()`, and event type `rascunho_expirando_em_breve`. Seal: `:243`/`:258`. Sensor S7 (daily warning removed) killed | ✅ |
+| Gap 3 / Fix C | RF-31 warnings (Minor) | One "faltam N dias" warning per business per window, not one per day | `web/lib/notifications/queue.ts:207` `wasNearingExpiryNotified` (type + `payload->>businessId` + `created_at >= now - windowDays`), applied in `daily`, `expire-drafts`, `expire-seals` (`daily/route.ts:100` `if (draftJaAvisado) continue;`). Test: `daily/__tests__/route.test.ts:267`: 2 consecutive runs → `:287` `expect(body2.avisados.rascunhos).toBe(0)`, one `events` insert total. **Live probe** against local PostgREST (real query chain, probe row inserted then removed): event inside 7 days → found; different `type` → not found; `since = now` → not found. The query itself is correct in a real DB | ✅ behavior. ⚠️ test strength: see S4 |
+| Gap 4 / Fix D | CA-07.1/07.2 robustness (Minor) | A failed offline sync must stay pending (`dirty`) and show "Salvo no celular" | `web/lib/offline/use-draft-sync.ts:49` `if (!result.ok) throw …`, caught and reported as `"salvo_no_celular"`. `flushWhenOnline` only clears `dirty` after the callback resolves. Tests: `web/lib/offline/__tests__/use-draft-sync.test.ts:32` → `:48` `expect(result.current.status).toBe("salvo_no_celular")`, `:52` `expect(snapshot?.dirty).toBe(true)`. Mirror success case `:66`/`:70`. `web/lib/offline/__tests__/draft-store.test.ts:113`. Sensor S6 killed | ✅ |
+
+### Round-3 AC tally (77 ACs, same table as rounds 1-2)
+
+| AC | Round 2 | Round 3 |
+| --- | --- | --- |
+| Cadastro #8 CA-07.3 90d + 7d warning | ⚠️ (warning only on the non-designed route) | ✅ |
+| Cadastro #17 CA-14.1 ajuste per field | ❌ (correction couldn't be submitted) | ✅ |
+
+**Tally**: **67 ✅ · 7 ❌ · 3 ⚠️** (round 2: 65 · 8 · 4; round 1: 59 · 15 · 3).
+- All 7 ❌ are accepted debt: Cadastro #1, #3, #12, Verificação #1, #8, RF-30 (Fix 8), CA-11.2 (Fix 6).
+- All 3 ⚠️ are accepted debt: Cadastro #16, the Verificação #9 interest-block leg, Descoberta #5 40% cutoff fixture (Fix 8).
+- **In-scope ACs: all ✅.**
+
+---
+
+## Round 3: Discrimination Sensor
+
+Scratch: temporary detached `git worktree` at `/Volumes/MacOnlySSD/dev/fiap/verifier-r3-scratch` (HEAD `72399c8`). `node_modules` was symlinked from the verifier worktree (read-only use; the symlink was removed before `git worktree remove --force`). A script asserted a unique match, applied each mutation, ran the full `vitest run`, and restored the file with a byte-compare. The unmutated control run was 252/252. All 7 targets are covered by unit tests, so no e2e mutant runs were needed. The real worktree's `git status --porcelain` was empty before and after.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| S1 | `web/app/(producer)/produtor/cadastro/actions.ts:69` | merge accepts every posted field (`has(key)` → `true`) | ✅ Killed by `cadastro/__tests__/actions.test.ts:170`, `:200`, `cadastro/1/__tests__/actions.test.ts` (3 failures) |
+| S2 | `web/app/(producer)/produtor/cadastro/actions.ts` (merge base) | drop stored values of locked fields (`{...existingPart}` → `{}`) | ✅ Killed (same 3 tests) |
+| S3 | `web/app/(producer)/produtor/cadastro/1/actions.ts` | locked CNPJ: `cnpjEditavel = true` | ✅ Killed by `cadastro/1/__tests__/actions.test.ts:242` |
+| S4 | `web/lib/notifications/queue.ts:214` | dedup window collapsed: `now - windowDays*24h` → `now - 0` (dedup never matches a past event, so the warning repeats daily again) | ❌ **Survived** (252/252 pass). The `events` mocks in `lib/notifications/__tests__/queue.test.ts:18` and `app/api/cron/daily/__tests__/route.test.ts:86` accept any `gte()` argument, and the queue test ignores the `type` filter too |
+| S5 | `web/app/api/cron/daily/route.ts:100` | ignore the dedup result (`if (draftJaAvisado) continue;` removed) | ✅ Killed by `daily/__tests__/route.test.ts:267` |
+| S6 | `web/lib/offline/use-draft-sync.ts:49` | swallow a failed `saveDraftPart` again (original Gap 4) | ✅ Killed by `lib/offline/__tests__/use-draft-sync.test.ts:32` |
+| S7 | `web/app/api/cron/daily/route.ts:85` | no 7-day warning in `daily` (original Gap 2) | ✅ Killed by `daily/__tests__/route.test.ts:224`, `:267` |
+
+**Sensor depth**: targeted, P0-style (≥5 mutations over the round-2 fix code: merge, CNPJ path, dedup, dedup wiring, sync error path, daily warning)
+**Result**: 6/7 killed. S4 survives → Fix E below (Minor).
+
+---
+
+## Round 3: Gate Check
+
+Run in this worktree, `cwd=web/`, fresh `npm ci`, `.env.local` from `.env.local.example` + `npx supabase status -o env`, nothing pre-listening on :3000.
+
+- **Gate command** (documented order, now correct at `tasks.md:36`): `npm run lint && npm run build && npm run typecheck && npm run test` + `npx supabase db reset && npm run test:e2e`
+- **Result**: lint exit 0 · build exit 0 · typecheck exit 0 · unit **252 passed / 0 failed / 0 skipped** (40 files) · e2e **100 passed / 0 failed / 0 skipped / 0 flaky** (includes both `ajuste-por-campo.spec.ts` tests and `cadastro-offline-sync.spec.ts`)
+- **Test count round 2 → round 3**: 338 → 352 (+13 unit, +1 e2e). No test deleted, no assertion weakened: the fix diff `3422ffc..72399c8` only adds, and the old `ajuste-por-campo` `toBeDisabled()` checks became `not.toBeEditable()`, which still fails if the field can be edited
+- **Skipped / failures**: none
+
+---
+
+## Round 3: Accepted debt re-check (Fix 6/8/9, out of PASS/FAIL scope)
+
+| Item | Status now |
+| --- | --- |
+| Fix 6: CA-11.2 partner shown to verifier | Unchanged: no `indicado_por`/`partners` reference in `web/app/(verifier)/verificacao/[id]/` |
+| Fix 8: missing evidence | Unchanged (no new tests for those behaviors) |
+| Fix 9: gate hygiene | **Partly resolved**: the `tasks.md:36` gate order is now `lint && build && typecheck && test`. Still open (accepted): `package.json` `typecheck` is bare `tsc --noEmit`, and `perf-producer.spec.ts` still logs `JS=0KB` for every part |
+
+---
+
+## Round 3: Code Quality (fix diff `3422ffc..72399c8`)
+
+| Principle | Status |
+| --- | --- |
+| Minimum code / surgical | ✅ Changes stay in the 4 fix areas. `LockedHiddenValue(s)` is a small helper reused across 4 forms |
+| Matches patterns | ✅ Pure selectors + thin cron orchestration. `{ok,error}` results. Hidden-input pattern already used for `prazoMeses` |
+| Spec-anchored outcome check | ✅ CA-14.1's e2e now asserts the spec verb ("permitir editar": submit → next part, value persisted) and the "somente" leg (locked values unchanged in the DB) |
+| All entry points updated | ✅ `daily` is self-contained. `expire-drafts`/`expire-seals` kept as redundant manual routes, with the same dedup, documented at `daily/route.ts` |
+| Tests discriminate | ⚠️ S4: the dedup mocks don't check the `since`/`type` query arguments |
+
+Informational, not a gap: in `submitParte2`, the Amazônia Legal check (`isInAmazoniaLegal(uf)`) uses the posted `uf`, not the merged one. With `uf` locked, only a tampered POST could differ, and the stored data is still the merged (correct) value.
+
+---
+
+## Round 3: Ranked gaps → fix tasks (for the user to decide; no 4th automatic round)
+
+### Fix E: dedup window not pinned by any test (sensor S4 survived) - Minor
+- **Root cause**: `wasNearingExpiryNotified` (`web/lib/notifications/queue.ts:214`) is only tested through chain mocks that ignore the `.gte("created_at", since)` and `.eq("type", …)` arguments. A regression that breaks the window (e.g. `since = now`) would bring back the daily-repeat bug from Gap 3, and no test would notice. The current code is correct: verified live against PostgREST.
+- **Fix task**: in `web/lib/notifications/__tests__/queue.test.ts`, capture the `eq`/`gte` arguments in the mock and assert `type === "rascunho_expirando_em_breve"`, `payload->>businessId === "biz-1"` and `since === new Date(now - 7*864e5).toISOString()` for a fixed `now`. The same can be done for the 30-day seal window.
+- **Verify**: re-apply S4 (`windowDays * 24 * 60 * 60 * 1000` → `0`), and the test must fail.
+- **Priority**: Minor (test strength only; no user-visible defect today). Reasonable to accept as debt next to Fix 6/8/9.
+
+---
+
+## Round 3: Requirement traceability
+
+| Requirement | Round 2 | Round 3 |
+| --- | --- | --- |
+| CA-14.1 (RN-14) | ❌ Needs fix | ✅ Verified |
+| CA-07.3 (RN-07) | ⚠️ Partial | ✅ Verified |
+| RF-31 warnings dedup (Gap 3) | ❌ New minor | ✅ Behavior verified. ⚠️ S4 test strength (Fix E) |
+| CA-07.1/07.2 sync failure (Gap 4) | ❌ New minor | ✅ Verified |
+
+---
 
 ## Validation: website-mvp - Rodada 2 - FAIL ❌
 

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 11,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -184,6 +184,24 @@
       ],
       "created": "2026-09-29T03:53:13Z",
       "last_seen": "2026-09-29T03:53:13Z"
+    },
+    {
+      "id": "L-011",
+      "key": "surviving_mutant::when a query builder chain is mocked capture and assert the filter arguments time window type id not just the returned row otherwise the filter logic is untested",
+      "text": "When a query-builder chain is mocked, capture and assert the filter arguments (time window, type, id), not just the returned row; otherwise the filter logic is untested.",
+      "signal": "surviving_mutant",
+      "scope": "tests/supabase-mocks",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "S4 web/lib/notifications/queue.ts:214 (tests/supabase-mocks)"
+      ],
+      "created": "2026-09-29T15:01:48Z",
+      "last_seen": "2026-09-29T15:01:48Z"
     }
   ]
 }

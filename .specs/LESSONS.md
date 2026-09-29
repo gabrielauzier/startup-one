@@ -74,6 +74,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: CA-07.3/CA-19.2 web/lib/cron/expiration.ts:46,135 + lib/notifications/queue.ts (no dedup) (cron/notifications)
 - last seen: 2026-09-29T03:53:13Z
 
+### L-011 - When a query-builder chain is mocked, capture and assert the filter arguments (time window, type, id), not just the returned row; otherwise the filter logic is untested.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `tests/supabase-mocks` · harmful: 0
+- features: website-mvp
+- evidence: S4 web/lib/notifications/queue.ts:214 (tests/supabase-mocks)
+- last seen: 2026-09-29T15:01:48Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
