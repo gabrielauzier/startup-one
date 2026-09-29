@@ -291,3 +291,19 @@ export async function createConnectionEvent(
     body: JSON.stringify({ interest_id: interestId, etapa, autor_id: autorId, observacao }),
   });
 }
+
+/**
+ * Le' as linhas de `connection_events` de um interesse direto via REST
+ * (service role) - usado pelo e2e CA-39.1 (Fix 7, rodada 1 do
+ * Verifier) para confirmar que "Aceitar e seguir" grava mesmo a etapa
+ * `aceita`, nao so' que o status de `interests` mudou.
+ */
+export async function getConnectionEvents(
+  interestId: string
+): Promise<Record<string, unknown>[]> {
+  const res = await fetch(
+    `${API_URL}/rest/v1/connection_events?interest_id=eq.${interestId}&select=*&order=created_at.desc`,
+    { headers: headers() }
+  );
+  return (await res.json()) as Record<string, unknown>[];
+}

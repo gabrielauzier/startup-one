@@ -4,6 +4,8 @@ import {
   createBusiness,
   createInterest,
   createProfileWithAuth,
+  getConnectionEvents,
+  getEventsByType,
   getInterest,
   getUserIdByEmail,
 } from "./helpers/db";
@@ -52,6 +54,20 @@ test.describe("Quem tem interesse /produtor/interesses (T48)", () => {
 
     const interest = await getInterest(interestId);
     expect(interest?.status).toBe("aceito");
+
+    // O nome do teste promete "grava o evento de conexão" - confirma
+    // de verdade a linha `aceita` em connection_events (Fix 7, rodada
+    // 1 do Verifier; sensor M11 so' era morto por outro teste,
+    // e2e/flow-interesse.spec.ts, nao por este).
+    const events = await getConnectionEvents(interestId);
+    expect(events).toContainEqual(expect.objectContaining({ etapa: "aceita" }));
+
+    // E confirma que o aviso ao investidor usa o tipo certo
+    // (interesse_aceito) - sensor M13 sobreviveu porque nenhum teste
+    // verificava isso; um tipo errado (ex.: interesse_recebido, usado
+    // por engano em interesses/actions.ts) passaria despercebido.
+    const avisos = await getEventsByType("interesse_aceito", investorId);
+    expect(avisos.length).toBeGreaterThan(0);
   });
 
   test("CA-39.2: 'Recusar' mostra 'Não aceito pela produtora' sem revelar motivo", async ({

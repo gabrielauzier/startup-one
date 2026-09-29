@@ -70,6 +70,36 @@ describe("calculateAlignment (RN-24)", () => {
     expect(result).toBeLessThan(40); // fica fora do corte de RN-24 (>= 40%)
   });
 
+  // Fix 7 (rodada 1 do Verifier): faixa vizinha vale 10 pontos parciais
+  // de Valor - nem os 25 cheios (faixa exata) nem 0 (faixa a 2+ de
+  // distância). Sensor M1 (score.ts:97, "10 -> 0") sobreviveu por
+  // faltar este caso - só havia teste para faixa igual (25) e faixa a
+  // 2 posições de distância (0).
+  it("faixa de valor vizinha (distância 1) vale 10 pontos parciais, nem 25 nem 0 (kills M1)", () => {
+    const answers: InvestorAnswers = {
+      prioridade: "equilibrio",
+      faixaValor: "ate_50k",
+      produtos: ["Todos"],
+      prazoMaxMeses: 12,
+      impactos: [], // pular -> 8 pontos fixos
+    };
+    const business: BusinessForMatching = {
+      produtos: ["Açaí"], // "Todos" -> match de produto: 30
+      // 100 mil cai na faixa "50_200k", vizinha (distância 1) da faixa
+      // "ate_50k" escolhida -> 10 pontos parciais de valor.
+      valorBusca: 100_000,
+      prazoMeses: 12, // <= 12 aceitos -> 20
+      impactos: [],
+      notaA: 0,
+      notaS: 0,
+      notaG: 0, // prioridade "equilibrio" -> média 0 -> 0
+    };
+
+    // Produto: 30, Valor: 10 (faixa vizinha), Prazo: 20, Impacto: 8
+    // (pulado), Prioridade: 0 -> total 68.
+    expect(calculateAlignment(answers, business)).toBe(68);
+  });
+
   // CA-24.3: função pura - mesma entrada, mesma saída, sem mutação.
   it("CA-24.3: é determinística em execuções repetidas e não muta as entradas", () => {
     const answers: InvestorAnswers = {

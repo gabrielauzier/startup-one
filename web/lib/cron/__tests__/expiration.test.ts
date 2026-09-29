@@ -29,9 +29,9 @@ describe("selectExpiredDrafts (RN-07/CA-07.3, T55)", () => {
     expect(ids).toEqual([]);
   });
 
-  it("nao expira rascunho criado ha menos de 90 dias", () => {
+  it("nao expira rascunho criado ha 89 dias - fronteira exata (N-1) do corte de 90, kills M10 (cutoff mutado p/ 60)", () => {
     const ids = selectExpiredDrafts(
-      [{ id: "a", createdAt: daysAgo(10), lastRevisionAt: null }],
+      [{ id: "a", createdAt: daysAgo(89), lastRevisionAt: null }],
       NOW
     );
     expect(ids).toEqual([]);
@@ -39,13 +39,13 @@ describe("selectExpiredDrafts (RN-07/CA-07.3, T55)", () => {
 });
 
 describe("selectExpiredPendingDocumentRequests (RN-32, T55)", () => {
-  it("expira pedido pendente sem resposta ha mais de 7 dias", () => {
+  it("expira pedido pendente sem resposta ha 8 dias - fronteira exata (N+1) do corte de 7, kills M6 (cutoff mutado p/ 4)", () => {
     const ids = selectExpiredPendingDocumentRequests([{ id: "r1", createdAt: daysAgo(8) }], NOW);
     expect(ids).toEqual(["r1"]);
   });
 
-  it("nao expira pedido pendente com menos de 7 dias", () => {
-    const ids = selectExpiredPendingDocumentRequests([{ id: "r1", createdAt: daysAgo(3) }], NOW);
+  it("nao expira pedido pendente com 6 dias - fronteira exata (N-1) do corte de 7, kills M6 (cutoff mutado p/ 4)", () => {
+    const ids = selectExpiredPendingDocumentRequests([{ id: "r1", createdAt: daysAgo(6) }], NOW);
     expect(ids).toEqual([]);
   });
 });
@@ -77,13 +77,13 @@ describe("selectExpiredReleasedAccess (RN-33/CA-33.1, T55)", () => {
 });
 
 describe("selectExpiredPendingInterests (RN-39, T55 - primeira implementação real desta expiração)", () => {
-  it("expira interesse pendente sem resposta ha mais de 10 dias", () => {
+  it("expira interesse pendente sem resposta ha 11 dias - fronteira exata (N+1) do corte de 10, kills M5 (cutoff mutado p/ 5)", () => {
     const ids = selectExpiredPendingInterests([{ id: "i1", createdAt: daysAgo(11) }], NOW);
     expect(ids).toEqual(["i1"]);
   });
 
-  it("nao expira interesse pendente com menos de 10 dias", () => {
-    const ids = selectExpiredPendingInterests([{ id: "i1", createdAt: daysAgo(2) }], NOW);
+  it("nao expira interesse pendente com 9 dias - fronteira exata (N-1) do corte de 10, kills M5 (cutoff mutado p/ 5)", () => {
+    const ids = selectExpiredPendingInterests([{ id: "i1", createdAt: daysAgo(9) }], NOW);
     expect(ids).toEqual([]);
   });
 });
