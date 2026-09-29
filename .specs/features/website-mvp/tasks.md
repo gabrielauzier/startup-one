@@ -1632,3 +1632,12 @@ Duas perguntas ficam abertas antes do Execute (não bloqueiam Specify/Design/Tas
 
 1. **Framework de teste**: esta tasks.md assumiu Vitest (unidade) + Playwright (e2e) por serem o padrão do ecossistema Next.js/Vercel e por não haver nenhum teste existente no repo para inferir. Confirma essa escolha, ou prefere outra (ex.: Jest, Cypress)?
 2. **MCPs e skills disponíveis nesta sessão para o Execute**: as tasks acima foram marcadas com `MCP: NONE` e `Skill: NONE` porque a implementação é código Next.js/Supabase direto, sem necessidade de ferramenta externa específica por task. Se você quiser usar alguma skill do catálogo (`frete-frontend-engineering`, `react-best-practices`, `accessibility`, `supabase`-específica se houver, etc.) em tasks específicas, diga quais e eu atualizo os campos `Tools` antes do Execute.
+
+---
+
+## Fix Tasks — Rodada 1 do Verifier
+
+Corrige os 6 primeiros itens ranqueados pelo Verifier independente em `.specs/features/website-mvp/validation.md` (veredito FAIL, iteração 1 de 3). Os 3 itens restantes (CA-11.2, evidências faltando, higiene de gate) ficam como débito técnico documentado, fora do escopo deste lote.
+
+### Fix 1: Liga o rascunho offline a UI do cadastro (CA-07.1/CA-07.2) — Blocker
+**Status**: ✅ Complete (2026-09-28) — Criado `web/lib/offline/use-draft-sync.ts` (hook `useDraftSync(businessId, part)`): salva cada mudança relevante do formulário no IndexedDB via `saveLocalDraft` (debounced, 400ms), escuta os eventos `online`/`offline` do browser e também faz polling leve de `navigator.onLine` a cada 1s como rede de segurança (os eventos nativos não disparam de forma confiável em todo ambiente, inclusive sob emulação de rede do Playwright), e chama `flushWhenOnline` para sincronizar com `saveDraftPart` quando a conexão volta. `web/components/cadastro/PartHeader.tsx` agora aceita um prop `status` (`"salvo" | "salvo_no_celular" | "sincronizando"`) e mostra "Salvo no celular" enquanto offline/não sincronizado. As 5 partes do cadastro (`web/app/(producer)/produtor/cadastro/{1..5}/parte{N}-form.tsx` e seus `page.tsx`) foram atualizadas para usar o hook e renderizar o `PartHeader` a partir do form (client component), passando `businessId`. Teste novo: `web/e2e/cadastro-offline-sync.spec.ts` — preenche a Parte 3 com `context.setOffline(true)`, confirma "Salvo no celular", volta `setOffline(false)`, confirma retorno a "Salvo" e verifica via REST que a revisão da Parte 3 foi gravada em `business_revisions`.

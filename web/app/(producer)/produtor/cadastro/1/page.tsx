@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveBusinessForOwner, getDraftData } from "@/lib/business/draft";
-import { PartHeader } from "@/components/cadastro/PartHeader";
 import { Parte1Form } from "./parte1-form";
 
 /**
@@ -29,8 +28,7 @@ export default async function CadastroParte1Page() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 px-6 py-12">
-      <PartHeader part={1} title="Sobre você" />
-      <Parte1Form draft={draft.part1} />
+      <Parte1Form businessId={business.id} draft={draft.part1} />
     </main>
   );
 }

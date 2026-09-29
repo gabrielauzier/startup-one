@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PartHeader } from "@/components/cadastro/PartHeader";
+import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import { submitParte2, type Parte2State } from "./actions";
 
 const INITIAL_STATE: Parte2State = {};
@@ -25,8 +27,15 @@ export interface Parte2Draft {
   recebeVisitas?: boolean;
 }
 
-export function Parte2Form({ draft }: { draft: Parte2Draft }) {
+export function Parte2Form({
+  businessId,
+  draft,
+}: {
+  businessId: string;
+  draft: Parte2Draft;
+}) {
   const [state, formAction, pending] = useActionState(submitParte2, INITIAL_STATE);
+  const { status, saveDraft } = useDraftSync(businessId, 2);
 
   const nomeRef = useRef<HTMLInputElement>(null);
   const cidadeRef = useRef<HTMLInputElement>(null);
@@ -58,9 +67,26 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
     refs[state.field]?.current?.focus();
   }, [state.field, state.error]);
 
+  // CA-07.1: salva cada mudanca relevante no aparelho (debounced).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void saveDraft({
+        nome,
+        tipoOrg,
+        cidade,
+        uf,
+        familias: familias ? Number(familias) : undefined,
+        anosAtividade: anosAtividade ? Number(anosAtividade) : undefined,
+        recebeVisitas,
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [nome, tipoOrg, cidade, uf, familias, anosAtividade, recebeVisitas, saveDraft]);
+
   if (state.outOfScope) {
     return (
       <div className="flex flex-col gap-4">
+        <PartHeader part={2} title="Seu negócio" status={status} />
         <p className="font-body text-sm text-foreground/80">
           Por enquanto, o piloto da Îasy atende só negócios na Amazônia Legal.
           Já guardamos seu contato e avisaremos quando chegarmos até você.
@@ -74,6 +100,7 @@ export function Parte2Form({ draft }: { draft: Parte2Draft }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <PartHeader part={2} title="Seu negócio" status={status} />
       <div className="flex flex-col gap-1">
         <label htmlFor="nome" className="font-body text-sm font-medium">
           Nome do negócio

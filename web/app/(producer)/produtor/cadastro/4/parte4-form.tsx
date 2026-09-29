@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PhotoUploader } from "@/components/upload/PhotoUploader";
+import { PartHeader } from "@/components/cadastro/PartHeader";
+import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import { submitParte4, type Parte4State } from "./actions";
 
 const INITIAL_STATE: Parte4State = {};
@@ -23,11 +25,13 @@ export function Parte4Form({
   counts: Parte4Counts;
 }) {
   const [state, formAction, pending] = useActionState(submitParte4, INITIAL_STATE);
+  const { status } = useDraftSync(businessId, 4);
   const [ondeProduzCount, setOndeProduzCount] = useState(counts.onde_produz);
   const [produtoCount, setProdutoCount] = useState(counts.produto);
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
+      <PartHeader part={4} title="Fotos e documentos" status={status} />
       <PhotoUploader
         businessId={businessId}
         grupo="onde_produz"

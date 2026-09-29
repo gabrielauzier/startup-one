@@ -10,6 +10,8 @@ import {
   PRACTICE_OPTIONS,
   PRODUTOS_OPTIONS,
 } from "@/lib/business/impact-options";
+import { PartHeader } from "@/components/cadastro/PartHeader";
+import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import { submitParte3, type Parte3State } from "./actions";
 
 const INITIAL_STATE: Parte3State = {};
@@ -21,8 +23,15 @@ export interface Parte3Draft {
   impactos?: string[];
 }
 
-export function Parte3Form({ draft }: { draft: Parte3Draft }) {
+export function Parte3Form({
+  businessId,
+  draft,
+}: {
+  businessId: string;
+  draft: Parte3Draft;
+}) {
   const [state, formAction, pending] = useActionState(submitParte3, INITIAL_STATE);
+  const { status, saveDraft } = useDraftSync(businessId, 3);
   const producaoRef = useRef<HTMLInputElement>(null);
 
   // Controlado no cliente: os Server Actions do React resetam inputs
@@ -54,8 +63,23 @@ export function Parte3Form({ draft }: { draft: Parte3Draft }) {
     }
   }, [state.field, state.error]);
 
+  // CA-07.1: salva cada mudanca relevante no aparelho (debounced) - e' a
+  // parte usada no teste de queda de conexao (context.setOffline).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void saveDraft({
+        produtos: Array.from(produtos),
+        producaoMensalKg: producaoMensalKg ? Number(producaoMensalKg) : undefined,
+        praticas: Array.from(praticas),
+        impactos: Array.from(impactos),
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [produtos, producaoMensalKg, praticas, impactos, saveDraft]);
+
   return (
     <form action={formAction} className="flex flex-col gap-6">
+      <PartHeader part={3} title="Sua produção" status={status} />
       <fieldset className="flex flex-col gap-2">
         <legend className="font-body text-sm font-medium">Produtos</legend>
         <div className="flex flex-col gap-2">

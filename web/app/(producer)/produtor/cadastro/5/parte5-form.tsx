@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
+import { PartHeader } from "@/components/cadastro/PartHeader";
+import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import { submitParte5, type Parte5State } from "./actions";
 import { VALOR_MAX, VALOR_MIN, VALOR_STEP } from "./constants";
 
@@ -30,8 +32,15 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export function Parte5Form({ draft }: { draft: Parte5Draft }) {
+export function Parte5Form({
+  businessId,
+  draft,
+}: {
+  businessId: string;
+  draft: Parte5Draft;
+}) {
   const [state, formAction, pending] = useActionState(submitParte5, INITIAL_STATE);
+  const { status, saveDraft } = useDraftSync(businessId, 5);
 
   const [finalidade, setFinalidade] = useState(() => draft.finalidade ?? "");
   const [valorBusca, setValorBusca] = useState(() => draft.valorBusca ?? VALOR_MIN);
@@ -47,8 +56,22 @@ export function Parte5Form({ draft }: { draft: Parte5Draft }) {
       ? `Retorno proposto ${retornoProposto}% ao ano`
       : null;
 
+  // CA-07.1: salva cada mudanca relevante no aparelho (debounced).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void saveDraft({
+        finalidade,
+        valorBusca,
+        prazoMeses,
+        retornoProposto: retornoNumero,
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [finalidade, valorBusca, prazoMeses, retornoNumero, saveDraft]);
+
   return (
     <form action={formAction} className="flex flex-col gap-6">
+      <PartHeader part={5} title="Quanto vocês precisam" status={status} />
       <div className="flex flex-col gap-1">
         <label htmlFor="finalidade" className="font-body text-sm font-medium">
           Finalidade

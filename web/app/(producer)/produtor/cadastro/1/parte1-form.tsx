@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PartHeader } from "@/components/cadastro/PartHeader";
+import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import { submitParte1, type Parte1State } from "./actions";
 
 const INITIAL_STATE: Parte1State = {};
@@ -17,8 +19,15 @@ export interface Parte1Draft {
   autorizacao?: boolean;
 }
 
-export function Parte1Form({ draft }: { draft: Parte1Draft }) {
+export function Parte1Form({
+  businessId,
+  draft,
+}: {
+  businessId: string;
+  draft: Parte1Draft;
+}) {
   const [state, formAction, pending] = useActionState(submitParte1, INITIAL_STATE);
+  const { status, saveDraft } = useDraftSync(businessId, 1);
 
   const nomeRef = useRef<HTMLInputElement>(null);
   const telefoneRef = useRef<HTMLInputElement>(null);
@@ -45,8 +54,18 @@ export function Parte1Form({ draft }: { draft: Parte1Draft }) {
     refs[state.field]?.current?.focus();
   }, [state.field, state.error]);
 
+  // CA-07.1: salva cada mudanca relevante no aparelho (debounced), para
+  // nao perder nada se a conexao cair no meio do preenchimento.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void saveDraft({ nome, telefone, email, cnpj, autorizacao });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [nome, telefone, email, cnpj, autorizacao, saveDraft]);
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <PartHeader part={1} title="Sobre você" status={status} />
       <div className="flex flex-col gap-1">
         <label htmlFor="nome" className="font-body text-sm font-medium">
           Seu nome

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveBusinessForOwner } from "@/lib/business/draft";
-import { PartHeader } from "@/components/cadastro/PartHeader";
 import { listEvidences } from "./actions";
 import { Parte4Form } from "./parte4-form";
 
@@ -34,7 +33,6 @@ export default async function CadastroParte4Page() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 px-6 py-12">
-      <PartHeader part={4} title="Fotos e documentos" />
       <Parte4Form businessId={business.id} counts={counts} />
     </main>
   );

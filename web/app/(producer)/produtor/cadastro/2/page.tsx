@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveBusinessForOwner, getDraftData } from "@/lib/business/draft";
-import { PartHeader } from "@/components/cadastro/PartHeader";
 import { Parte2Form } from "./parte2-form";
 
 /** RF-07/RN-05: Parte 2 do cadastro do produtor - Seu negócio. */
@@ -27,8 +26,7 @@ export default async function CadastroParte2Page() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 px-6 py-12">
-      <PartHeader part={2} title="Seu negócio" />
-      <Parte2Form draft={draft.part2} />
+      <Parte2Form businessId={business.id} draft={draft.part2} />
     </main>
   );
 }
