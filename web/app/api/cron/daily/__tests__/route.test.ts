@@ -3,23 +3,39 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const NOW = Date.now();
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-let draftsData: { id: string; created_at: string }[] = [];
+let draftsData: { id: string; created_at: string; owner_id?: string; nome?: string }[] = [];
 let lastRevisionByBusiness: Record<string, string | null> = {};
 let pendingRequestsData: { id: string; created_at: string }[] = [];
 let releasedRequestsData: { id: string; created_at: string; expira_em: string | null }[] = [];
 let pendingInterestsData: { id: string; created_at: string }[] = [];
+let verificadosData: {
+  id: string;
+  selo_valido_ate: string | null;
+  owner_id?: string;
+  nome?: string;
+}[] = [];
 
 const businessesDeleteInMock = vi.fn().mockResolvedValue({ error: null });
+const businessesUpdateEqMock = vi.fn().mockResolvedValue({ error: null });
+const businessesUpdateMock = vi.fn(() => ({ in: businessesUpdateEqMock }));
 const documentRequestsUpdateEqMock = vi.fn();
 const documentRequestsUpdateMock = vi.fn(() => ({ in: documentRequestsUpdateEqMock }));
 const interestsUpdateEqMock = vi.fn();
 const interestsUpdateMock = vi.fn(() => ({ in: interestsUpdateEqMock }));
+const eventsInsertMock = vi.fn().mockResolvedValue({ error: null });
 
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
     return {
-      select: () => ({ eq: () => Promise.resolve({ data: draftsData, error: null }) }),
+      select: () => ({
+        eq: (_col: string, status: string) =>
+          Promise.resolve({
+            data: status === "verificado" ? verificadosData : draftsData,
+            error: null,
+          }),
+      }),
       delete: () => ({ in: businessesDeleteInMock }),
+      update: businessesUpdateMock,
     };
   }
   if (table === "business_revisions") {
@@ -57,13 +73,28 @@ const fromMock = vi.fn((table: string) => {
       update: interestsUpdateMock,
     };
   }
+  if (table === "events") {
+    return { insert: eventsInsertMock };
+  }
   throw new Error(`tabela inesperada no mock: ${table}`);
 });
 
-const createAdminClientMock = vi.fn().mockReturnValue({ from: fromMock });
+const getUserByIdMock = vi.fn().mockResolvedValue({
+  data: { user: { email: "produtor@example.com" } },
+  error: null,
+});
+const createAdminClientMock = vi.fn().mockReturnValue({
+  from: fromMock,
+  auth: { admin: { getUserById: getUserByIdMock } },
+});
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: createAdminClientMock,
+}));
+
+const sendEmailMock = vi.fn().mockResolvedValue({ ok: true });
+vi.mock("@/lib/notifications/send-email", () => ({
+  sendEmail: sendEmailMock,
 }));
 
 beforeEach(() => {
@@ -74,9 +105,17 @@ beforeEach(() => {
   pendingRequestsData = [];
   releasedRequestsData = [];
   pendingInterestsData = [];
+  verificadosData = [];
   businessesDeleteInMock.mockResolvedValue({ error: null });
+  businessesUpdateEqMock.mockResolvedValue({ error: null });
   documentRequestsUpdateEqMock.mockResolvedValue({ error: null });
   interestsUpdateEqMock.mockResolvedValue({ error: null });
+  eventsInsertMock.mockResolvedValue({ error: null });
+  sendEmailMock.mockResolvedValue({ ok: true });
+  getUserByIdMock.mockResolvedValue({
+    data: { user: { email: "produtor@example.com" } },
+    error: null,
+  });
 });
 
 function request() {
@@ -112,7 +151,8 @@ describe("POST /api/cron/daily (T55, RNF-08)", () => {
     const body = await res.json();
     expect(body).toEqual({
       ok: true,
-      expired: { rascunhos: 1, pedidosDocumento: 1, acessosDocumento: 1, interesses: 1 },
+      expired: { rascunhos: 1, pedidosDocumento: 1, acessosDocumento: 1, interesses: 1, selos: 0 },
+      avisados: { rascunhos: 0, selos: 0 },
     });
 
     expect(businessesDeleteInMock).toHaveBeenCalledWith("id", ["biz-velho"]);
@@ -136,6 +176,7 @@ describe("POST /api/cron/daily (T55, RNF-08)", () => {
       pedidosDocumento: 0,
       acessosDocumento: 0,
       interesses: 1,
+      selos: 0,
     });
 
     // 2a chamada: simula o efeito da 1a (rascunho apagado, so' o
@@ -152,6 +193,50 @@ describe("POST /api/cron/daily (T55, RNF-08)", () => {
       pedidosDocumento: 0,
       acessosDocumento: 0,
       interesses: 0,
+      selos: 0,
     });
+  });
+
+  // Gap 2 (Major, rodada 2 do Verifier): o design agenda so' `/api/cron/daily`
+  // como o cron de producao (design.md) - o aviso de 7 dias (CA-07.3)
+  // precisa estar aqui, nao so' na rota antiga `expire-drafts`.
+  it("avisa um rascunho a 85 dias sem atividade (faltam 7 dias) sem apagar (CA-07.3, Gap 2)", async () => {
+    draftsData = [
+      { id: "biz-85", created_at: new Date(NOW - 85 * DAY_MS).toISOString(), owner_id: "user-1", nome: "Negócio 85" },
+    ];
+
+    const { POST } = await import("../route");
+    const res = await POST(request());
+    const body = await res.json();
+
+    expect(body.expired.rascunhos).toBe(0);
+    expect(body.avisados.rascunhos).toBe(1);
+    expect(businessesDeleteInMock).not.toHaveBeenCalled();
+    expect(eventsInsertMock).toHaveBeenCalledTimes(1);
+    const rows = eventsInsertMock.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows.some((r) => r.type === "rascunho_expirando_em_breve")).toBe(true);
+  });
+
+  // CA-19.2/Gap 2: o mesmo vale para o aviso de 30 dias do selo, que
+  // tambem so' existia em `expire-seals` antes desta rodada.
+  it("avisa um selo que vence em 25 dias (faltam 30 dias) sem expirar (CA-19.2, Gap 2)", async () => {
+    verificadosData = [
+      {
+        id: "biz-selo",
+        selo_valido_ate: new Date(NOW + 25 * DAY_MS).toISOString(),
+        owner_id: "user-2",
+        nome: "Negócio com selo",
+      },
+    ];
+
+    const { POST } = await import("../route");
+    const res = await POST(request());
+    const body = await res.json();
+
+    expect(body.expired.selos).toBe(0);
+    expect(body.avisados.selos).toBe(1);
+    expect(businessesUpdateMock).not.toHaveBeenCalled();
+    const rows = eventsInsertMock.mock.calls[0][0] as Array<Record<string, unknown>>;
+    expect(rows.some((r) => r.type === "selo_expirando_em_breve")).toBe(true);
   });
 });
