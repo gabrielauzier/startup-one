@@ -56,6 +56,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: npm run typecheck TS2304 PageProps before next build (gate)
 - last seen: 2026-09-29T02:22:54Z
 
+### L-008 - Test the AC's verb end to end (submit, then assert the persisted result), not just the UI state that allows it; HTML-disabled inputs are omitted from form posts.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `forms/e2e` · harmful: 0
+- features: website-mvp
+- evidence: CA-14.1 web/app/(producer)/produtor/cadastro/2/parte2-form.tsx:119 + cadastro/2/actions.ts:52 (forms/e2e)
+- last seen: 2026-09-29T03:53:12Z
+
+### L-009 - Before closing a behavior fix, grep for every entry point that performs the same effect (duplicate routes/crons) and fix or remove each one, starting with the one the design schedules.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `cron/fixes` · harmful: 0
+- features: website-mvp
+- evidence: CA-07.3 web/app/api/cron/daily/route.ts:73-75 vs design.md:91 (cron/fixes)
+- last seen: 2026-09-29T03:53:12Z
+
+### L-010 - A 'warn N days before' notice fired by a recurring job needs an idempotency key or a single-day trigger, or it repeats on every run inside the window.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `cron/notifications` · harmful: 0
+- features: website-mvp
+- evidence: CA-07.3/CA-19.2 web/lib/cron/expiration.ts:46,135 + lib/notifications/queue.ts (no dedup) (cron/notifications)
+- last seen: 2026-09-29T03:53:13Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

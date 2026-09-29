@@ -1,15 +1,159 @@
 # Website MVP Îasy Validation
 
+**Spec**: `.specs/features/website-mvp/spec.md`
+**Verifier**: independent sub-agent (author ≠ verifier), fresh context in both rounds
+**Fix→re-verify cycle**: round 2 of 3
+
+| Round | Verified at | Date | Verdict |
+| --- | --- | --- | --- |
+| 1 | `355ac38` (whole branch) | 2026-09-28 | FAIL ❌: 59/77 ACs, sensor 8/13 |
+| 2 | `720ab27` (fix commits `d2aab22`..`a3e5c46` + STATE `720ab27`) | 2026-09-28 | **FAIL ❌: 65/77 ACs, sensor 10/10** |
+
+## Validation: website-mvp - Rodada 2 - FAIL ❌
+
+Round 2 is scoped. It re-checks the 6 fixes the user chose to route (Fix 1-5 and 7, in the Fix Plans numbering below), re-runs the 6 round-1 sensor targets plus 4 new probes on the fix code, runs the full gate, and spot-checks that the accepted debt (Fix 6/8/9) is unchanged. The rest of the feature is not re-verified; round 1 (preserved below, and in git at `4edf8c6`) stays authoritative for it.
+
+Numbering note: the orchestrator's brief swaps Fix 2 and Fix 3 relative to this file. This report uses this file's numbering: Fix 2 = CA-14.1 ajuste, Fix 3 = RN-02 OTP.
+
+---
+
+## Round 2: Fix-by-fix re-derivation (evidence-or-zero)
+
+| Fix | AC (spec line) | Spec-defined outcome | Evidence in current code/tests | Result |
+| --- | --- | --- | --- | --- |
+| 1 | CA-07.1 (`spec.md:89`) | While offline, save to IndexedDB and show "Salvo no celular" | Hook `web/lib/offline/use-draft-sync.ts:22` wired into all 5 parts (`cadastro/{1,2,3,5}/parte*-form.tsx`, part 4 status-only at `parte4-form.tsx:28`); label `web/components/cadastro/PartHeader.tsx:5`. Test `web/e2e/cadastro-offline-sync.spec.ts:63` - `expect(getByText("Parte 3 de 5 · Salvo no celular")).toBeVisible()` after `context.setOffline(true)` | ✅ |
+| 1 | CA-07.2 (`spec.md:90`) | On reconnect, sync automatically and return to "Salvo" | `web/e2e/cadastro-offline-sync.spec.ts:69` - `getByText("Parte 3 de 5 · Salvo", {exact:true})` visible; `:82` - `expect(parte3Revision.dados.produtos).toEqual(["Açaí"])` (the row can only come from the sync, since Continuar is never clicked). Sensor N3 (sync callback made a no-op) killed | ✅ |
+| 3 | RN-02 (`spec.md:64`) | OTP valid 10 min | `web/supabase/config.toml:253` `otp_expiry = 600`; `web/lib/auth/__tests__/otp-config.test.ts:31` - `expect(otpExpiry).toBe(600)` (config-assertion test, since the expiry is GoTrue-side) | ✅ (the round-1 plan also asked to document the hosted-project value; no such doc exists. `supabase config push` carries `config.toml`, so this is a note, not a gap) |
+| 4 | CA-05.3 (`spec.md:97`, `:246`) | CNPJ already in rascunho/análise/verificado → blocked | CNPJ reserved at Part 1: `web/app/(producer)/produtor/cadastro/1/actions.ts:71` `.update({ cnpj })` under the existing partial unique index (`0003_businesses.sql:60-62`); 23505 mapped at `:75`. Tests: `web/e2e/cnpj-duplicado.spec.ts:45` exact message + `:48` `toHaveURL(/cadastro\/1/)` (no advance); unit `cadastro/1/__tests__/actions.test.ts:159`; `web/lib/business/__tests__/cnpj-uniqueness.test.ts` | ✅ |
+| 5 | CA-07.3 (`spec.md:91`) | Delete after 90 days, **warning 7 days before** | `web/app/api/cron/expire-drafts/route.ts` enqueues `rascunho_expirando_em_breve`; `expire-drafts/__tests__/route.test.ts:134-155` (85 days → warned, not deleted); selector boundaries `lib/cron/__tests__/expiration.test.ts:92-113`. **But** the designed scheduled entry point is `/api/cron/daily` (`design.md:91`: "roda 1x/dia (expira rascunhos RN-07, selos RN-19, …)"), and `web/app/api/cron/daily/route.ts:73-75` still deletes 90-day drafts **without** the warning. Its comment `:37` still says the TODOs "continuam como TODO". No scheduler config (`vercel.json`) exists to show `expire-drafts` is the one scheduled | ⚠️ partial (see Gap 2) |
+| 5 | CA-19.2 (`spec.md:123`) | Expire at 12 months, **warning 30 days before** | `web/app/api/cron/expire-seals/__tests__/route.test.ts:123-145` (25 days → `selo_expirando_em_breve`, not expired); boundaries `expiration.test.ts:120-137` (29 in, 31 out, expired out). Sensor N1 (window 30→31) killed. Expiry and warning live in the same route, which round 1 already accepted as the CA-19.2 evidence | ✅ (see Gap 3: repeats daily) |
+| 5 | CA-21.1 notice (`spec.md:122`) | Suspension notifies producer **and open interested investors** | `web/app/(verifier)/verificacao/[id]/actions.ts:324` (producer), `:341` (each `pendente`/`aceito` investor). `web/app/(verifier)/verificacao/[id]/__tests__/suspend.test.ts:84` (`suspensao_negocio`), `:101,:108` (one per open interest), `:122` (none when no open interest). Sensor N2 killed | ✅ notice. The AC's "bloquear novos interesses" leg is still untested (round-1 note, Fix 8 debt), so the AC row stays ⚠️ |
+| 2 | CA-14.1 (`spec.md:100`) | Reopened ajuste cadastro: **permitir editar somente os campos marcados**, each with its comment | UI lock + comment exist: `web/components/cadastro/AjusteFieldNote.tsx:10`, `web/e2e/ajuste-por-campo.spec.ts:46-54` (Cidade enabled with comment, others `toBeDisabled()`); sensor N4 killed. **Editing the flagged field does not work end to end**: locked inputs use the HTML `disabled` attribute (`web/app/(producer)/produtor/cadastro/2/parte2-form.tsx:119` etc.), and disabled controls are left out of the form POST. `submitParte2` reads `formData.get("nome")` (`web/app/(producer)/produtor/cadastro/2/actions.ts:44`) → `""` → returns "Informe o nome do negócio." (`:52`). **Reproduced** with a scratch-only probe spec: seeded full Part 2 draft; verifier flags only Cidade; producer corrects Cidade and clicks Continuar → stays on `/produtor/cadastro/2` with "Informe o nome do negócio." The same applies to Parts 1/3/5 (a locked required field posts empty). The lock is also UI-only: no server action nor `saveDraftPart` checks `itens_ajuste`, so "somente os campos marcados" is not enforced server-side | ❌ (see Gap 1) |
+| 7 | Sensor survivors M1/M5/M6/M10/M11/M13 | Tests must detect each fault | See sensor table: all 6 now killed, M11 and M13 by the CA-39.1 test named for them (`web/e2e/produtor-interesses.spec.ts:63` `toContainEqual(objectContaining({etapa:"aceita"}))`, `:70` `interesse_aceito` count `> 0`); M1 by `web/lib/matching/__tests__/score.test.ts:78` | ✅ |
+
+### Round-2 AC tally (77 ACs, same table as round 1)
+
+Changes from round 1:
+
+| AC | Round 1 | Round 2 |
+| --- | --- | --- |
+| Entrada #3 OTP 10 min | ❌ | ✅ |
+| Cadastro #6 offline "Salvo no celular" | ❌ | ✅ |
+| Cadastro #7 auto sync | ❌ | ✅ |
+| Cadastro #8 90d + 7d warning | ❌ | ⚠️ (warning only on the non-designed route) |
+| Cadastro #14 CNPJ duplicate | ❌ | ✅ |
+| Cadastro #17 ajuste per field | ❌ (not implemented) | ❌ (implemented, but a correction can't be submitted) |
+| Verificação #9 suspend effects | ❌ | ⚠️ (notice ✅; interest-block leg still untested, Fix 8 debt) |
+| Verificação #10 seal 30d warning | ❌ | ✅ |
+| Interesse #7 accept → notify investor | ⚠️ | ✅ |
+
+**Tally**: **65 ✅ · 8 ❌ · 4 ⚠️** (round 1: 59 · 15 · 3).
+- 7 of the 8 ❌ are accepted debt: Cadastro #1, #3, #12, Verificação #1, #8 and RF-30 (Fix 8), and CA-11.2 (Fix 6).
+- The one in-scope ❌ is CA-14.1.
+- 3 of the 4 ⚠️ are accepted debt: Cadastro #16, Verificação #9 interest-block leg, and Descoberta #5 40% cutoff fixture.
+- The in-scope ⚠️ is CA-07.3.
+
+### Spec-precision gaps (round-1 items, re-checked)
+
+1. **RN-24 sub-scores** (PRD-only oracle): unchanged. The neighbor-band branch is now pinned by `score.test.ts:78` (M1 killed), so the risk is closed at test level. The spec text still doesn't state the sub-scores. Left as flagged, no action needed.
+2. **CA-21.1 channel**: resolved by an implementation decision, documented in `web/supabase/migrations/0011_notification_types_avisos_prazo.sql:1-9` and `web/lib/notifications/queue.ts` (4 new types; producer = WhatsApp-manual list + e-mail, investor = e-mail, the same per-recipient channel rule RN-41 already uses for the 9 original types). That's a reasonable, documented choice; not reopened. Suggest back-porting the 4 types into `spec.md` RF-31 when the spec is next touched.
+
+---
+
+## Round 2: Discrimination Sensor
+
+Scratch: temporary detached `git worktree` at `/Volumes/MacOnlySSD/dev/fiap/verifier-r2-scratch` (HEAD `720ab27`, SSD volume, own `npm ci`), removed afterwards. Mutations were applied by a script that asserts a unique match, backs up, and restores (byte-compare) each file. Unit mutants ran the full `vitest run`. E2E mutants ran Playwright against the scratch's **own** build on :3100 (`reuseExistingServer: false`, scratch-only config), after an unmutated control run (unit 239/239; target specs 5/5). The real worktree's `git status --porcelain` was empty before and after.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| M1 | `web/lib/matching/score.ts:97` | neighbor value band `10` → `0` | ✅ Killed by `score.test.ts:78` (was a survivor) |
+| M5 | `web/lib/cron/expiration.ts:114` | interest expiry cutoff 10 → 5 days | ✅ Killed by `expiration.test.ts:85` (was a survivor) |
+| M6 | `web/lib/cron/expiration.ts:71` | document-request cutoff 7 → 4 days | ✅ Killed by `expiration.test.ts:47` (was a survivor) |
+| M10 | `web/lib/cron/expiration.ts:28` | draft expiry cutoff 90 → 60 days | ✅ Killed by `expiration.test.ts:32` + `expire-drafts/__tests__/route.test.ts:134` (was a survivor) |
+| M11 | `web/app/(producer)/produtor/interesses/actions.ts:89-93` | drop `connection_events` "aceita" insert | ✅ Killed by `e2e/produtor-interesses.spec.ts:36` (CA-39.1, now the test named for it) + `e2e/flow-interesse.spec.ts:15` |
+| M13 | `web/app/(producer)/produtor/interesses/actions.ts:96` | investor notice type `interesse_aceito` → `interesse_recebido` | ✅ Killed by `e2e/produtor-interesses.spec.ts:70` (was a survivor) |
+| N1 | `web/lib/cron/expiration.ts:135` | seal warning window 30 → 31 days | ✅ Killed by `expiration.test.ts:125` |
+| N2 | `web/app/(verifier)/verificacao/[id]/actions.ts:341` | investor suspension notice type → producer type | ✅ Killed by `suspend.test.ts:91` |
+| N3 | `web/lib/offline/use-draft-sync.ts:36` | offline flush never calls `saveDraftPart` | ✅ Killed by `e2e/cadastro-offline-sync.spec.ts:82` |
+| N4 | `web/components/cadastro/AjusteFieldNote.tsx:12` | `isFieldLocked` never locks | ✅ Killed by `e2e/ajuste-por-campo.spec.ts:51` (first attempt used `false && …`, which broke `next build`; it was discarded as invalid and rerun with a compilable mutation) |
+
+M11 was already killed in round 1, but only by the flow test; it is re-run here because the brief lists it.
+
+**Sensor depth**: P0-full, targeted (6 round-1 targets + 4 new-code probes)
+**Sensor outcome**: 10/10 killed ✅. The round-1 test-strength gaps are closed. The sensor can't catch Gap 1: the only test for that path never submits the form.
+
+---
+
+## Round 2: Gate Check
+
+Documented Build gate order (`tasks.md:36`: `lint && typecheck && build && test`) is **still** the broken one. `package.json` `typecheck` is still bare `tsc --noEmit`. Re-confirmed on the fresh scratch worktree: `npm run typecheck` before `build` → `TS2304 Cannot find name 'PageProps'/'LayoutProps'`. This is Fix 9 debt (accepted), so the gate was run manually in the working order, `cwd=web/`:
+
+- **Gate command**: `npm run lint && npm run build && npm run typecheck && npm run test` (Build) + `npx supabase db reset && npm run test:e2e` (Full)
+- **Result**: lint exit 0 · build exit 0 · typecheck exit 0 · unit **239 passed / 0 failed / 0 skipped** (39 files) · e2e **99 passed / 0 failed / 0 skipped** (fresh `db reset`, nothing pre-listening on :3000, so Playwright built and served this worktree)
+- **Test count round 1 → round 2**: 317 → 338 (+18 unit, +3 e2e: `cadastro-offline-sync`, `ajuste-por-campo`, `cnpj-duplicado`); no test deleted, no assertion weakened (fix diffs only add or strengthen)
+- **Skipped tests**: none
+- **Failures**: none
+- **Disk**: system volume held at 3.0-3.2 GiB free throughout. All installs, builds and scratch lived on the SSD volume (npm cache also redirected there).
+
+---
+
+## Round 2: Accepted debt re-check (Fix 6/8/9, out of PASS/FAIL scope)
+
+| Item | Status now | Changed? |
+| --- | --- | --- |
+| Fix 6: CA-11.2 partner shown to verifier | No `indicado_por`/`partners` reference in `web/app/(verifier)/verificacao/[id]/` | Unchanged (not silently resolved, not worse) |
+| Fix 8: missing evidence | Grep over `e2e/`, `app/`, `lib/`, `components/` test files: `toBeFocused`, "Quem vê o quê", "Negócio indisponível no momento", `conferido: false`, "5 dias úteis" → 0 hits each | Unchanged |
+| Fix 9: gate hygiene | `tasks.md:36` old order; `typecheck` = `tsc --noEmit`; `tasks.md:1226` still `- [ ]`; `perf-producer.spec.ts` still logs `JS=0KB` for every part | Unchanged (the working order is a manual workaround only, not fixed in any script or doc) |
+
+---
+
+## Round 2: Code Quality (fix diff `4edf8c6..720ab27`)
+
+| Principle | Status |
+| --- | --- |
+| Minimum code / surgical | ✅ Fixes stay in their files. `cnpj-uniqueness.ts`/`adjustable-fields.ts` are small pure helpers with tests |
+| Matches patterns | ✅ `{ok,error}` results, `enqueueNotification` channel-per-type, pure cron selectors + thin routes |
+| Spec-anchored outcome check | ❌ CA-14.1: the test asserts the lock (disabled state) but not the spec's verb ("permitir editar"), so it passes while the edit can't be saved |
+| All entry points updated | ❌ CA-07.3 logic added to `expire-drafts` while the designed daily cron duplicates the deletion without it; `daily/route.ts:30-39` comment now stale |
+| Robustness notes | `flushWhenOnline` marks the snapshot clean after `sync` even when `saveDraftPart` returns `{ok:false}` (`use-draft-sync.ts:36` ignores the result; `draft-store.ts:90-92`), so a failed sync silently drops the pending flag (Gap 4) |
+
+---
+
+## Round 2: Ranked gaps → fix tasks
+
+### Gap 1 (R2-Fix A): CA-14.1 flagged-field correction cannot be submitted, and the lock is UI-only - Major (P1, in scope)
+- **Root cause**: locked fields use `disabled`, which removes them from `FormData`. The Part 1/2/3/5 Server Actions validate the full field set and reject the missing values. No server-side enforcement of `itens_ajuste`.
+- **Fix task**: render locked fields `readOnly` (or `disabled` + a hidden input carrying the value), **and** in each `submitParteN` (and `saveDraftPart`), when the business is `ajuste_solicitado`, merge unflagged fields from the stored draft (`getDraftData`) and ignore any posted value for them.
+- **Verify**: extend `web/e2e/ajuste-por-campo.spec.ts`: seed a full Part 2 draft, flag Cidade, the producer edits Cidade and clicks Continuar → `toHaveURL(/cadastro\/3/)` and the latest Part 2 revision has the new `cidade` and the **original** `nome`. Add a unit test that a posted change to an unflagged field is ignored.
+- **Priority**: Major (the ajuste loop RN-14 can't complete a correction)
+
+### Gap 2 (R2-Fix B): CA-07.3 warning missing from the designed daily cron - Major (in scope, partial fix)
+- **Root cause**: Fix 5 added the warning only to `/api/cron/expire-drafts`. `design.md:91` schedules `/api/cron/daily`, which deletes drafts at 90 days (`daily/route.ts:73-75`) with no warning. The same design line also names seals (RN-19), which `daily` doesn't process at all.
+- **Fix task**: make `daily` the single path. Call `selectDraftsNearingExpiry` + enqueue there, and either run the seal expiry + warning there too or drop the duplicated draft deletion and document that `expire-drafts`/`expire-seals` are the scheduled routes. Update the stale comment at `daily/route.ts:30-39`.
+- **Verify**: `daily/__tests__/route.test.ts` case: an 85-day draft → `rascunho_expirando_em_breve` enqueued, not deleted.
+
+### Gap 3 (R2-Fix C): pre-expiry warnings repeat every day of the window - Minor
+- Selectors return every row inside the 83-90 day and 0-30 day windows. `enqueueNotification` has no dedup, so a daily cron sends up to 7 "Faltam 7 dias" and 30 "Faltam 30 dias" messages, most of them with a wrong day count. Fix: dedupe on an existing `events` row (type + `payload.businessId` + window), or fire on a single day (exactly N days before).
+
+### Gap 4 (R2-Fix D): failed offline sync is marked clean - Minor
+- `use-draft-sync.ts:36` ignores `saveDraftPart`'s `{ok:false}` → `flushWhenOnline` sets `dirty:false` → local edits are never retried. Fix: throw on `!result.ok` inside the sync callback (and keep status "Salvo no celular").
+
+---
+
+## Rodada 1: relatório original (verificado em `355ac38`, histórico)
+
+Preserved verbatim except that heading levels are demoted by one. Superseded where round 2 says so; the same text is at commit `4edf8c6`.
+
 **Date**: 2026-09-28
 **Spec**: `.specs/features/website-mvp/spec.md`
 **Diff range**: whole branch `feature/website-mvp` (the branch *is* the feature), verified at `355ac38`
 **Verifier**: independent sub-agent (author ≠ verifier)
 
-**Verdict**: FAIL ❌
+**Verdict (round 1, historical)**: FAIL ❌
 
 ---
 
-## Task Completion
+### Task Completion
 
 | Task | Status | Notes |
 | --- | --- | --- |
@@ -21,11 +165,11 @@
 
 ---
 
-## Spec-Anchored Acceptance Criteria
+### Spec-Anchored Acceptance Criteria
 
 Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/weak (evidence exists but does not pin the full spec outcome)
 
-### P1: Entrada sem senha e escolha de perfil
+#### P1: Entrada sem senha e escolha de perfil
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -39,7 +183,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 8 | Parte 1 sem autorização → não avança | error, no advance | `web/app/(producer)/produtor/cadastro/1/__tests__/actions.test.ts:87` | ✅ |
 | 9 | Investidor 1º acesso → aceite de Termos | redirect `/termos`, aceite gravado | `web/e2e/termos.spec.ts:79-91` - `expect(await getTermosAceitosEm(email)).not.toBeNull()`; `codigo/__tests__/actions.test.ts:234` | ✅ |
 
-### P1: Cadastro do produtor em 5 partes
+#### P1: Cadastro do produtor em 5 partes
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -61,7 +205,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 16 | Envio → confirmação c/ **5 dias úteis** e 3 próximos passos | text + 3 steps | `web/e2e/produtor-cadastro-completo.spec.ts:56` asserts heading "Recebemos seu cadastro" only; "5 dias úteis" (`enviado/page.tsx:10`) and the 3 steps are not asserted | ⚠️ weak |
 | 17 | Ajuste solicitado → edita **somente campos marcados**, com comentário | per-field lock + comment | **Not implemented.** `web/app/(producer)/produtor/cadastro/revisar/page.tsx:8-13` shows a banner only and defers the per-field model; no field marking in `verificacao/[id]/actions.ts` or migrations | ❌ |
 
-### P1: Verificação, selo e notas A/S/G
+#### P1: Verificação, selo e notas A/S/G
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -76,7 +220,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 9 | Suspender → sai da vitrine, bloqueia interesses/pedidos, **avisa produtor e interessados** | 4 effects | vitrine: `web/e2e/verificacao-suspensao.spec.ts:36`. Interest block impl `negocios/[slug]/actions.ts:139`, untested (`verificacao-suspensao.spec.ts:80-83`). **No notification**: `suspend()` (`verificacao/[id]/actions.ts:272`) never calls `enqueueNotification` | ❌ partial |
 | 10 | 12 meses sem renovação → Expirado, **aviso 30 dias antes** | expire + warning | expire: `web/app/api/cron/expire-seals/__tests__/route.test.ts:53`; warning `TODO(T53)` at `expire-seals/route.ts:12` | ❌ warning missing |
 
-### P1: Descoberta guiada e vitrine
+#### P1: Descoberta guiada e vitrine
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -94,7 +238,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 12 | Card mostra selo, certs, nome, produto, cidade/UF, busca, prazo, retorno proposto, notas, barra | fields | `web/components/business/__tests__/BusinessCard.test.tsx:32,44` | ✅ |
 | 13 | Só Verificado em vitrine/resultados/busca | status filter | `web/e2e/rls-businesses.spec.ts:124-125` - `expect(rows).toEqual([])` | ✅ |
 
-### P1: Página do negócio e documentos
+#### P1: Página do negócio e documentos
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -109,7 +253,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 9 | Abrir registra investidor/doc/data | `document_views` row | `web/e2e/documento-visualizador.spec.ts:14` (CA-35.1 test) | ✅ |
 | 10 | Mesma pessoa várias vezes/dia = 1 visita | count 1 | `web/e2e/produtor-painel.spec.ts:79` - `toHaveText("1")` | ✅ |
 
-### P1: Demonstrar interesse e conexão com o parceiro financeiro
+#### P1: Demonstrar interesse e conexão com o parceiro financeiro
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -127,7 +271,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 | 12 | Recusado/cancelado sai da soma | excluded | `interest-sum.test.ts:17`; `web/e2e/interesses-investidor.spec.ts:40` | ✅ |
 | 13 | Painel: selo+data, notas, visitas, pedidos, interessados | 5 widgets | `web/e2e/produtor-painel.spec.ts:41-45,79` | ✅ |
 
-### P2 stories
+#### P2 stories
 
 | # | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- | --- |
@@ -139,7 +283,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 
 **Tally**: 77 ACs (72 P1 + 5 P2): **59 ✅, 15 ❌, 3 ⚠️ partial/weak**.
 
-### ⚠️ Spec-precision gaps
+#### ⚠️ Spec-precision gaps
 
 1. **RN-24 sub-scores**: spec AC "Descoberta #5" names only the top-level weights. The partial scores the code and tests rely on (neighbor value band = 10, prazo within +12 months = 8, skipped impact = 8, "equilíbrio" = average) come from the PRD, not `spec.md`, so the spec gives no oracle for them. The neighbor-band branch is also untested (M1 survived).
 2. **CA-21.1 "avisar produtor e interessados"**: the spec defines no channel or template for the suspension notice, and RF-31's 9 notification types don't include one. That's why the implementer could not map it.
@@ -148,7 +292,7 @@ Legend: ✅ PASS · ❌ GAP (no evidence, or not implemented) · ⚠️ partial/
 
 ---
 
-## Discrimination Sensor
+### Discrimination Sensor
 
 Scratch: temporary `git worktree` at `/Volumes/MacOnlySSD/dev/fiap/verifier-mut-scratch` (HEAD `355ac38`), removed afterwards. Unit mutants ran with `vitest` on the covering dirs. E2E mutants ran with Playwright against the scratch's **own** build on port 3100 (`reuseExistingServer: false`, changed in scratch only), after an unmutated control run of the same specs passed. Real-tree `git status --porcelain` was empty before and after.
 
@@ -171,17 +315,17 @@ Scratch: temporary `git worktree` at `/Volumes/MacOnlySSD/dev/fiap/verifier-mut-
 Root cause of M5/M6/M10: the tests for the three pure cron selectors use loose fixtures (11 vs 2 days, 8 vs 3 days, 91 vs 10 days) instead of boundary values (N−1 / N+1 days), so the cutoff constant is effectively unpinned.
 
 **Sensor depth**: P0-full (13 manual behavior-level mutations; no Stryker installed)
-**Result**: 8/13 killed, FAIL ❌
+**Round-1 sensor outcome**: 8/13 killed, FAIL ❌
 
 ---
 
-## Interactive UAT Results
+### Interactive UAT Results
 
 Not performed. The Verifier runs headless, and UAT is left to the orchestrator/user.
 
 ---
 
-## Code Quality
+### Code Quality
 
 Spot-checked `web/app/(producer)/produtor/interesses/actions.ts` (Fase 9/10 Server Action), `web/app/(verifier)/verificacao/[id]/actions.ts` (Fase 5), `web/components/cadastro/PartHeader.tsx` + `web/lib/offline/draft-store.ts` (Fase 3/4), `web/supabase/migrations/0003_businesses.sql` + `0008_interests.sql` usage (Fase 3/9), `web/lib/cron/expiration.ts` (Fase 11), `web/e2e/perf-producer.spec.ts` (Fase 12).
 
@@ -202,7 +346,7 @@ Additional quality notes:
 
 ---
 
-## Edge Cases
+### Edge Cases
 
 - [ ] CNPJ duplicate (rascunho/análise/verificado) blocked: DB index only, drafts not covered, no test (CA-05.3)
 - [x] City outside Amazônia Legal → pilot notice: `web/e2e/produtor-parte2.spec.ts:33`
@@ -216,10 +360,10 @@ Additional quality notes:
 
 ---
 
-## Gate Check
+### Gate Check
 
 - **Gate command**: `npm run lint && npm run typecheck && npm run build && npm run test` (Build) + `npm run test:e2e` (Full), `cwd=web/`
-- **Result**:
+- **Round-1 gate outcome**:
   - lint ✅ exit 0
   - typecheck ❌ exit 2 on first run (fresh worktree, before `build`); ✅ exit 0 after `build`. Classified as a gate-ordering defect, not a type error
   - build ✅ exit 0
@@ -236,41 +380,41 @@ Additional quality notes:
 
 ---
 
-## Fix Plans
+### Fix Plans
 
-### Fix 1: Wire the offline draft into the cadastro UI (CA-07.1, CA-07.2) - Blocker
+#### Fix 1: Wire the offline draft into the cadastro UI (CA-07.1, CA-07.2) - Blocker
 - **Root cause**: `lib/offline/draft-store.ts` was built and unit-tested (T15), but the `useDraftSync` hook it depends on was never created. `PartHeader` renders a hard-coded "Salvo".
 - **Fix task**: Create `useDraftSync(businessId, part)` that calls `saveLocalDraft` on every change, listens to `online`/`offline`, and calls `flushWhenOnline(businessId, saveDraftPart)`. Make `PartHeader` show "Salvo no celular" while offline or unsynced and "Salvo" after flush. Use it in parts 1–5.
 - **Verify**: e2e with `context.setOffline(true)` on part 3: fill, assert "Salvo no celular"; go online, assert "Salvo" and the `business_revisions` row exists.
 - **Priority**: Blocker (spec "Independent Test" for the story requires an offline drop on part 3)
 
-### Fix 2: Ajuste solicitado edits only the flagged fields (CA-14.1) - Major
+#### Fix 2: Ajuste solicitado edits only the flagged fields (CA-14.1) - Major
 - **Root cause**: Deferred in T24 ("chega junto da tabela verifications") and never picked up in Fase 5.
 - **Fix task**: Store flagged fields + comment per field on the `pedir_ajuste` verification. The producer's review/part screens lock the unflagged fields and show each comment.
 - **Verify**: e2e: verifier flags `cidade` with a comment; the producer sees only `cidade` editable, with the comment.
 - **Priority**: Major
 
-### Fix 3: OTP validity 10 minutes (RN-02) - Major
+#### Fix 3: OTP validity 10 minutes (RN-02) - Major
 - **Fix task**: Set `otp_expiry = 600` in `web/supabase/config.toml` `[auth.email]` and document the same value for the hosted project. Add a check (config assertion test or e2e) that pins it.
 - **Priority**: Major (security-relevant)
 
-### Fix 4: CNPJ uniqueness across draft/análise/verificado (CA-05.3) - Major
+#### Fix 4: CNPJ uniqueness across draft/análise/verificado (CA-05.3) - Major
 - **Fix task**: Persist `businesses.cnpj` when Part 1 is saved (so drafts reserve it), check before advancing, and map unique violation `23505` to an explicit message. Add unit and e2e tests.
 - **Priority**: Major
 
-### Fix 5: Missing notifications (CA-07.3 warning at 7 days, CA-19.2 warning at 30 days, CA-21.1 suspension notice) - Major
+#### Fix 5: Missing notifications (CA-07.3 warning at 7 days, CA-19.2 warning at 30 days, CA-21.1 suspension notice) - Major
 - **Fix task**: Add the notification types (product decision for the template), enqueue from `daily`/`expire-seals` and `suspend()`, and remove the `TODO(T53)` markers. Test with pinned dates.
 - **Priority**: Major
 
-### Fix 6: Verifier sees referring partner (CA-11.2) - Minor (P2)
+#### Fix 6: Verifier sees referring partner (CA-11.2) - Minor (P2)
 - **Fix task**: Show `partners.nome` from `businesses.indicado_por` on `/verificacao/[id]`. Assert it is shown to the verifier and absent on `/negocios/[slug]`.
 
-### Fix 7: Strengthen non-discriminating tests (sensor survivors) - Major
+#### Fix 7: Strengthen non-discriminating tests (sensor survivors) - Major
 - `lib/cron/__tests__/expiration.test.ts`: boundary fixtures N−1/N+1 days for 90/7/10-day cutoffs (kills M5, M6, M10)
 - `lib/matching/__tests__/score.test.ts`: case where the business is in the neighboring value band → +10 (kills M1)
 - `e2e/produtor-interesses.spec.ts:34`: assert the `connection_events` "aceita" row and the queued `interesse_aceito` event for the investor (kills M13, makes the test title true)
 
-### Fix 8: Missing evidence for implemented behavior - Minor
+#### Fix 8: Missing evidence for implemented behavior - Minor
 - Tests for:
   - `/produtor` "Quem vê o quê"
   - focus on the first invalid field (`toBeFocused`)
@@ -282,14 +426,14 @@ Additional quality notes:
   - the "5 dias úteis" confirmation text
   - CA-09.2 upload resume (when Storage is available)
 
-### Fix 9: Gate hygiene - Minor
+#### Fix 9: Gate hygiene - Minor
 - Run `next typegen` before `tsc` in `typecheck`, or reorder the Build gate.
 - Fix `perf-producer.spec.ts` so it measures real script bytes; `JS=0KB` is vacuous.
 - Tick `tasks.md:1226`.
 
 ---
 
-## Requirement Traceability Update
+### Requirement Traceability Update
 
 | Requirement | Previous Status | New Status |
 | --- | --- | --- |
@@ -311,7 +455,7 @@ Additional quality notes:
 
 ---
 
-## Summary
+### Summary
 
 **Overall**: ❌ Not Ready
 

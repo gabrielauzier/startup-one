@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 8,
+  "next_id": 11,
   "lessons": [
     {
       "id": "L-001",
@@ -130,6 +130,60 @@
       ],
       "created": "2026-09-29T02:22:54Z",
       "last_seen": "2026-09-29T02:22:54Z"
+    },
+    {
+      "id": "L-008",
+      "key": "ac_gap::test the ac s verb end to end submit then assert the persisted result not just the ui state that allows it html disabled inputs are omitted from form posts",
+      "text": "Test the AC's verb end to end (submit, then assert the persisted result), not just the UI state that allows it; HTML-disabled inputs are omitted from form posts.",
+      "signal": "ac_gap",
+      "scope": "forms/e2e",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CA-14.1 web/app/(producer)/produtor/cadastro/2/parte2-form.tsx:119 + cadastro/2/actions.ts:52 (forms/e2e)"
+      ],
+      "created": "2026-09-29T03:53:12Z",
+      "last_seen": "2026-09-29T03:53:12Z"
+    },
+    {
+      "id": "L-009",
+      "key": "ac_gap::before closing a behavior fix grep for every entry point that performs the same effect duplicate routes crons and fix or remove each one starting with the one the design schedules",
+      "text": "Before closing a behavior fix, grep for every entry point that performs the same effect (duplicate routes/crons) and fix or remove each one, starting with the one the design schedules.",
+      "signal": "ac_gap",
+      "scope": "cron/fixes",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CA-07.3 web/app/api/cron/daily/route.ts:73-75 vs design.md:91 (cron/fixes)"
+      ],
+      "created": "2026-09-29T03:53:12Z",
+      "last_seen": "2026-09-29T03:53:12Z"
+    },
+    {
+      "id": "L-010",
+      "key": "ac_gap::a warn n days before notice fired by a recurring job needs an idempotency key or a single day trigger or it repeats on every run inside the window",
+      "text": "A 'warn N days before' notice fired by a recurring job needs an idempotency key or a single-day trigger, or it repeats on every run inside the window.",
+      "signal": "ac_gap",
+      "scope": "cron/notifications",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CA-07.3/CA-19.2 web/lib/cron/expiration.ts:46,135 + lib/notifications/queue.ts (no dedup) (cron/notifications)"
+      ],
+      "created": "2026-09-29T03:53:13Z",
+      "last_seen": "2026-09-29T03:53:13Z"
     }
   ]
 }
