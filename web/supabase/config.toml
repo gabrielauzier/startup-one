@@ -245,8 +245,12 @@ secure_password_change = false
 max_frequency = "1s"
 # Number of characters used in the email OTP.
 otp_length = 6
-# Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+# Number of seconds before the email OTP expires. RN-02: o codigo de
+# 6 digitos deve valer por 10 minutos, nao a 1 hora padrao do GoTrue -
+# ver web/lib/auth/__tests__/otp-config.test.ts, que confere esse
+# valor (a expiracao e' inteiramente do lado do GoTrue, sem
+# verificacao de app-level possivel).
+otp_expiry = 600
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
