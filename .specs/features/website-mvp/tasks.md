@@ -33,7 +33,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | --- | --- | --- |
 | Quick | Após tasks só com testes unitários | `npm run test` |
 | Full | Após tasks com e2e/integração (RLS) | `npm run test && npm run test:e2e` |
-| Build | Após fechar uma fase, ou tasks só de config/schema | `npm run lint && npm run typecheck && npm run build && npm run test` |
+| Build | Após fechar uma fase, ou tasks só de config/schema | `npm run lint && npm run build && npm run typecheck && npm run test` (nesta ordem — `typecheck` depende dos tipos gerados em `.next/types` pelo `next build`; rodar antes do `build` falha num checkout limpo com `TS2304 Cannot find name 'PageProps'/'LayoutProps'`, achado confirmado 2x pelo Verifier nas rodadas 1 e 2) |
 
 ---
 
