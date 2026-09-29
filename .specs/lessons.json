@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 8,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::test time based cutoffs with fixtures at n 1 and n 1 days so the cutoff constant is actually pinned",
+      "text": "Test time-based cutoffs with fixtures at N-1 and N+1 days so the cutoff constant is actually pinned.",
+      "signal": "surviving_mutant",
+      "scope": "cron",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M5,M6,M10 web/lib/cron/expiration.ts:28,48,91 (cron)"
+      ],
+      "created": "2026-09-29T02:22:53Z",
+      "last_seen": "2026-09-29T02:22:53Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::assert every side effect an ac names events notifications not just the primary status change and make test titles match their assertions",
+      "text": "Assert every side effect an AC names (events, notifications), not just the primary status change, and make test titles match their assertions.",
+      "signal": "surviving_mutant",
+      "scope": "server-actions",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M13 web/app/(producer)/produtor/interesses/actions.ts:96; M11 caught only by flow-interesse (server-actions)"
+      ],
+      "created": "2026-09-29T02:22:53Z",
+      "last_seen": "2026-09-29T02:22:53Z"
+    },
+    {
+      "id": "L-003",
+      "key": "surviving_mutant::give every branch of a scoring function its own case with a hand computed expected value",
+      "text": "Give every branch of a scoring function its own case with a hand-computed expected value.",
+      "signal": "surviving_mutant",
+      "scope": "domain",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1 web/lib/matching/score.ts:97 (domain)"
+      ],
+      "created": "2026-09-29T02:22:53Z",
+      "last_seen": "2026-09-29T02:22:53Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::a library built for a ui behavior is not done until a caller wires it require an e2e of the behavior not only unit tests of the module",
+      "text": "A library built for a UI behavior is not done until a caller wires it; require an e2e of the behavior, not only unit tests of the module.",
+      "signal": "ac_gap",
+      "scope": "",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CA-07.1/CA-07.2 web/lib/offline/draft-store.ts:34 has no caller"
+      ],
+      "created": "2026-09-29T02:22:53Z",
+      "last_seen": "2026-09-29T02:22:53Z"
+    },
+    {
+      "id": "L-005",
+      "key": "ac_gap::any part of an ac deferred with a todo to a later task must become an explicit task line or the ac stays open",
+      "text": "Any part of an AC deferred with a TODO to a later task must become an explicit task line, or the AC stays open.",
+      "signal": "ac_gap",
+      "scope": "",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CA-07.3 expire-drafts/route.ts:12, CA-19.2 expire-seals/route.ts:12, CA-14.1 revisar/page.tsx:8"
+      ],
+      "created": "2026-09-29T02:22:54Z",
+      "last_seen": "2026-09-29T02:22:54Z"
+    },
+    {
+      "id": "L-006",
+      "key": "spec_precision_gap::copy formula sub rules and notification type channel from the prd into the spec acs so tests have an oracle",
+      "text": "Copy formula sub-rules and notification type/channel from the PRD into the spec ACs so tests have an oracle.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RN-24 sub-scores; CA-21.1 notification channel (spec)"
+      ],
+      "created": "2026-09-29T02:22:54Z",
+      "last_seen": "2026-09-29T02:22:54Z"
+    },
+    {
+      "id": "L-007",
+      "key": "gate_fail::run framework type generation before tsc so the typecheck gate passes on a fresh clone",
+      "text": "Run framework type generation before tsc so the typecheck gate passes on a fresh clone.",
+      "signal": "gate_fail",
+      "scope": "gate",
+      "status": "candidate",
+      "features": [
+        "website-mvp"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "npm run typecheck TS2304 PageProps before next build (gate)"
+      ],
+      "created": "2026-09-29T02:22:54Z",
+      "last_seen": "2026-09-29T02:22:54Z"
+    }
+  ]
+}
