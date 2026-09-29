@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getActiveBusinessForOwner } from "@/lib/business/draft";
+import { getActiveBusinessForOwner, getLatestItensAjuste } from "@/lib/business/draft";
+import { getFieldAjusteInfoForPart } from "@/lib/business/adjustable-fields";
 import { isValidCnpj } from "@/lib/validation/cnpj";
 import { mapCnpjUniqueViolation } from "@/lib/business/cnpj-uniqueness";
 import { saveDraftPart } from "../actions";
@@ -61,22 +62,34 @@ export async function submitParte1(
     };
   }
 
-  // CA-05.3: reserva o CNPJ ja' na Parte 1 (nao so' no envio final),
-  // para que dois rascunhos nao possam coexistir com o mesmo CNPJ ate'
-  // um deles tentar enviar. O indice unico parcial
-  // (businesses_cnpj_ativo_idx) e' quem garante isso a nivel de banco;
-  // aqui so' traduzimos a violacao (23505) numa mensagem clara.
-  const { error: cnpjError } = await admin
-    .from("businesses")
-    .update({ cnpj })
-    .eq("id", business.id);
+  // CA-14.1: em ajuste_solicitado, o CNPJ so' pode mudar se o
+  // verificador marcou "parte1.cnpj" para ajuste. Ignora qualquer valor
+  // postado (inclusive um adulterado) para o campo travado - a coluna
+  // `businesses.cnpj` mantem o que ja' estava.
+  let cnpjEditavel = true;
+  if (business.status === "ajuste_solicitado") {
+    const itens = await getLatestItensAjuste(admin, business.id);
+    cnpjEditavel = getFieldAjusteInfoForPart(itens, 1).camposEditaveis.has("cnpj");
+  }
 
-  if (cnpjError) {
-    const duplicado = mapCnpjUniqueViolation(cnpjError);
-    return {
-      error: duplicado ?? "Não foi possível salvar. Tente de novo.",
-      field: duplicado ? "cnpj" : undefined,
-    };
+  if (cnpjEditavel) {
+    // CA-05.3: reserva o CNPJ ja' na Parte 1 (nao so' no envio final),
+    // para que dois rascunhos nao possam coexistir com o mesmo CNPJ ate'
+    // um deles tentar enviar. O indice unico parcial
+    // (businesses_cnpj_ativo_idx) e' quem garante isso a nivel de banco;
+    // aqui so' traduzimos a violacao (23505) numa mensagem clara.
+    const { error: cnpjError } = await admin
+      .from("businesses")
+      .update({ cnpj })
+      .eq("id", business.id);
+
+    if (cnpjError) {
+      const duplicado = mapCnpjUniqueViolation(cnpjError);
+      return {
+        error: duplicado ?? "Não foi possível salvar. Tente de novo.",
+        field: duplicado ? "cnpj" : undefined,
+      };
+    }
   }
 
   const result = await saveDraftPart(business.id, 1, {

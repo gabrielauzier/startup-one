@@ -9,10 +9,22 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 
-let businessResult: { data: { id: string; owner_id: string } | null } = {
+let businessResult: {
+  data: { id: string; owner_id: string; status?: string } | null;
+} = {
   data: { id: "biz-1", owner_id: "user-123" },
 };
 const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+// CA-14.1 (Fix A da rodada 2): usados so' quando business.status ===
+// "ajuste_solicitado" - getDraftData (business_revisions.select) e
+// getLatestItensAjuste (verifications.select).
+let revisionsSelectResult: { data: Array<{ dados: unknown; created_at: string }> } = {
+  data: [],
+};
+let verificationsSelectResult: {
+  data: { itens_ajuste: Array<{ campo: string; comentario: string }> } | null;
+} = { data: null };
 
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
@@ -23,7 +35,29 @@ const fromMock = vi.fn((table: string) => {
     };
   }
   if (table === "business_revisions") {
-    return { insert: insertMock };
+    return {
+      insert: insertMock,
+      select: () => ({
+        eq: () => ({
+          order: () => Promise.resolve(revisionsSelectResult),
+        }),
+      }),
+    };
+  }
+  if (table === "verifications") {
+    return {
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            order: () => ({
+              limit: () => ({
+                maybeSingle: () => Promise.resolve(verificationsSelectResult),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
   }
   throw new Error(`tabela inesperada no mock: ${table}`);
 });
@@ -38,6 +72,8 @@ beforeEach(() => {
   getUserMock.mockResolvedValue({ data: { user: { id: "user-123" } } });
   businessResult = { data: { id: "biz-1", owner_id: "user-123" } };
   insertMock.mockResolvedValue({ error: null });
+  revisionsSelectResult = { data: [] };
+  verificationsSelectResult = { data: null };
 });
 
 describe("saveDraftPart (RF-11)", () => {
@@ -97,6 +133,90 @@ describe("saveDraftPart (RF-11)", () => {
     expect(result).toEqual({
       ok: false,
       error: "Não foi possível salvar. Tente de novo.",
+    });
+  });
+
+  // CA-14.1 (Fix A, rodada 2 do Verifier): "ajuste_solicitado" so' pode
+  // mudar os campos marcados por itens_ajuste - o servidor nao confia
+  // no que o formulario mandou para os demais, mesmo que o client tenha
+  // sido adulterado.
+  describe("ajuste_solicitado: mescla so' os campos marcados (CA-14.1)", () => {
+    beforeEach(() => {
+      businessResult = {
+        data: { id: "biz-1", owner_id: "user-123", status: "ajuste_solicitado" },
+      };
+      verificationsSelectResult = {
+        data: { itens_ajuste: [{ campo: "parte2.cidade", comentario: "Corrija a cidade" }] },
+      };
+      revisionsSelectResult = {
+        data: [
+          {
+            dados: {
+              part: 2,
+              nome: "Nome Original",
+              tipoOrg: "cooperativa",
+              cidade: "Cidade Antiga",
+              uf: "PA",
+              familias: 5,
+              anosAtividade: 3,
+              recebeVisitas: true,
+            },
+            created_at: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+      };
+    });
+
+    it("aplica o campo marcado e ignora os demais campos postados (mesmo adulterados)", async () => {
+      const { saveDraftPart } = await import("../actions");
+
+      const result = await saveDraftPart("biz-1", 2, {
+        nome: "Nome Adulterado",
+        tipoOrg: "associacao",
+        cidade: "Cidade Nova",
+        uf: "MA",
+        familias: 999,
+        anosAtividade: 999,
+        recebeVisitas: false,
+      });
+
+      expect(result).toEqual({ ok: true });
+      expect(insertMock).toHaveBeenCalledWith({
+        business_id: "biz-1",
+        dados: {
+          part: 2,
+          nome: "Nome Original",
+          tipoOrg: "cooperativa",
+          cidade: "Cidade Nova",
+          uf: "PA",
+          familias: 5,
+          anosAtividade: 3,
+          recebeVisitas: true,
+        },
+        status: "rascunho",
+      });
+    });
+
+    it("nao gera erro quando nenhum campo postado esta marcado", async () => {
+      const { saveDraftPart } = await import("../actions");
+
+      const result = await saveDraftPart("biz-1", 2, { nome: "Outro nome tentado" });
+
+      expect(result).toEqual({ ok: true });
+      expect(insertMock).toHaveBeenCalledWith({
+        business_id: "biz-1",
+        dados: {
+          part: 2,
+          nome: "Nome Original",
+          tipoOrg: "cooperativa",
+          cidade: "Cidade Antiga",
+          uf: "PA",
+          familias: 5,
+          anosAtividade: 3,
+          recebeVisitas: true,
+        },
+        status: "rascunho",
+      });
     });
   });
 });

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PartHeader } from "@/components/cadastro/PartHeader";
-import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
+import { AjusteComment, LockedHiddenValue, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte1, type Parte1State } from "./actions";
@@ -81,7 +81,7 @@ export function Parte1Form({
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "nome")}
+          readOnly={isFieldLocked(ajuste, "nome")}
         />
         <AjusteComment ajuste={ajuste} campo="nome" />
       </div>
@@ -98,7 +98,7 @@ export function Parte1Form({
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "telefone")}
+          readOnly={isFieldLocked(ajuste, "telefone")}
         />
         <AjusteComment ajuste={ajuste} campo="telefone" />
       </div>
@@ -113,7 +113,7 @@ export function Parte1Form({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={isFieldLocked(ajuste, "email")}
+          readOnly={isFieldLocked(ajuste, "email")}
         />
         <AjusteComment ajuste={ajuste} campo="email" />
       </div>
@@ -129,7 +129,7 @@ export function Parte1Form({
           value={cnpj}
           onChange={(e) => setCnpj(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "cnpj")}
+          readOnly={isFieldLocked(ajuste, "cnpj")}
         />
         {state.field === "cnpj" && (
           <p className="font-body text-sm text-destructive">
@@ -147,6 +147,14 @@ export function Parte1Form({
           onCheckedChange={(checked) => setAutorizacao(checked === true)}
           disabled={isFieldLocked(ajuste, "autorizacao")}
         />
+        {autorizacao && (
+          <LockedHiddenValue
+            ajuste={ajuste}
+            campo="autorizacao"
+            name="autorizacao"
+            value="on"
+          />
+        )}
         <label htmlFor="autorizacao" className="font-body text-sm text-foreground/80">
           Autorizo a Îasy a usar estes dados para montar meu perfil e
           apresentá-lo a investidores. Posso pedir a exclusão quando quiser.

@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 import { PartHeader } from "@/components/cadastro/PartHeader";
-import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
+import {
+  AjusteComment,
+  LockedHiddenValue,
+  isFieldLocked,
+} from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte5, type Parte5State } from "./actions";
@@ -95,6 +99,12 @@ export function Parte5Form({
             </option>
           ))}
         </select>
+        <LockedHiddenValue
+          ajuste={ajuste}
+          campo="finalidade"
+          name="finalidade"
+          value={finalidade}
+        />
         {state.field === "finalidade" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
@@ -121,6 +131,12 @@ export function Parte5Form({
           De {formatBRL(VALOR_MIN)} a {formatBRL(VALOR_MAX)}, em passos de{" "}
           {formatBRL(VALOR_STEP)}
         </p>
+        <LockedHiddenValue
+          ajuste={ajuste}
+          campo="valorBusca"
+          name="valorBusca"
+          value={String(valorBusca)}
+        />
         {state.field === "valorBusca" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
@@ -165,7 +181,7 @@ export function Parte5Form({
           value={retornoProposto}
           onChange={(e) => setRetornoProposto(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "retornoProposto")}
+          readOnly={isFieldLocked(ajuste, "retornoProposto")}
         />
         <button
           type="button"

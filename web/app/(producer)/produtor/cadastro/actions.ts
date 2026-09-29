@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getDraftData } from "@/lib/business/draft";
+import { getDraftData, getLatestItensAjuste, type DraftData } from "@/lib/business/draft";
+import { getFieldAjusteInfoForPart } from "@/lib/business/adjustable-fields";
 import { validateRequiredFields } from "@/lib/business/required-fields";
 import { buildBusinessSlug } from "@/lib/business/slug";
 import { assertTransition, InvalidBusinessTransitionError } from "@/lib/business/state-machine";
@@ -41,7 +42,7 @@ export async function saveDraftPart(
 
   const { data: business } = await admin
     .from("businesses")
-    .select("id, owner_id")
+    .select("id, owner_id, status")
     .eq("id", businessId)
     .maybeSingle();
 
@@ -49,9 +50,32 @@ export async function saveDraftPart(
     return { ok: false, error: "Cadastro não encontrado." };
   }
 
+  // CA-14.1: em ajuste_solicitado, so' os campos marcados pelo
+  // verificador (itens_ajuste) podem mudar. Nao confia no client (nem
+  // no fato de que os campos travados vem `disabled`/`readOnly` no
+  // form) - mescla aqui, no servidor, ignorando qualquer valor postado
+  // para um campo nao marcado e mantendo o que ja' estava gravado no
+  // rascunho. Parte 4 (fotos/evidencias) nao tem campos catalogados em
+  // ADJUSTABLE_FIELDS e fica fora deste fluxo.
+  let dataToSave = data;
+  if (business.status === "ajuste_solicitado" && part !== 4) {
+    const itens = await getLatestItensAjuste(admin, businessId);
+    const ajuste = getFieldAjusteInfoForPart(itens, part);
+    const draft = await getDraftData(admin, businessId);
+    const existingPart = draft[`part${part}` as keyof DraftData];
+
+    const merged: Record<string, unknown> = { ...existingPart };
+    for (const key of Object.keys(data)) {
+      if (ajuste.camposEditaveis.has(key)) {
+        merged[key] = data[key];
+      }
+    }
+    dataToSave = merged;
+  }
+
   const { error } = await admin.from("business_revisions").insert({
     business_id: businessId,
-    dados: { part, ...data },
+    dados: { part, ...dataToSave },
     status: "rascunho",
   });
 

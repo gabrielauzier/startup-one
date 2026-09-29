@@ -13,6 +13,16 @@ const businessSingleMock = vi.fn();
 const revisionsInsertMock = vi.fn().mockResolvedValue({ error: null });
 const cnpjUpdateEqMock = vi.fn().mockResolvedValue({ error: null });
 
+// CA-14.1 (Fix A, rodada 2): usados so' quando business.status ===
+// "ajuste_solicitado" - getDraftData (business_revisions.select) e
+// getLatestItensAjuste (verifications.select).
+let revisionsSelectResult: { data: Array<{ dados: unknown; created_at: string }> } = {
+  data: [],
+};
+let verificationsSelectResult: {
+  data: { itens_ajuste: Array<{ campo: string; comentario: string }> } | null;
+} = { data: null };
+
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
     return {
@@ -33,7 +43,29 @@ const fromMock = vi.fn((table: string) => {
     };
   }
   if (table === "business_revisions") {
-    return { insert: revisionsInsertMock };
+    return {
+      insert: revisionsInsertMock,
+      select: () => ({
+        eq: () => ({
+          order: () => Promise.resolve(revisionsSelectResult),
+        }),
+      }),
+    };
+  }
+  if (table === "verifications") {
+    return {
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            order: () => ({
+              limit: () => ({
+                maybeSingle: () => Promise.resolve(verificationsSelectResult),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
   }
   throw new Error(`tabela inesperada no mock: ${table}`);
 });
@@ -68,6 +100,8 @@ beforeEach(() => {
   });
   revisionsInsertMock.mockResolvedValue({ error: null });
   cnpjUpdateEqMock.mockResolvedValue({ error: null });
+  revisionsSelectResult = { data: [] };
+  verificationsSelectResult = { data: null };
 });
 
 describe("submitParte1 (RF-06, RN-03, RN-05)", () => {
@@ -159,5 +193,66 @@ describe("submitParte1 (RF-06, RN-03, RN-05)", () => {
       field: "cnpj",
     });
     expect(revisionsInsertMock).not.toHaveBeenCalled();
+  });
+
+  // CA-14.1 (Fix A, rodada 2 do Verifier): em ajuste_solicitado, o CNPJ
+  // so' pode mudar se o verificador marcou "parte1.cnpj". Um valor
+  // diferente postado para o campo travado (adulterado ou nao) nunca
+  // deve sobrescrever a coluna `businesses.cnpj`.
+  it("ajuste_solicitado sem 'parte1.cnpj' marcado: ignora o CNPJ postado e nao regrava a coluna", async () => {
+    businessSingleMock.mockResolvedValue({
+      data: { id: "biz-1", owner_id: "user-1", status: "ajuste_solicitado" },
+    });
+    verificationsSelectResult = {
+      data: { itens_ajuste: [{ campo: "parte1.nome", comentario: "Corrija o nome" }] },
+    };
+    revisionsSelectResult = {
+      data: [
+        {
+          dados: {
+            part: 1,
+            nome: "Nome Antigo",
+            telefone: "9199999999",
+            email: "",
+            cnpj: VALID_CNPJ,
+            autorizacao: true,
+          },
+          created_at: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+    };
+
+    const { submitParte1 } = await import("../actions");
+
+    const outroCnpjValido = "11222333000181";
+
+    await expect(
+      submitParte1(
+        {},
+        formData({
+          nome: "Nome Corrigido",
+          telefone: "9199999999",
+          cnpj: outroCnpjValido,
+          autorizacao: "on",
+        })
+      )
+    ).rejects.toThrow("REDIRECT:/produtor/cadastro/2");
+
+    // A coluna businesses.cnpj nao e' regravada com o valor adulterado.
+    expect(cnpjUpdateEqMock).not.toHaveBeenCalled();
+    // O rascunho mantem o CNPJ original (mesclado por saveDraftPart a
+    // partir do que ja' estava salvo), nao o postado.
+    expect(revisionsInsertMock).toHaveBeenCalledWith({
+      business_id: "biz-1",
+      dados: {
+        part: 1,
+        nome: "Nome Corrigido",
+        telefone: "9199999999",
+        email: "",
+        cnpj: VALID_CNPJ,
+        autorizacao: true,
+      },
+      status: "rascunho",
+    });
   });
 });

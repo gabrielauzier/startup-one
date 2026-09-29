@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PartHeader } from "@/components/cadastro/PartHeader";
-import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
+import { AjusteComment, LockedHiddenValue, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte2, type Parte2State } from "./actions";
@@ -116,7 +116,7 @@ export function Parte2Form({
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "nome")}
+          readOnly={isFieldLocked(ajuste, "nome")}
         />
         <AjusteComment ajuste={ajuste} campo="nome" />
       </div>
@@ -141,6 +141,7 @@ export function Parte2Form({
             </option>
           ))}
         </select>
+        <LockedHiddenValue ajuste={ajuste} campo="tipoOrg" name="tipoOrg" value={tipoOrg} />
         <AjusteComment ajuste={ajuste} campo="tipoOrg" />
       </div>
 
@@ -155,7 +156,7 @@ export function Parte2Form({
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "cidade")}
+          readOnly={isFieldLocked(ajuste, "cidade")}
         />
         <AjusteComment ajuste={ajuste} campo="cidade" />
       </div>
@@ -172,7 +173,7 @@ export function Parte2Form({
           value={uf}
           onChange={(e) => setUf(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "uf")}
+          readOnly={isFieldLocked(ajuste, "uf")}
         />
         <AjusteComment ajuste={ajuste} campo="uf" />
       </div>
@@ -190,7 +191,7 @@ export function Parte2Form({
           value={familias}
           onChange={(e) => setFamilias(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "familias")}
+          readOnly={isFieldLocked(ajuste, "familias")}
         />
         <AjusteComment ajuste={ajuste} campo="familias" />
       </div>
@@ -208,7 +209,7 @@ export function Parte2Form({
           value={anosAtividade}
           onChange={(e) => setAnosAtividade(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "anosAtividade")}
+          readOnly={isFieldLocked(ajuste, "anosAtividade")}
         />
         <AjusteComment ajuste={ajuste} campo="anosAtividade" />
       </div>
@@ -221,6 +222,14 @@ export function Parte2Form({
           onCheckedChange={(checked) => setRecebeVisitas(checked === true)}
           disabled={isFieldLocked(ajuste, "recebeVisitas")}
         />
+        {recebeVisitas && (
+          <LockedHiddenValue
+            ajuste={ajuste}
+            campo="recebeVisitas"
+            name="recebeVisitas"
+            value="on"
+          />
+        )}
         <label htmlFor="recebeVisitas" className="font-body text-sm text-foreground/80">
           Recebemos visitas de investidores
         </label>

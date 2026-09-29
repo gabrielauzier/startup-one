@@ -11,7 +11,11 @@ import {
   PRODUTOS_OPTIONS,
 } from "@/lib/business/impact-options";
 import { PartHeader } from "@/components/cadastro/PartHeader";
-import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
+import {
+  AjusteComment,
+  LockedHiddenValues,
+  isFieldLocked,
+} from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte3, type Parte3State } from "./actions";
@@ -100,6 +104,12 @@ export function Parte3Form({
             </label>
           ))}
         </div>
+        <LockedHiddenValues
+          ajuste={ajuste}
+          campo="produtos"
+          name="produtos"
+          values={Array.from(produtos)}
+        />
         {state.field === "produtos" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
@@ -119,7 +129,7 @@ export function Parte3Form({
           value={producaoMensalKg}
           onChange={(e) => setProducaoMensalKg(e.target.value)}
           required
-          disabled={isFieldLocked(ajuste, "producaoMensalKg")}
+          readOnly={isFieldLocked(ajuste, "producaoMensalKg")}
         />
         {state.field === "producaoMensalKg" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
@@ -145,6 +155,12 @@ export function Parte3Form({
             </label>
           ))}
         </div>
+        <LockedHiddenValues
+          ajuste={ajuste}
+          campo="praticas"
+          name="praticas"
+          values={Array.from(praticas)}
+        />
         {state.field === "praticas" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
@@ -169,6 +185,12 @@ export function Parte3Form({
             </label>
           ))}
         </div>
+        <LockedHiddenValues
+          ajuste={ajuste}
+          campo="impactos"
+          name="impactos"
+          values={Array.from(impactos)}
+        />
         <AjusteComment ajuste={ajuste} campo="impactos" />
       </fieldset>
 

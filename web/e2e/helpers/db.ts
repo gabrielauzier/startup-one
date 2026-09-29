@@ -72,6 +72,49 @@ export async function createEvidence(
 }
 
 /**
+ * CA-14.1 (Fix A, rodada 2 do Verifier): seeda uma revisao de rascunho
+ * direto via REST (service role), simulando que o produtor ja preencheu
+ * essa parte antes do pedido de ajuste - sem isso, os campos travados
+ * de um teste de ajuste nasceriam vazios e o form nunca conseguiria
+ * avancar (mesmo bug do Gap 1, so' que causado pelo seed do teste em
+ * vez do `disabled` do form).
+ */
+/**
+ * CA-14.1 (Fix A, rodada 2 do Verifier): le' o `dados` da revisao mais
+ * recente de uma parte especifica - usado pelos testes de ajuste para
+ * confirmar, direto no banco, o que ficou gravado apos o produtor
+ * corrigir so' o campo liberado (e nada mais).
+ */
+export async function getLatestRevisionForPart(
+  businessId: string,
+  part: 1 | 2 | 3 | 4 | 5
+): Promise<Record<string, unknown> | null> {
+  const res = await fetch(
+    `${API_URL}/rest/v1/business_revisions?business_id=eq.${businessId}&order=created_at.desc&select=dados,created_at`,
+    { headers: headers() }
+  );
+  const rows = (await res.json()) as { dados: Record<string, unknown> }[];
+  const match = rows.find((row) => row.dados.part === part);
+  return match?.dados ?? null;
+}
+
+export async function createBusinessRevision(
+  businessId: string,
+  part: 1 | 2 | 3 | 4 | 5,
+  dados: Record<string, unknown>
+): Promise<void> {
+  await fetch(`${API_URL}/rest/v1/business_revisions`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify({
+      business_id: businessId,
+      dados: { part, ...dados },
+      status: "rascunho",
+    }),
+  });
+}
+
+/**
  * RN-01: nao existe fluxo de login normal para o papel `verificador` (so'
  * a equipe credencia). Para os e2e, loga como produtor/investidor
  * normalmente (cria a conta) e promove direto via REST com a
