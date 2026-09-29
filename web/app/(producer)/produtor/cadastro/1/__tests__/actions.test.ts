@@ -11,6 +11,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 const businessSingleMock = vi.fn();
 const revisionsInsertMock = vi.fn().mockResolvedValue({ error: null });
+const cnpjUpdateEqMock = vi.fn().mockResolvedValue({ error: null });
 
 const fromMock = vi.fn((table: string) => {
   if (table === "businesses") {
@@ -27,6 +28,8 @@ const fromMock = vi.fn((table: string) => {
           }),
         }),
       }),
+      // CA-05.3: reserva o CNPJ na Parte 1 - update({cnpj}).eq(id).
+      update: () => ({ eq: cnpjUpdateEqMock }),
     };
   }
   if (table === "business_revisions") {
@@ -64,6 +67,7 @@ beforeEach(() => {
     data: { id: "biz-1", owner_id: "user-1" },
   });
   revisionsInsertMock.mockResolvedValue({ error: null });
+  cnpjUpdateEqMock.mockResolvedValue({ error: null });
 });
 
 describe("submitParte1 (RF-06, RN-03, RN-05)", () => {
@@ -133,5 +137,27 @@ describe("submitParte1 (RF-06, RN-03, RN-05)", () => {
         status: "rascunho",
       })
     );
+  });
+
+  it("CNPJ ja' em uso por outro cadastro (indice unico) devolve mensagem clara (CA-05.3)", async () => {
+    cnpjUpdateEqMock.mockResolvedValue({ error: { code: "23505" } });
+
+    const { submitParte1 } = await import("../actions");
+
+    const result = await submitParte1(
+      {},
+      formData({
+        nome: "Raimunda",
+        telefone: "9199999999",
+        cnpj: VALID_CNPJ,
+        autorizacao: "on",
+      })
+    );
+
+    expect(result).toEqual({
+      error: "Este CNPJ já está em uso por outro cadastro em andamento ou verificado.",
+      field: "cnpj",
+    });
+    expect(revisionsInsertMock).not.toHaveBeenCalled();
   });
 });

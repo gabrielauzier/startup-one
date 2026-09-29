@@ -7,6 +7,7 @@ import { getDraftData } from "@/lib/business/draft";
 import { validateRequiredFields } from "@/lib/business/required-fields";
 import { buildBusinessSlug } from "@/lib/business/slug";
 import { assertTransition, InvalidBusinessTransitionError } from "@/lib/business/state-machine";
+import { mapCnpjUniqueViolation } from "@/lib/business/cnpj-uniqueness";
 import { enqueueNotification } from "@/lib/notifications/queue";
 import { trackEvent } from "@/lib/analytics/track";
 
@@ -161,7 +162,8 @@ export async function submitBusiness(
     .eq("id", businessId);
 
   if (error) {
-    return { error: "Não foi possível enviar o cadastro. Tente de novo." };
+    const duplicado = mapCnpjUniqueViolation(error);
+    return { error: duplicado ?? "Não foi possível enviar o cadastro. Tente de novo." };
   }
 
   await admin.from("business_revisions").insert({

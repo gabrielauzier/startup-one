@@ -132,7 +132,9 @@ export function Parte1Form({
           disabled={isFieldLocked(ajuste, "cnpj")}
         />
         {state.field === "cnpj" && (
-          <p className="font-body text-sm text-destructive">CNPJ inválido</p>
+          <p className="font-body text-sm text-destructive">
+            {state.error ?? "CNPJ inválido"}
+          </p>
         )}
         <AjusteComment ajuste={ajuste} campo="cnpj" />
       </div>

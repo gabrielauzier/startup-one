@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveBusinessForOwner } from "@/lib/business/draft";
 import { isValidCnpj } from "@/lib/validation/cnpj";
+import { mapCnpjUniqueViolation } from "@/lib/business/cnpj-uniqueness";
 import { saveDraftPart } from "../actions";
 
 export interface Parte1State {
@@ -57,6 +58,24 @@ export async function submitParte1(
       error:
         "Marque a autorização de uso dos dados para continuar.",
       field: "autorizacao",
+    };
+  }
+
+  // CA-05.3: reserva o CNPJ ja' na Parte 1 (nao so' no envio final),
+  // para que dois rascunhos nao possam coexistir com o mesmo CNPJ ate'
+  // um deles tentar enviar. O indice unico parcial
+  // (businesses_cnpj_ativo_idx) e' quem garante isso a nivel de banco;
+  // aqui so' traduzimos a violacao (23505) numa mensagem clara.
+  const { error: cnpjError } = await admin
+    .from("businesses")
+    .update({ cnpj })
+    .eq("id", business.id);
+
+  if (cnpjError) {
+    const duplicado = mapCnpjUniqueViolation(cnpjError);
+    return {
+      error: duplicado ?? "Não foi possível salvar. Tente de novo.",
+      field: duplicado ? "cnpj" : undefined,
     };
   }
 
