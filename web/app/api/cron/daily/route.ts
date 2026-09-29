@@ -9,7 +9,10 @@ import {
   selectExpiredPendingInterests,
   selectSealsNearingExpiry,
 } from "@/lib/cron/expiration";
-import { enqueueNotification } from "@/lib/notifications/queue";
+import { enqueueNotification, wasNearingExpiryNotified } from "@/lib/notifications/queue";
+
+const DRAFT_WARNING_WINDOW_DAYS = 7;
+const SEAL_WARNING_WINDOW_DAYS = 30;
 
 /**
  * RNF-08/design.md: cron diário único (`design.md`: "Vercel Cron ...
@@ -41,11 +44,9 @@ import { enqueueNotification } from "@/lib/notifications/queue";
  *
  * Idempotente por construção: cada passo só seleciona linhas ainda no
  * estado "vivo" (status='rascunho'/'pendente'/'liberado'/'verificado')
- * antes de mutar - depois da 1ª passada no dia, uma 2ª chamada não
- * encontra mais nada elegível e não muda nada, mesmo padrão já usado
- * em `expire-seals` (T29). Os avisos de "faltam N dias" ainda não são
- * deduplicados entre chamadas - repetem enquanto o negócio estiver na
- * janela (Gap 3, rodada 2 do Verifier, rastreado separadamente).
+ * antes de mutar, e os avisos de "faltam N dias" são deduplicados por
+ * `wasNearingExpiryNotified` (Gap 3, rodada 2) - uma 2ª chamada no
+ * mesmo dia (ou dentro da mesma janela de aviso) não repete nada.
  */
 export async function POST(request: Request) {
   const secret = request.headers.get("x-cron-secret");
@@ -88,6 +89,15 @@ export async function POST(request: Request) {
   for (const id of draftsNearingExpiryIds) {
     const draft = draftById.get(id);
     if (!draft) continue;
+
+    const draftJaAvisado = await wasNearingExpiryNotified(
+      admin,
+      "rascunho_expirando_em_breve",
+      id,
+      DRAFT_WARNING_WINDOW_DAYS,
+      now
+    );
+    if (draftJaAvisado) continue;
 
     await enqueueNotification({
       type: "rascunho_expirando_em_breve",
@@ -172,6 +182,15 @@ export async function POST(request: Request) {
   for (const id of sealsNearingExpiryIds) {
     const business = sealById.get(id);
     if (!business) continue;
+
+    const sealJaAvisado = await wasNearingExpiryNotified(
+      admin,
+      "selo_expirando_em_breve",
+      id,
+      SEAL_WARNING_WINDOW_DAYS,
+      now
+    );
+    if (sealJaAvisado) continue;
 
     await enqueueNotification({
       type: "selo_expirando_em_breve",

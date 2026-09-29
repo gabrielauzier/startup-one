@@ -4,9 +4,26 @@ import type { NotificationType } from "../queue";
 const insertMock = vi.fn().mockResolvedValue({ error: null });
 const getUserByIdMock = vi.fn();
 
+// Gap 3 (Minor, rodada 2): usado so' pelos testes de
+// `wasNearingExpiryNotified` - resultado do select de dedup.
+let eventsSelectResult: { data: { id: string } | null } = { data: null };
+
 const fromMock = vi.fn((table: string) => {
   if (table === "events") {
-    return { insert: insertMock };
+    return {
+      insert: insertMock,
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            gte: () => ({
+              limit: () => ({
+                maybeSingle: () => Promise.resolve(eventsSelectResult),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
   }
   throw new Error(`tabela inesperada no mock: ${table}`);
 });
@@ -27,6 +44,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   insertMock.mockResolvedValue({ error: null });
   sendEmailMock.mockResolvedValue({ ok: true });
+  eventsSelectResult = { data: null };
   getUserByIdMock.mockResolvedValue({
     data: { user: { email: "destinatario@example.com" } },
     error: null,
@@ -156,5 +174,41 @@ describe("enqueueNotification (T53, RF-31/RN-41)", () => {
     expect(sendEmailMock).not.toHaveBeenCalled();
     const rows = insertMock.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows[0].enviado_em).toBeNull();
+  });
+});
+
+// Gap 3 (Minor, rodada 2 do Verifier): sem isso, os seletores de
+// "faltam N dias" mandam o mesmo aviso todo dia enquanto o negocio
+// estiver na janela (7 ou 30 dias) - ate' 7x/30x, quase sempre com a
+// contagem de dias errada.
+describe("wasNearingExpiryNotified (Gap 3, rodada 2 do Verifier)", () => {
+  it("false quando nenhum evento desse tipo/negocio existe na janela - primeiro aviso", async () => {
+    eventsSelectResult = { data: null };
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const { wasNearingExpiryNotified } = await import("../queue");
+
+    const jaAvisado = await wasNearingExpiryNotified(
+      createAdminClient(),
+      "rascunho_expirando_em_breve",
+      "biz-1",
+      7
+    );
+
+    expect(jaAvisado).toBe(false);
+  });
+
+  it("true quando ja existe um evento desse tipo/negocio dentro da janela - nao repete", async () => {
+    eventsSelectResult = { data: { id: "evt-1" } };
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const { wasNearingExpiryNotified } = await import("../queue");
+
+    const jaAvisado = await wasNearingExpiryNotified(
+      createAdminClient(),
+      "rascunho_expirando_em_breve",
+      "biz-1",
+      7
+    );
+
+    expect(jaAvisado).toBe(true);
   });
 });

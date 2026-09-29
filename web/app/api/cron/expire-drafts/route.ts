@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { selectExpiredDrafts, selectDraftsNearingExpiry } from "@/lib/cron/expiration";
-import { enqueueNotification } from "@/lib/notifications/queue";
+import { enqueueNotification, wasNearingExpiryNotified } from "@/lib/notifications/queue";
+
+// Gap 3 (Minor, rodada 2): a janela de aviso tem 7 dias de largura
+// (83-90 dias sem atividade) - conferir se ja' avisou nos ultimos 7
+// dias evita repetir o aviso em todo cron diario dentro da mesma janela.
+const DRAFT_WARNING_WINDOW_DAYS = 7;
 
 /**
  * RN-07/CA-07.3: apaga rascunhos (negocios em status "rascunho") sem
@@ -51,9 +56,19 @@ export async function POST(request: Request) {
   const nearingExpiryIds = selectDraftsNearingExpiry(draftRows, now);
 
   const byId = new Map((drafts ?? []).map((d) => [d.id, d]));
+  let avisados = 0;
   for (const id of nearingExpiryIds) {
     const draft = byId.get(id);
     if (!draft) continue;
+
+    const jaAvisado = await wasNearingExpiryNotified(
+      admin,
+      "rascunho_expirando_em_breve",
+      id,
+      DRAFT_WARNING_WINDOW_DAYS,
+      now
+    );
+    if (jaAvisado) continue;
 
     await enqueueNotification({
       type: "rascunho_expirando_em_breve",
@@ -64,11 +79,12 @@ export async function POST(request: Request) {
         body: `Faltam 7 dias para apagarmos o rascunho de ${draft.nome ?? "seu negócio"} por inatividade. Continue de onde parou para não perder o que já foi preenchido.`,
       },
     });
+    avisados += 1;
   }
 
   if (expiredIds.length > 0) {
     await admin.from("businesses").delete().in("id", expiredIds);
   }
 
-  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados: nearingExpiryIds.length });
+  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados });
 }

@@ -14,6 +14,9 @@ let verificadosData: {
   owner_id?: string;
   nome?: string;
 }[] = [];
+// Gap 3 (rodada 2): ids de negocio "ja avisados" nesta janela - simula
+// o que `wasNearingExpiryNotified` acharia em `events`.
+let jaAvisadosIds: Set<string> = new Set();
 
 const businessesDeleteInMock = vi.fn().mockResolvedValue({ error: null });
 const businessesUpdateEqMock = vi.fn().mockResolvedValue({ error: null });
@@ -74,7 +77,24 @@ const fromMock = vi.fn((table: string) => {
     };
   }
   if (table === "events") {
-    return { insert: eventsInsertMock };
+    return {
+      insert: eventsInsertMock,
+      // wasNearingExpiryNotified: select("id").eq("type",...).eq("payload->>businessId", id).gte(...).limit(1).maybeSingle()
+      select: () => ({
+        eq: () => ({
+          eq: (_col2: string, businessId: string) => ({
+            gte: () => ({
+              limit: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({
+                    data: jaAvisadosIds.has(businessId) ? { id: "evt-existente" } : null,
+                  }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    };
   }
   throw new Error(`tabela inesperada no mock: ${table}`);
 });
@@ -106,6 +126,7 @@ beforeEach(() => {
   releasedRequestsData = [];
   pendingInterestsData = [];
   verificadosData = [];
+  jaAvisadosIds = new Set();
   businessesDeleteInMock.mockResolvedValue({ error: null });
   businessesUpdateEqMock.mockResolvedValue({ error: null });
   documentRequestsUpdateEqMock.mockResolvedValue({ error: null });
@@ -238,5 +259,32 @@ describe("POST /api/cron/daily (T55, RNF-08)", () => {
     expect(businessesUpdateMock).not.toHaveBeenCalled();
     const rows = eventsInsertMock.mock.calls[0][0] as Array<Record<string, unknown>>;
     expect(rows.some((r) => r.type === "selo_expirando_em_breve")).toBe(true);
+  });
+
+  // Gap 3 (Minor, rodada 2 do Verifier): rodar o cron 2 dias seguidos
+  // com o mesmo rascunho ainda na janela so' enfileira o aviso 1x - a
+  // 2a chamada ja' acha o evento da 1a (jaAvisadosIds simula isso).
+  it("nao repete o aviso de 7 dias em 2 chamadas seguidas na mesma janela (Gap 3)", async () => {
+    draftsData = [
+      { id: "biz-85", created_at: new Date(NOW - 85 * DAY_MS).toISOString(), owner_id: "user-1", nome: "Negócio 85" },
+    ];
+
+    const { POST } = await import("../route");
+
+    const res1 = await POST(request());
+    const body1 = await res1.json();
+    expect(body1.avisados.rascunhos).toBe(1);
+
+    // Simula o cron do dia seguinte: o negocio ainda esta na janela
+    // (86 dias), mas ja foi avisado - `events` ja' tem a linha.
+    jaAvisadosIds.add("biz-85");
+    draftsData = [
+      { id: "biz-85", created_at: new Date(NOW - 86 * DAY_MS).toISOString(), owner_id: "user-1", nome: "Negócio 85" },
+    ];
+
+    const res2 = await POST(request());
+    const body2 = await res2.json();
+    expect(body2.avisados.rascunhos).toBe(0);
+    expect(eventsInsertMock).toHaveBeenCalledTimes(1);
   });
 });

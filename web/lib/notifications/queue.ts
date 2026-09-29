@@ -184,3 +184,43 @@ export async function enqueueNotification(
 
   return { ok: true };
 }
+
+/**
+ * Gap 3 (Minor, rodada 2 do Verifier): os seletores de "faltam N dias"
+ * (`selectDraftsNearingExpiry`/`selectSealsNearingExpiry`) devolvem toda
+ * linha dentro da janela inteira (7 ou 30 dias) - com um cron diário,
+ * isso mandaria o mesmo aviso todo dia enquanto o negócio estiver na
+ * janela (até 7x/30x, quase sempre com a contagem de dias errada).
+ *
+ * Escolha de design (a mais simples que resolve, sem tabela/estado
+ * novo): antes de enfileirar, confere se já existe um evento desse
+ * `type` para esse `businessId` criado dentro dos últimos `windowDays`
+ * dias - se sim, já foi avisado nesta janela, não repete. Como a janela
+ * inteira (83-90 dias para rascunho, 0-30 para selo) tem exatamente
+ * `windowDays` de largura, uma passada diária do cron nunca deixa passar
+ * mais de 1 aviso por negócio por janela. Efeito colateral aceito: se o
+ * cron ficar mais de `windowDays` dias sem rodar, o aviso pode ser
+ * perdido silenciosamente - aceitável para um aviso informativo (o selo
+ * ainda expira, ou o rascunho ainda é apagado, no dia certo,
+ * independente do aviso).
+ */
+export async function wasNearingExpiryNotified(
+  admin: ReturnType<typeof createAdminClient>,
+  type: Extract<NotificationType, "rascunho_expirando_em_breve" | "selo_expirando_em_breve">,
+  businessId: string,
+  windowDays: number,
+  now: Date = new Date()
+): Promise<boolean> {
+  const since = new Date(now.getTime() - windowDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data } = await admin
+    .from("events")
+    .select("id")
+    .eq("type", type)
+    .eq("payload->>businessId", businessId)
+    .gte("created_at", since)
+    .limit(1)
+    .maybeSingle();
+
+  return !!data;
+}

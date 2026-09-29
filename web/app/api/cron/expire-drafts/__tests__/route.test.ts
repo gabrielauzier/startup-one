@@ -9,9 +9,14 @@ let draftsResult: {
 let lastRevisionByBusiness: Record<string, string | null> = {};
 const deleteInMock = vi.fn().mockResolvedValue({ error: null });
 const enqueueNotificationMock = vi.fn().mockResolvedValue({ ok: true });
+// Gap 3 (rodada 2): por padrao, "nunca avisado ainda" - o teste de
+// dedup fica no `daily`, que orquestra o mesmo helper; aqui so' precisa
+// nao quebrar a rota com a nova dependencia.
+const wasNearingExpiryNotifiedMock = vi.fn().mockResolvedValue(false);
 
 vi.mock("@/lib/notifications/queue", () => ({
   enqueueNotification: enqueueNotificationMock,
+  wasNearingExpiryNotified: wasNearingExpiryNotifiedMock,
 }));
 
 const fromMock = vi.fn((table: string) => {
@@ -157,5 +162,30 @@ describe("POST /api/cron/expire-drafts (RN-07/CA-07.3)", () => {
         payload: expect.objectContaining({ businessId: "biz-quase-expirando" }),
       })
     );
+  });
+
+  // Gap 3 (Minor, rodada 2 do Verifier): sem dedup, um rascunho na
+  // janela de 7 dias receberia o aviso todo dia (ate' 7x). Ja avisado
+  // nesta janela -> nao enfileira de novo.
+  it("nao repete o aviso quando ja foi avisado nesta janela (Gap 3)", async () => {
+    wasNearingExpiryNotifiedMock.mockResolvedValueOnce(true);
+    draftsResult = {
+      data: [
+        {
+          id: "biz-ja-avisado",
+          created_at: new Date(NOW - 85 * DAY_MS).toISOString(),
+          owner_id: "owner-1",
+          nome: "Cooperativa Teste",
+        },
+      ],
+      error: null,
+    };
+    const { POST } = await import("../route");
+
+    const res = await POST(request({ "x-cron-secret": "segredo-de-teste" }));
+    const body = await res.json();
+
+    expect(body).toEqual({ ok: true, expired: 0, avisados: 0 });
+    expect(enqueueNotificationMock).not.toHaveBeenCalled();
   });
 });

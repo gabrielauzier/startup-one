@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTransition } from "@/lib/business/state-machine";
 import { selectSealsNearingExpiry } from "@/lib/cron/expiration";
-import { enqueueNotification } from "@/lib/notifications/queue";
+import { enqueueNotification, wasNearingExpiryNotified } from "@/lib/notifications/queue";
+
+// Gap 3 (Minor, rodada 2): janela de 30 dias de largura - conferir se
+// ja' avisou nos ultimos 30 dias evita repetir o aviso em todo cron
+// diario dentro da mesma janela.
+const SEAL_WARNING_WINDOW_DAYS = 30;
 
 /**
  * RN-19/CA-19.2: move negocios `verificado` cujo `selo_valido_ate` ja
@@ -43,9 +48,19 @@ export async function POST(request: Request) {
   );
 
   const byId = new Map((verificados ?? []).map((b) => [b.id, b]));
+  let avisados = 0;
   for (const id of nearingExpiryIds) {
     const business = byId.get(id);
     if (!business) continue;
+
+    const jaAvisado = await wasNearingExpiryNotified(
+      admin,
+      "selo_expirando_em_breve",
+      id,
+      SEAL_WARNING_WINDOW_DAYS,
+      now
+    );
+    if (jaAvisado) continue;
 
     await enqueueNotification({
       type: "selo_expirando_em_breve",
@@ -56,6 +71,7 @@ export async function POST(request: Request) {
         body: `Faltam 30 dias para o selo Verificado Îasy de ${business.nome ?? "seu negócio"} expirar. Entre em contato para renovar a verificação.`,
       },
     });
+    avisados += 1;
   }
 
   if (expiredIds.length > 0) {
@@ -63,5 +79,5 @@ export async function POST(request: Request) {
     await admin.from("businesses").update({ status: "expirado" }).in("id", expiredIds);
   }
 
-  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados: nearingExpiryIds.length });
+  return NextResponse.json({ ok: true, expired: expiredIds.length, avisados });
 }
