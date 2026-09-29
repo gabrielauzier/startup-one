@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte2, type Parte2State } from "./actions";
 
 const INITIAL_STATE: Parte2State = {};
@@ -30,9 +32,11 @@ export interface Parte2Draft {
 export function Parte2Form({
   businessId,
   draft,
+  ajuste = null,
 }: {
   businessId: string;
   draft: Parte2Draft;
+  ajuste?: FieldAjusteInfo | null;
 }) {
   const [state, formAction, pending] = useActionState(submitParte2, INITIAL_STATE);
   const { status, saveDraft } = useDraftSync(businessId, 2);
@@ -112,7 +116,9 @@ export function Parte2Form({
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "nome")}
         />
+        <AjusteComment ajuste={ajuste} campo="nome" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -125,7 +131,8 @@ export function Parte2Form({
           value={tipoOrg}
           onChange={(e) => setTipoOrg(e.target.value)}
           aria-label="Tipo de organização"
-          className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+          disabled={isFieldLocked(ajuste, "tipoOrg")}
+          className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm disabled:opacity-50"
         >
           <option value="">Selecione...</option>
           {TIPOS_ORG.map((t) => (
@@ -134,6 +141,7 @@ export function Parte2Form({
             </option>
           ))}
         </select>
+        <AjusteComment ajuste={ajuste} campo="tipoOrg" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -147,7 +155,9 @@ export function Parte2Form({
           value={cidade}
           onChange={(e) => setCidade(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "cidade")}
         />
+        <AjusteComment ajuste={ajuste} campo="cidade" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -162,7 +172,9 @@ export function Parte2Form({
           value={uf}
           onChange={(e) => setUf(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "uf")}
         />
+        <AjusteComment ajuste={ajuste} campo="uf" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -178,7 +190,9 @@ export function Parte2Form({
           value={familias}
           onChange={(e) => setFamilias(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "familias")}
         />
+        <AjusteComment ajuste={ajuste} campo="familias" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -194,7 +208,9 @@ export function Parte2Form({
           value={anosAtividade}
           onChange={(e) => setAnosAtividade(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "anosAtividade")}
         />
+        <AjusteComment ajuste={ajuste} campo="anosAtividade" />
       </div>
 
       <div className="flex items-center gap-2">
@@ -203,10 +219,12 @@ export function Parte2Form({
           name="recebeVisitas"
           checked={recebeVisitas}
           onCheckedChange={(checked) => setRecebeVisitas(checked === true)}
+          disabled={isFieldLocked(ajuste, "recebeVisitas")}
         />
         <label htmlFor="recebeVisitas" className="font-body text-sm text-foreground/80">
           Recebemos visitas de investidores
         </label>
+        <AjusteComment ajuste={ajuste} campo="recebeVisitas" />
       </div>
 
       {state.error && (

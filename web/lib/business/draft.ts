@@ -1,4 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getFieldAjusteInfoForPart,
+  type FieldAjusteInfo,
+  type ItemAjuste,
+} from "./adjustable-fields";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -76,4 +81,45 @@ export async function getDraftData(
   }
 
   return draft;
+}
+
+/**
+ * CA-14.1: itens de ajuste (campo + comentario) da decisao "ajuste"
+ * mais recente do negocio - `[]` se o negocio nunca recebeu um pedido
+ * de ajuste. So' faz sentido consultar quando `business.status ===
+ * "ajuste_solicitado"`; o chamador decide isso.
+ */
+export async function getLatestItensAjuste(
+  admin: AdminClient,
+  businessId: string
+): Promise<ItemAjuste[]> {
+  const { data } = await admin
+    .from("verifications")
+    .select("itens_ajuste")
+    .eq("business_id", businessId)
+    .eq("decisao", "ajuste")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const itens = (data?.itens_ajuste as ItemAjuste[] | null) ?? [];
+  return itens;
+}
+
+/**
+ * CA-14.1: atalho usado pelas 5 paginas de parte do cadastro - so'
+ * busca e monta o `FieldAjusteInfo` da parte quando o negocio esta
+ * `ajuste_solicitado`; `null` (tudo editavel) em qualquer outro status.
+ */
+export async function getAjusteInfoForPart(
+  admin: AdminClient,
+  business: Pick<BusinessRow, "id" | "status">,
+  part: 1 | 2 | 3 | 4 | 5
+): Promise<FieldAjusteInfo | null> {
+  if (business.status !== "ajuste_solicitado") {
+    return null;
+  }
+
+  const itens = await getLatestItensAjuste(admin, business.id);
+  return getFieldAjusteInfoForPart(itens, part);
 }

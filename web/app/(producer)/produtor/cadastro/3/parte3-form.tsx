@@ -11,7 +11,9 @@ import {
   PRODUTOS_OPTIONS,
 } from "@/lib/business/impact-options";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte3, type Parte3State } from "./actions";
 
 const INITIAL_STATE: Parte3State = {};
@@ -26,9 +28,11 @@ export interface Parte3Draft {
 export function Parte3Form({
   businessId,
   draft,
+  ajuste = null,
 }: {
   businessId: string;
   draft: Parte3Draft;
+  ajuste?: FieldAjusteInfo | null;
 }) {
   const [state, formAction, pending] = useActionState(submitParte3, INITIAL_STATE);
   const { status, saveDraft } = useDraftSync(businessId, 3);
@@ -90,6 +94,7 @@ export function Parte3Form({
                 value={opt}
                 checked={produtos.has(opt)}
                 onCheckedChange={() => toggle(produtos, setProdutos, opt)}
+                disabled={isFieldLocked(ajuste, "produtos")}
               />
               {opt}
             </label>
@@ -98,6 +103,7 @@ export function Parte3Form({
         {state.field === "produtos" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="produtos" />
       </fieldset>
 
       <div className="flex flex-col gap-1">
@@ -113,10 +119,12 @@ export function Parte3Form({
           value={producaoMensalKg}
           onChange={(e) => setProducaoMensalKg(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "producaoMensalKg")}
         />
         {state.field === "producaoMensalKg" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="producaoMensalKg" />
       </div>
 
       <fieldset className="flex flex-col gap-2">
@@ -131,6 +139,7 @@ export function Parte3Form({
                 value={opt}
                 checked={praticas.has(opt)}
                 onCheckedChange={() => toggle(praticas, setPraticas, opt)}
+                disabled={isFieldLocked(ajuste, "praticas")}
               />
               {opt}
             </label>
@@ -139,6 +148,7 @@ export function Parte3Form({
         {state.field === "praticas" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="praticas" />
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
@@ -153,11 +163,13 @@ export function Parte3Form({
                 value={opt}
                 checked={impactos.has(opt)}
                 onCheckedChange={() => toggle(impactos, setImpactos, opt)}
+                disabled={isFieldLocked(ajuste, "impactos")}
               />
               {opt}
             </label>
           ))}
         </div>
+        <AjusteComment ajuste={ajuste} campo="impactos" />
       </fieldset>
 
       {state.error && !state.field && (

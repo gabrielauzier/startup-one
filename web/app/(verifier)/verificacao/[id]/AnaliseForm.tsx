@@ -10,6 +10,7 @@ import {
   isValidMotivo,
   type ChecklistKey,
 } from "@/lib/verification/checklist";
+import { ADJUSTABLE_FIELDS } from "@/lib/business/adjustable-fields";
 import { requestAdjustment, reject, approve } from "./actions";
 
 const CHECKLIST_LABEL: Record<ChecklistKey, string> = {
@@ -41,6 +42,10 @@ export function AnaliseForm({
   const [notas, setNotas] = useState({ a: "", s: "", g: "" });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // CA-14.1: quais campos foram marcados para ajuste, e o comentario
+  // especifico de cada um - o produtor so' vera esses como editaveis.
+  const [camposMarcados, setCamposMarcados] = useState<Set<string>>(new Set());
+  const [comentarios, setComentarios] = useState<Record<string, string>>({});
 
   const checklistComplete = isChecklistComplete(checklist);
   const canApprove = checklistComplete && hasTerraEvidence;
@@ -50,9 +55,22 @@ export function AnaliseForm({
     setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  function toggleCampo(campo: string) {
+    setCamposMarcados((prev) => {
+      const next = new Set(prev);
+      if (next.has(campo)) next.delete(campo);
+      else next.add(campo);
+      return next;
+    });
+  }
+
   function submitAjuste() {
+    const itensAjuste = Array.from(camposMarcados).map((campo) => ({
+      campo,
+      comentario: comentarios[campo] ?? "",
+    }));
     startTransition(async () => {
-      const result = await requestAdjustment(businessId, motivo, checklist, []);
+      const result = await requestAdjustment(businessId, motivo, checklist, itensAjuste);
       if (!result.ok) setError(result.error ?? "Erro ao registrar.");
     });
   }
@@ -145,6 +163,45 @@ export function AnaliseForm({
           </>
         )}
       </div>
+
+      {mode === "ajuste" && (
+        <div className="flex flex-col gap-3" data-testid="campos-ajuste">
+          <h3 className="font-heading text-base text-primary">
+            Quais campos precisam de ajuste?
+          </h3>
+          <p className="font-body text-sm text-foreground/70">
+            Só os campos marcados aqui ficam editáveis para a produtora; os
+            demais ficam bloqueados (CA-14.1).
+          </p>
+          <ul className="flex flex-col gap-2">
+            {ADJUSTABLE_FIELDS.map((field) => (
+              <li key={field.campo} className="flex flex-col gap-1">
+                <label className="flex items-center gap-2 font-body text-sm">
+                  <Checkbox
+                    checked={camposMarcados.has(field.campo)}
+                    onCheckedChange={() => toggleCampo(field.campo)}
+                    data-testid={`campo-ajuste-${field.campo}`}
+                  />
+                  {field.label}
+                </label>
+                {camposMarcados.has(field.campo) && (
+                  <textarea
+                    aria-label={`Comentário sobre ${field.label}`}
+                    data-testid={`comentario-${field.campo}`}
+                    value={comentarios[field.campo] ?? ""}
+                    onChange={(e) =>
+                      setComentarios((prev) => ({ ...prev, [field.campo]: e.target.value }))
+                    }
+                    rows={2}
+                    placeholder="O que precisa mudar aqui?"
+                    className="ml-6 rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {(mode === "ajuste" || mode === "reprovar") && (
         <div className="flex flex-col gap-2">

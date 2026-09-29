@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte5, type Parte5State } from "./actions";
 import { VALOR_MAX, VALOR_MIN, VALOR_STEP } from "./constants";
 
@@ -35,9 +37,11 @@ function formatBRL(value: number): string {
 export function Parte5Form({
   businessId,
   draft,
+  ajuste = null,
 }: {
   businessId: string;
   draft: Parte5Draft;
+  ajuste?: FieldAjusteInfo | null;
 }) {
   const [state, formAction, pending] = useActionState(submitParte5, INITIAL_STATE);
   const { status, saveDraft } = useDraftSync(businessId, 5);
@@ -81,7 +85,8 @@ export function Parte5Form({
           name="finalidade"
           value={finalidade}
           onChange={(e) => setFinalidade(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+          disabled={isFieldLocked(ajuste, "finalidade")}
+          className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm disabled:opacity-50"
         >
           <option value="">Selecione...</option>
           {FINALIDADES.map((f) => (
@@ -93,6 +98,7 @@ export function Parte5Form({
         {state.field === "finalidade" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="finalidade" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -109,6 +115,7 @@ export function Parte5Form({
           value={valorBusca}
           onChange={(e) => setValorBusca(Number(e.target.value))}
           aria-label="Valor"
+          disabled={isFieldLocked(ajuste, "valorBusca")}
         />
         <p className="font-body text-xs text-foreground/60">
           De {formatBRL(VALOR_MIN)} a {formatBRL(VALOR_MAX)}, em passos de{" "}
@@ -117,6 +124,7 @@ export function Parte5Form({
         {state.field === "valorBusca" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="valorBusca" />
       </div>
 
       <fieldset className="flex flex-col gap-2">
@@ -132,6 +140,7 @@ export function Parte5Form({
               role="radio"
               aria-checked={prazoMeses === p}
               onClick={() => setPrazoMeses(p)}
+              disabled={isFieldLocked(ajuste, "prazoMeses")}
             >
               {p}
             </Button>
@@ -141,6 +150,7 @@ export function Parte5Form({
         {state.field === "prazoMeses" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="prazoMeses" />
       </fieldset>
 
       <div className="flex flex-col gap-1">
@@ -155,6 +165,7 @@ export function Parte5Form({
           value={retornoProposto}
           onChange={(e) => setRetornoProposto(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "retornoProposto")}
         />
         <button
           type="button"
@@ -174,6 +185,7 @@ export function Parte5Form({
         {state.field === "retornoProposto" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="retornoProposto" />
       </div>
 
       {state.error && !state.field && (

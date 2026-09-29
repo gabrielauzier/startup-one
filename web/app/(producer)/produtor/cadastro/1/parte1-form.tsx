@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { AjusteComment, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte1, type Parte1State } from "./actions";
 
 const INITIAL_STATE: Parte1State = {};
@@ -22,9 +24,11 @@ export interface Parte1Draft {
 export function Parte1Form({
   businessId,
   draft,
+  ajuste = null,
 }: {
   businessId: string;
   draft: Parte1Draft;
+  ajuste?: FieldAjusteInfo | null;
 }) {
   const [state, formAction, pending] = useActionState(submitParte1, INITIAL_STATE);
   const { status, saveDraft } = useDraftSync(businessId, 1);
@@ -77,7 +81,9 @@ export function Parte1Form({
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "nome")}
         />
+        <AjusteComment ajuste={ajuste} campo="nome" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -92,7 +98,9 @@ export function Parte1Form({
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "telefone")}
         />
+        <AjusteComment ajuste={ajuste} campo="telefone" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -105,7 +113,9 @@ export function Parte1Form({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={isFieldLocked(ajuste, "email")}
         />
+        <AjusteComment ajuste={ajuste} campo="email" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -119,10 +129,12 @@ export function Parte1Form({
           value={cnpj}
           onChange={(e) => setCnpj(e.target.value)}
           required
+          disabled={isFieldLocked(ajuste, "cnpj")}
         />
         {state.field === "cnpj" && (
           <p className="font-body text-sm text-destructive">CNPJ inválido</p>
         )}
+        <AjusteComment ajuste={ajuste} campo="cnpj" />
       </div>
 
       <div className="flex items-start gap-2">
@@ -131,11 +143,13 @@ export function Parte1Form({
           name="autorizacao"
           checked={autorizacao}
           onCheckedChange={(checked) => setAutorizacao(checked === true)}
+          disabled={isFieldLocked(ajuste, "autorizacao")}
         />
         <label htmlFor="autorizacao" className="font-body text-sm text-foreground/80">
           Autorizo a Îasy a usar estes dados para montar meu perfil e
           apresentá-lo a investidores. Posso pedir a exclusão quando quiser.
         </label>
+        <AjusteComment ajuste={ajuste} campo="autorizacao" />
       </div>
 
       {state.error && state.field !== "cnpj" && (

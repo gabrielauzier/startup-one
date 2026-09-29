@@ -11,6 +11,7 @@ import {
 } from "@/lib/verification/checklist";
 import { validateNotas, seloValidoAte } from "@/lib/verification/notas";
 import { enqueueNotification } from "@/lib/notifications/queue";
+import type { ItemAjuste } from "@/lib/business/adjustable-fields";
 
 export interface DecisionResult {
   ok: boolean;
@@ -43,17 +44,20 @@ async function requireVerifier(): Promise<
 }
 
 /**
- * RF-15/RN-14/RN-18: marca os itens com problema e o motivo (20+
- * caracteres); transiciona em_analise -> ajuste_solicitado. O produtor
- * reabre o cadastro e reenvia (RN-14) - o reenvio volta ao fim da fila
- * porque submitBusiness (T24) grava uma nova revisao "em_analise" a
- * cada envio.
+ * RF-15/RN-14/RN-18/CA-14.1: marca os itens com problema (campo +
+ * comentario especifico de cada um) e o motivo geral (20+ caracteres);
+ * transiciona em_analise -> ajuste_solicitado. O produtor reabre o
+ * cadastro e ve so' os campos marcados como editaveis, cada um com seu
+ * comentario (getFieldAjusteInfoForPart em lib/business/draft.ts), e
+ * reenvia (RN-14) - o reenvio volta ao fim da fila porque
+ * submitBusiness (T24) grava uma nova revisao "em_analise" a cada
+ * envio.
  */
 export async function requestAdjustment(
   businessId: string,
   motivo: string,
   checklist: ChecklistState,
-  itensAjuste: string[]
+  itensAjuste: ItemAjuste[]
 ): Promise<DecisionResult> {
   const auth = await requireVerifier();
   if (!auth.ok) return auth;

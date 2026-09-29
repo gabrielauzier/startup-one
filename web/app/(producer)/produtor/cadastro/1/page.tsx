@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getActiveBusinessForOwner, getDraftData } from "@/lib/business/draft";
+import {
+  getActiveBusinessForOwner,
+  getAjusteInfoForPart,
+  getDraftData,
+} from "@/lib/business/draft";
 import { Parte1Form } from "./parte1-form";
 
 /**
@@ -25,10 +29,11 @@ export default async function CadastroParte1Page() {
   }
 
   const draft = await getDraftData(admin, business.id);
+  const ajuste = await getAjusteInfoForPart(admin, business, 1);
 
   return (
     <main className="flex flex-1 flex-col gap-6 px-6 py-12">
-      <Parte1Form businessId={business.id} draft={draft.part1} />
+      <Parte1Form businessId={business.id} draft={draft.part1} ajuste={ajuste} />
     </main>
   );
 }
