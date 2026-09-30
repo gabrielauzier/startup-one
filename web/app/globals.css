@@ -54,9 +54,15 @@
 :root {
   --background: #f5f1e8;
   --foreground: #171717;
-  --card: #f5f1e8;
+  /*
+   * Gap de design: --card/--popover estavam iguais a --background
+   * (#f5f1e8), então todo `bg-card` (Card, BusinessCard, FourSteps)
+   * ficava "invisível" contra a página - no protótipo os cards têm
+   * fundo branco, destacado do bege de fundo.
+   */
+  --card: #ffffff;
   --card-foreground: #171717;
-  --popover: #f5f1e8;
+  --popover: #ffffff;
   --popover-foreground: #171717;
   --primary: #1e5a3c;
   --primary-foreground: #f5f1e8;
