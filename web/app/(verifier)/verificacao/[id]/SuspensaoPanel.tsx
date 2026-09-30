@@ -65,7 +65,7 @@ export function SuspensaoPanel({
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
           rows={3}
-          className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+          className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
         />
         <Button
           type="button"

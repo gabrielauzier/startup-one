@@ -194,7 +194,7 @@ export function AnaliseForm({
                     }
                     rows={2}
                     placeholder="O que precisa mudar aqui?"
-                    className="ml-6 rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+                    className="ml-6 rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
                   />
                 )}
               </li>
@@ -214,7 +214,7 @@ export function AnaliseForm({
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             rows={3}
-            className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
           />
           <Button
             type="button"
@@ -242,7 +242,7 @@ export function AnaliseForm({
                 step={1}
                 value={notas.a}
                 onChange={(e) => setNotas((prev) => ({ ...prev, a: e.target.value }))}
-                className="rounded-md border border-border bg-background px-2 py-1"
+                className="rounded-md border border-border bg-white px-2 py-1"
               />
             </label>
             <label className="flex flex-col gap-1 font-body text-sm">
@@ -254,7 +254,7 @@ export function AnaliseForm({
                 step={1}
                 value={notas.s}
                 onChange={(e) => setNotas((prev) => ({ ...prev, s: e.target.value }))}
-                className="rounded-md border border-border bg-background px-2 py-1"
+                className="rounded-md border border-border bg-white px-2 py-1"
               />
             </label>
             <label className="flex flex-col gap-1 font-body text-sm">
@@ -266,7 +266,7 @@ export function AnaliseForm({
                 step={1}
                 value={notas.g}
                 onChange={(e) => setNotas((prev) => ({ ...prev, g: e.target.value }))}
-                className="rounded-md border border-border bg-background px-2 py-1"
+                className="rounded-md border border-border bg-white px-2 py-1"
               />
             </label>
           </div>

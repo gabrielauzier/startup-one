@@ -71,7 +71,7 @@ export function BoasVindasForm({ partners }: { partners: Partner[] }) {
             value={parceiroId}
             onChange={(e) => setParceiroId(e.target.value)}
             className={
-              "rounded-md border bg-background px-3 py-2 font-body text-sm " +
+              "rounded-md border bg-white px-3 py-2 font-body text-sm " +
               (highlightParceiro ? "border-destructive" : "border-border")
             }
           >

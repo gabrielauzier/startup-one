@@ -100,7 +100,7 @@ export function InterestModal({
             maxLength={INTEREST_MAX_MENSAGEM_LENGTH}
             onChange={(e) => setMensagem(e.target.value)}
             rows={3}
-            className="rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-body text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="rounded-lg border border-input bg-white px-2.5 py-1.5 font-body text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
           <p className="font-body text-xs text-muted-foreground">
             {mensagem.length}/{INTEREST_MAX_MENSAGEM_LENGTH}

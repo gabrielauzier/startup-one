@@ -154,7 +154,7 @@ export default async function ConexoesPage() {
                     type="text"
                     name="observacao"
                     placeholder="Registrar observação"
-                    className="flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-body text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="flex-1 rounded-lg border border-input bg-white px-2.5 py-1.5 font-body text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   />
                   <button
                     type="submit"

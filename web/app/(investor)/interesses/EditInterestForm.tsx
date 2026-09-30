@@ -47,7 +47,7 @@ export function EditInterestForm({
           min={1000}
           max={valorBusca}
           onChange={(e) => setValor(e.target.value)}
-          className="w-32 rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-body text-sm"
+          className="w-32 rounded-lg border border-input bg-white px-2.5 py-1.5 font-body text-sm"
         />
         <button
           type="button"

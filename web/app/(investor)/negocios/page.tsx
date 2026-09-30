@@ -95,7 +95,7 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
             name="q"
             type="text"
             defaultValue={q}
-            className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
           />
         </div>
 
@@ -107,7 +107,7 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
             id="produto"
             name="produto"
             defaultValue={produto}
-            className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
           >
             <option value="">Todos</option>
             {PRODUTOS_OPTIONS.map((p) => (
@@ -126,7 +126,7 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
             id="uf"
             name="uf"
             defaultValue={uf}
-            className="rounded-md border border-border bg-background px-3 py-2 font-body text-sm"
+            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
           >
             <option value="">Todos</option>
             {AMAZONIA_LEGAL_UFS.map((estado) => (
