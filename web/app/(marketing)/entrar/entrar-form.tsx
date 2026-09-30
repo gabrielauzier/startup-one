@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
 import { sendOtp, type EntrarRole, type SendOtpState } from "./actions";
 
 const ROLES: { value: EntrarRole; label: string }[] = [
@@ -20,10 +21,13 @@ export function EntrarForm({ redirectTo }: { redirectTo: string }) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-24">
       <div>
-        <h1 className="font-heading text-3xl text-primary">Entrar</h1>
-        <p className="mt-2 font-body text-sm text-foreground/70">
+        {/* as="h1" (semântica da página) com o estilo do variant "h2" (3xl). */}
+        <Typography as="h1" variant="h2" color="primary">
+          Entrar
+        </Typography>
+        <Typography variant="body" className="mt-2 text-foreground/70">
           Sem senha: enviamos um código de acesso.
-        </p>
+        </Typography>
       </div>
 
       <form action={formAction} className="flex flex-col gap-4">
@@ -58,7 +62,9 @@ export function EntrarForm({ redirectTo }: { redirectTo: string }) {
         />
 
         {state.error && (
-          <p className="font-body text-sm text-destructive">{state.error}</p>
+          <Typography variant="body" color="destructive">
+            {state.error}
+          </Typography>
         )}
 
         <Button type="submit" disabled={!role || pending}>

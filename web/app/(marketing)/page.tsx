@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import { FourSteps } from "@/components/marketing/FourSteps";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -84,18 +85,28 @@ export default async function Home() {
         <div
           className={`max-w-2xl text-center ${featured ? "lg:text-left" : ""}`}
         >
-          <p className="font-body text-sm font-medium text-primary/80">
+          <Typography
+            variant="body"
+            size="sm"
+            weight="medium"
+            color="primary"
+            className="text-primary/80"
+          >
             Negócios da floresta com informação confiável
-          </p>
-          <h1 className="mt-2 font-heading text-4xl text-primary">
+          </Typography>
+          <Typography variant="h1" color="primary" className="mt-2">
             Negócios da Amazônia com visibilidade e transparência.
-          </h1>
-          <p className="mt-4 font-body text-lg text-foreground/80">
+          </Typography>
+          <Typography
+            variant="body"
+            size="lg"
+            className="mt-4 text-foreground/80"
+          >
             Conectamos quem produz a quem quer investir. Organizamos e
             conferimos as informações de negócios amazônicos: produtores ganham
             credibilidade e investidores encontram negócios em que podem
             confiar.
-          </p>
+          </Typography>
 
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
             <Link
@@ -124,7 +135,12 @@ export default async function Home() {
         id="como-funciona"
         className="flex w-full flex-col items-center gap-6 scroll-mt-20"
       >
-        <h2 className="font-heading text-2xl text-primary">Como funciona</h2>
+        {/* as="h2" preserva a hierarquia semântica (h1 -> h2) mesmo usando
+            o estilo visual do variant "h3" (2xl) - exatamente o ponto de
+            `as` ser independente de `variant`. */}
+        <Typography as="h2" variant="h3" color="primary">
+          Como funciona
+        </Typography>
         <FourSteps />
       </div>
     </main>

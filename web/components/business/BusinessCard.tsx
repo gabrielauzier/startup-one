@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 
 /**
  * RN-28: dados que o card de negocio precisa para renderizar. Reduzido
@@ -57,50 +58,78 @@ export function BusinessCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="font-body text-xs text-muted-foreground">Sem foto</span>
+            <Typography variant="caption">Sem foto</Typography>
           )}
         </div>
 
         <div className="flex flex-col gap-2 px-4 pb-4">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 font-body text-xs font-medium text-primary">
+            <Typography
+              as="span"
+              variant="caption"
+              weight="medium"
+              color="primary"
+              className="rounded-full bg-primary/10 px-2 py-0.5"
+            >
               Verificado Îasy
-            </span>
+            </Typography>
             {business.certificadoras.map((sigla) => (
-              <span
+              <Typography
+                as="span"
                 key={sigla}
-                className="rounded-full bg-muted px-2 py-0.5 font-body text-xs text-muted-foreground"
+                variant="caption"
+                className="rounded-full bg-muted px-2 py-0.5"
               >
                 {sigla}
-              </span>
+              </Typography>
             ))}
             {typeof alignment === "number" && (
-              <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 font-body text-xs font-medium text-secondary-foreground">
+              <Typography
+                as="span"
+                variant="caption"
+                weight="medium"
+                className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground"
+              >
                 {alignment}% alinhado ao seu perfil
-              </span>
+              </Typography>
             )}
           </div>
 
-          <h3 className="font-heading text-base font-medium">{business.nome}</h3>
-          <p className="font-body text-sm text-muted-foreground">
+          {/* as="h3" preserva a hierarquia (título do card dentro da
+              listagem), com tamanho/peso próprios (base/medium) em vez
+              do preset padrão de "h4" (lg/normal). */}
+          <Typography as="h3" variant="h4" size="base" weight="medium">
+            {business.nome}
+          </Typography>
+          <Typography variant="body" color="muted">
             {business.produtos.join(", ")} · {business.cidade}/{business.uf}
-          </p>
+          </Typography>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 font-body text-sm">
-            <span>Busca {formatBRL(business.valorBusca)}</span>
-            <span>Prazo {business.prazoMeses} meses</span>
-            <span>Retorno proposto {business.retornoProposto}% ao ano</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Typography as="span" variant="body">
+              Busca {formatBRL(business.valorBusca)}
+            </Typography>
+            <Typography as="span" variant="body">
+              Prazo {business.prazoMeses} meses
+            </Typography>
+            <Typography as="span" variant="body">
+              Retorno proposto {business.retornoProposto}% ao ano
+            </Typography>
           </div>
 
-          <p className="font-body text-sm text-muted-foreground">
+          <Typography variant="body" color="muted">
             Nota Îasy — Ambiental {business.notaA} · Social {business.notaS} · Gestão{" "}
             {business.notaG}
-          </p>
+          </Typography>
 
           {business.recebeVisitas && (
-            <span className="w-fit rounded-full bg-muted px-2 py-0.5 font-body text-xs text-muted-foreground">
+            <Typography
+              as="span"
+              variant="caption"
+              className="w-fit rounded-full bg-muted px-2 py-0.5"
+            >
               Recebe visitas
-            </span>
+            </Typography>
           )}
 
           <div className="flex flex-col gap-1">
@@ -110,10 +139,10 @@ export function BusinessCard({
                 style={{ width: `${barraPercent}%` }}
               />
             </div>
-            <p className="font-body text-xs text-muted-foreground">
+            <Typography variant="caption">
               Interesse de investidores: {formatBRL(interesseSomado)} de{" "}
               {formatBRL(business.valorBusca)}
-            </p>
+            </Typography>
           </div>
         </div>
       </Card>

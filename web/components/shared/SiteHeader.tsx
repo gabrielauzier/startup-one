@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Moon } from "lucide-react";
 import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 import type { Role } from "@/lib/auth/roles";
 
 interface NavLink {
@@ -37,14 +38,13 @@ export function SiteHeader({ role }: { role: Role | null }) {
   const links = linksForRole(role);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-30 border-b border-border bg-white backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 font-heading text-lg text-primary"
-        >
+        <Link href="/" className="flex items-center gap-2">
           <Moon className="size-5 fill-primary" aria-hidden />
-          Îasy
+          <Typography as="span" variant="h4" color="primary">
+            Îasy
+          </Typography>
         </Link>
 
         <nav
@@ -52,12 +52,14 @@ export function SiteHeader({ role }: { role: Role | null }) {
           className="hidden items-center gap-6 md:flex"
         >
           {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="font-body text-sm text-foreground/80 hover:text-foreground"
-            >
-              {link.label}
+            <Link key={link.href} href={link.href}>
+              <Typography
+                as="span"
+                variant="body"
+                className="text-foreground/80 hover:text-foreground"
+              >
+                {link.label}
+              </Typography>
             </Link>
           ))}
         </nav>

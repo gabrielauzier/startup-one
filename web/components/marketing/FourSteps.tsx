@@ -1,3 +1,5 @@
+import { Typography } from "@/components/ui/typography";
+
 const STEPS = [
   {
     title: "Organizar",
@@ -29,15 +31,17 @@ export function FourSteps() {
           key={step.title}
           className="rounded-lg border border-border bg-card p-4 text-left"
         >
-          <span className="font-heading text-2xl text-primary">
+          <Typography as="span" variant="h3" color="primary">
             {index + 1}
-          </span>
-          <h3 className="mt-2 font-heading text-lg text-primary">
+          </Typography>
+          {/* as="h3" preserva a hierarquia (h1 > h2 "Como funciona" > h3
+              por item), com o estilo do variant "h4" (lg). */}
+          <Typography as="h3" variant="h4" color="primary" className="mt-2">
             {step.title}
-          </h3>
-          <p className="mt-1 font-body text-sm text-foreground/80">
+          </Typography>
+          <Typography variant="body" className="mt-1 text-foreground/80">
             {step.description}
-          </p>
+          </Typography>
         </li>
       ))}
     </ol>
