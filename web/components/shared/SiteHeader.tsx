@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Moon } from "lucide-react";
+import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
 import type { Role } from "@/lib/auth/roles";
 
@@ -38,12 +39,18 @@ export function SiteHeader({ role }: { role: Role | null }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6">
-        <Link href="/" className="flex items-center gap-2 font-heading text-lg text-primary">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-heading text-lg text-primary"
+        >
           <Moon className="size-5 fill-primary" aria-hidden />
           Îasy
         </Link>
 
-        <nav aria-label="Navegação principal" className="hidden items-center gap-6 md:flex">
+        <nav
+          aria-label="Navegação principal"
+          className="hidden items-center gap-6 md:flex"
+        >
           {links.map((link) => (
             <Link
               key={link.href}
@@ -55,7 +62,10 @@ export function SiteHeader({ role }: { role: Role | null }) {
           ))}
         </nav>
 
-        <Link href="/entrar" className={buttonVariants({ variant: "outline", size: "sm" })}>
+        <Link
+          href="/entrar"
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+        >
           Entrar
         </Link>
       </div>

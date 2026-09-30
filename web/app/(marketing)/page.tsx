@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
 import { FourSteps } from "@/components/marketing/FourSteps";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BusinessCard, type BusinessSummary } from "@/components/business/BusinessCard";
+import {
+  BusinessCard,
+  type BusinessSummary,
+} from "@/components/business/BusinessCard";
 
 interface FeaturedBusinessRow {
   id: string;
@@ -32,7 +36,7 @@ async function getFeaturedBusiness(): Promise<BusinessSummary | null> {
   const { data } = await supabase
     .from("businesses")
     .select(
-      "id, slug, nome, cidade_ibge, uf, produtos, valor_busca, prazo_meses, retorno_proposto, nota_a, nota_s, nota_g, recebe_visitas"
+      "id, slug, nome, cidade_ibge, uf, produtos, valor_busca, prazo_meses, retorno_proposto, nota_a, nota_s, nota_g, recebe_visitas",
     )
     .eq("status", "verificado")
     .order("verificado_em", { ascending: false })
@@ -60,7 +64,9 @@ async function getFeaturedBusiness(): Promise<BusinessSummary | null> {
     notaA: data.nota_a,
     notaS: data.nota_s,
     notaG: data.nota_g,
-    certificadoras: (certificationsData ?? []).map((c) => c.certificadora as string),
+    certificadoras: (certificationsData ?? []).map(
+      (c) => c.certificadora as string,
+    ),
     recebeVisitas: data.recebe_visitas,
   };
 }
@@ -75,7 +81,9 @@ export default async function Home() {
           featured ? "lg:flex-row lg:items-center lg:text-left" : ""
         }`}
       >
-        <div className={`max-w-2xl text-center ${featured ? "lg:text-left" : ""}`}>
+        <div
+          className={`max-w-2xl text-center ${featured ? "lg:text-left" : ""}`}
+        >
           <p className="font-body text-sm font-medium text-primary/80">
             Negócios da floresta com informação confiável
           </p>
@@ -84,18 +92,21 @@ export default async function Home() {
           </h1>
           <p className="mt-4 font-body text-lg text-foreground/80">
             Conectamos quem produz a quem quer investir. Organizamos e
-            conferimos as informações de negócios amazônicos: produtores
-            ganham credibilidade e investidores encontram negócios em que
-            podem confiar.
+            conferimos as informações de negócios amazônicos: produtores ganham
+            credibilidade e investidores encontram negócios em que podem
+            confiar.
           </p>
 
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
-            <Link href="/produtor" className={buttonVariants({ size: "lg" })}>
+            <Link
+              href="/produtor"
+              className={cn(buttonVariants({ size: "lg" }))}
+            >
               Sou produtor, quero ser encontrado
             </Link>
             <Link
               href="/descobrir/1"
-              className={buttonVariants({ size: "lg", variant: "outline" })}
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
             >
               Sou investidor, quero conhecer negócios
             </Link>
@@ -109,7 +120,10 @@ export default async function Home() {
         )}
       </div>
 
-      <div id="como-funciona" className="flex w-full flex-col items-center gap-6 scroll-mt-20">
+      <div
+        id="como-funciona"
+        className="flex w-full flex-col items-center gap-6 scroll-mt-20"
+      >
         <h2 className="font-heading text-2xl text-primary">Como funciona</h2>
         <FourSteps />
       </div>

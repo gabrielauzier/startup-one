@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
 
 /** RF-12/HU-09: confirmação do envio, com prazo de 5 dias úteis e os próximos passos. */
@@ -16,7 +17,7 @@ export default function CadastroEnviadoPage() {
         <li>3. Quando aprovado, seu negócio recebe o selo Verificado Îasy e aparece na vitrine.</li>
       </ol>
 
-      <Link href="/produtor/painel" className={buttonVariants({})}>
+      <Link href="/produtor/painel" className={cn(buttonVariants({}))}>
         Ir para o meu painel
       </Link>
     </main>
