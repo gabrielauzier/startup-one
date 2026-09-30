@@ -55,11 +55,14 @@ test.describe("Página do negócio /negocios/[slug] (T40)", () => {
     });
 
     await page.goto(`/negocios/${slug}?aba=negocio`);
-    await expect(
-      page.getByText("Você precisa entrar como investidor ou empresa para ver esta aba.")
-    ).toBeVisible();
+    const invite = page.getByText(
+      "Você precisa entrar como investidor ou empresa para ver esta aba."
+    );
+    await expect(invite).toBeVisible();
 
-    await page.getByRole("link", { name: "Entrar" }).click();
+    // O header global (gap de layout) também tem um link "Entrar" -
+    // escopado ao convite inline da aba, que é o que RN-26/CA-26.1 pede.
+    await invite.locator("..").getByRole("link", { name: "Entrar" }).click();
     await expect(page).toHaveURL(/\/entrar\?redirect=/);
   });
 

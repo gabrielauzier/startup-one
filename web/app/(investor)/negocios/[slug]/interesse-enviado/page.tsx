@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { Timeline, type TimelineEtapa } from "@/components/connection/Timeline";
-import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -105,8 +104,6 @@ export default async function InteresseEnviadoPage(
       <Link href={`/negocios/${slug}`} className="font-body text-sm text-primary underline">
         Voltar para o negócio
       </Link>
-
-      <ConnectionFooter />
     </main>
   );
 }

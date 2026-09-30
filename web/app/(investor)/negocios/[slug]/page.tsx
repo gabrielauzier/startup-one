@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { RecordVisit } from "@/components/business/RecordVisit";
-import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
 import { sumInterests, formatInterestSummary, type Interest } from "@/lib/business/interest-sum";
 import { InterestModal } from "./_components/InterestModal";
 
@@ -392,8 +391,6 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
             ))}
         </aside>
       </div>
-
-      <ConnectionFooter />
     </main>
   );
 }

@@ -14,6 +14,14 @@ import {
   PRODUTO_OPTIONS,
   TODOS_PRODUTOS,
 } from "../questions-data";
+import { DiscoveryProgress } from "./DiscoveryProgress";
+
+/** Classe do card de opção - mesma borda pro radio nativo e pro Checkbox (Base UI, sem `:checked`). */
+function optionCardClass(selected: boolean): string {
+  return `flex items-center gap-2.5 rounded-lg border px-4 py-3 font-body text-sm transition-colors ${
+    selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+  }`;
+}
 
 /**
  * RF-17/RN-22: as 5 perguntas da descoberta guiada, uma por tela.
@@ -75,6 +83,8 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
 
   return (
     <div className="flex flex-col gap-6">
+      <DiscoveryProgress current={n} total={TOTAL_QUESTIONS} />
+
       <p className="font-body text-sm text-muted-foreground">
         Pergunta {n} de {TOTAL_QUESTIONS}
       </p>
@@ -83,7 +93,7 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
         <fieldset className="flex flex-col gap-3">
           <legend className="font-heading text-lg">O que pesa mais para você?</legend>
           {PRIORIDADE_OPTIONS.map((opt) => (
-            <label key={opt.value} className="flex items-center gap-2 font-body text-sm">
+            <label key={opt.value} className={optionCardClass(prioridade === opt.value)}>
               <input
                 type="radio"
                 name="prioridade"
@@ -101,7 +111,7 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
         <fieldset className="flex flex-col gap-3">
           <legend className="font-heading text-lg">Quanto você pretende colocar?</legend>
           {FAIXA_VALOR_OPTIONS.map((opt) => (
-            <label key={opt.value} className="flex items-center gap-2 font-body text-sm">
+            <label key={opt.value} className={optionCardClass(faixaValor === opt.value)}>
               <input
                 type="radio"
                 name="faixaValor"
@@ -119,7 +129,7 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
         <fieldset className="flex flex-col gap-3">
           <legend className="font-heading text-lg">Quais produtos te interessam?</legend>
           {[...PRODUTO_OPTIONS, TODOS_PRODUTOS].map((produto) => (
-            <label key={produto} className="flex items-center gap-2 font-body text-sm">
+            <label key={produto} className={optionCardClass(produtos.includes(produto))}>
               <Checkbox
                 checked={produtos.includes(produto)}
                 onCheckedChange={() => toggleProduto(produto)}
@@ -134,7 +144,7 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
         <fieldset className="flex flex-col gap-3">
           <legend className="font-heading text-lg">Qual o prazo que você aceita?</legend>
           {PRAZO_OPTIONS.map((prazo) => (
-            <label key={prazo} className="flex items-center gap-2 font-body text-sm">
+            <label key={prazo} className={optionCardClass(prazoMaxMeses === prazo)}>
               <input
                 type="radio"
                 name="prazoMaxMeses"
@@ -154,7 +164,7 @@ export function DescobrirForm({ n, answers }: { n: number; answers: DiscoveryAns
             O que mais importa para você? (opcional)
           </legend>
           {DISCOVERY_IMPACT_OPTIONS.map((impacto) => (
-            <label key={impacto} className="flex items-center gap-2 font-body text-sm">
+            <label key={impacto} className={optionCardClass(impactos.includes(impacto))}>
               <Checkbox
                 checked={impactos.includes(impacto)}
                 onCheckedChange={() => toggleImpacto(impacto)}

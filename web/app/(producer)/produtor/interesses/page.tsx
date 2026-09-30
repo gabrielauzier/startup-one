@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
+import { BottomNav } from "@/components/producer/BottomNav";
 import { decideInterestForm } from "./actions";
 
 interface InterestRow {
@@ -165,6 +166,7 @@ export default async function InteressesPage() {
       </section>
 
       <ConnectionFooter />
+      <BottomNav />
     </main>
   );
 }

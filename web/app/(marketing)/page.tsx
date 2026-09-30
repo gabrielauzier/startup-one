@@ -1,14 +1,85 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { FourSteps } from "@/components/marketing/FourSteps";
-import { ConnectionFooter } from "@/components/shared/ConnectionFooter";
+import { createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { BusinessCard, type BusinessSummary } from "@/components/business/BusinessCard";
 
-export default function Home() {
+interface FeaturedBusinessRow {
+  id: string;
+  slug: string | null;
+  nome: string | null;
+  cidade_ibge: string | null;
+  uf: string | null;
+  produtos: string[];
+  valor_busca: number;
+  prazo_meses: number;
+  retorno_proposto: number;
+  nota_a: number;
+  nota_s: number;
+  nota_g: number;
+  recebe_visitas: boolean;
+}
+
+/**
+ * Gap de layout (página inicial): o protótipo mostra 1 negócio em
+ * destaque ao lado do hero - o mais recém-verificado, mesmo card já
+ * usado na vitrine/resultados (`BusinessCard`). Sem negócio verificado
+ * ainda (banco vazio), o hero fica sozinho.
+ */
+async function getFeaturedBusiness(): Promise<BusinessSummary | null> {
+  const supabase = await createServerClient();
+  const { data } = await supabase
+    .from("businesses")
+    .select(
+      "id, slug, nome, cidade_ibge, uf, produtos, valor_busca, prazo_meses, retorno_proposto, nota_a, nota_s, nota_g, recebe_visitas"
+    )
+    .eq("status", "verificado")
+    .order("verificado_em", { ascending: false })
+    .limit(1)
+    .maybeSingle<FeaturedBusinessRow>();
+
+  if (!data || !data.slug || !data.nome) return null;
+
+  const admin = createAdminClient();
+  const { data: certificationsData } = await admin
+    .from("certifications")
+    .select("certificadora")
+    .eq("business_id", data.id)
+    .eq("conferido", true);
+
+  return {
+    slug: data.slug,
+    nome: data.nome,
+    cidade: data.cidade_ibge ?? "",
+    uf: data.uf ?? "",
+    produtos: data.produtos ?? [],
+    valorBusca: data.valor_busca,
+    prazoMeses: data.prazo_meses,
+    retornoProposto: data.retorno_proposto,
+    notaA: data.nota_a,
+    notaS: data.nota_s,
+    notaG: data.nota_g,
+    certificadoras: (certificationsData ?? []).map((c) => c.certificadora as string),
+    recebeVisitas: data.recebe_visitas,
+  };
+}
+
+export default async function Home() {
+  const featured = await getFeaturedBusiness();
+
   return (
-    <div className="flex flex-1 flex-col">
-      <main className="flex flex-1 flex-col items-center gap-12 bg-background px-6 py-24">
-        <div className="max-w-2xl text-center">
-          <h1 className="font-heading text-4xl text-primary">
+    <main className="flex flex-1 flex-col items-center gap-16 bg-background px-6 py-16">
+      <div
+        className={`mx-auto flex w-full max-w-5xl flex-col items-center gap-10 ${
+          featured ? "lg:flex-row lg:items-center lg:text-left" : ""
+        }`}
+      >
+        <div className={`max-w-2xl text-center ${featured ? "lg:text-left" : ""}`}>
+          <p className="font-body text-sm font-medium text-primary/80">
+            Negócios da floresta com informação confiável
+          </p>
+          <h1 className="mt-2 font-heading text-4xl text-primary">
             Negócios da Amazônia com visibilidade e transparência.
           </h1>
           <p className="mt-4 font-body text-lg text-foreground/80">
@@ -17,24 +88,31 @@ export default function Home() {
             ganham credibilidade e investidores encontram negócios em que
             podem confiar.
           </p>
+
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
+            <Link href="/produtor" className={buttonVariants({ size: "lg" })}>
+              Sou produtor, quero ser encontrado
+            </Link>
+            <Link
+              href="/descobrir/1"
+              className={buttonVariants({ size: "lg", variant: "outline" })}
+            >
+              Sou investidor, quero conhecer negócios
+            </Link>
+          </div>
         </div>
 
+        {featured && (
+          <div className="w-full max-w-sm shrink-0">
+            <BusinessCard business={featured} />
+          </div>
+        )}
+      </div>
+
+      <div id="como-funciona" className="flex w-full flex-col items-center gap-6 scroll-mt-20">
+        <h2 className="font-heading text-2xl text-primary">Como funciona</h2>
         <FourSteps />
-
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Link href="/produtor" className={buttonVariants({ size: "lg" })}>
-            Sou produtor, quero ser encontrado
-          </Link>
-          <Link
-            href="/descobrir/1"
-            className={buttonVariants({ size: "lg", variant: "outline" })}
-          >
-            Sou investidor, quero conhecer negócios
-          </Link>
-        </div>
-      </main>
-
-      <ConnectionFooter />
-    </div>
+      </div>
+    </main>
   );
 }

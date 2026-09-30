@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeDocumentSituation } from "@/lib/business/document-status";
+import { BottomNav } from "@/components/producer/BottomNav";
 import {
   respondDocumentRequestForm,
   revokeDocumentAccessForm,
@@ -199,6 +200,8 @@ export default async function PedidosPage() {
           </ul>
         )}
       </section>
+
+      <BottomNav />
     </main>
   );
 }
