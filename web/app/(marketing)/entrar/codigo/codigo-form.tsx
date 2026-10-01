@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Typography } from "@/components/ui/typography";
 import {
   sendOtp,
   verifyOtp,
@@ -36,10 +37,13 @@ export function CodigoForm({
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 px-6 py-24">
       <div>
-        <h1 className="font-heading text-3xl text-primary">Código de acesso</h1>
-        <p className="mt-2 font-body text-sm text-foreground/70">
+        {/* as="h1" (semântica da página) com o estilo do variant "h2" (3xl). */}
+        <Typography as="h1" variant="h2" color="primary">
+          Código de acesso
+        </Typography>
+        <Typography variant="body" className="mt-2 text-foreground/70">
           Enviamos um código de 6 dígitos para {email}.
-        </p>
+        </Typography>
       </div>
 
       <form
@@ -63,7 +67,9 @@ export function CodigoForm({
         />
 
         {state.error && (
-          <p className="font-body text-sm text-destructive">{state.error}</p>
+          <Typography variant="body" color="destructive">
+            {state.error}
+          </Typography>
         )}
 
         <Button type="submit" disabled={pending || blocked}>
@@ -76,9 +82,9 @@ export function CodigoForm({
         <input type="hidden" name="role" value={role} />
         <input type="hidden" name="redirect" value={redirectTo} />
         {resendState.error && (
-          <p className="font-body text-sm text-destructive">
+          <Typography variant="body" color="destructive">
             {resendState.error}
-          </p>
+          </Typography>
         )}
         <Button type="submit" variant="outline">
           Reenviar código
