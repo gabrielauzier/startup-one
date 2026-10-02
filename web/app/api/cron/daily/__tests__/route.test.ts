@@ -153,6 +153,25 @@ describe("POST /api/cron/daily (T55, RNF-08)", () => {
     expect(res.status).toBe(401);
   });
 
+  it("Vercel Cron: GET com Authorization Bearer e' aceito; Bearer errado da 401", async () => {
+    const { GET } = await import("../route");
+    const ok = await GET(
+      new Request("http://localhost/api/cron/daily", {
+        method: "GET",
+        headers: { authorization: "Bearer segredo-de-teste" },
+      })
+    );
+    expect(ok.status).toBe(200);
+
+    const bad = await GET(
+      new Request("http://localhost/api/cron/daily", {
+        method: "GET",
+        headers: { authorization: "Bearer errado" },
+      })
+    );
+    expect(bad.status).toBe(401);
+  });
+
   it("orquestra as 4 expiracoes na mesma chamada", async () => {
     draftsData = [{ id: "biz-velho", created_at: new Date(NOW - 91 * DAY_MS).toISOString() }];
     pendingRequestsData = [{ id: "req-1", created_at: new Date(NOW - 8 * DAY_MS).toISOString() }];

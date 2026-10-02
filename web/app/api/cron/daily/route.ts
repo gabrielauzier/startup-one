@@ -48,9 +48,29 @@ const SEAL_WARNING_WINDOW_DAYS = 30;
  * `wasNearingExpiryNotified` (Gap 3, rodada 2) - uma 2ª chamada no
  * mesmo dia (ou dentro da mesma janela de aviso) não repete nada.
  */
+/**
+ * Vercel Cron chama via GET com `Authorization: Bearer $CRON_SECRET`;
+ * chamada manual/testes seguem via POST com `x-cron-secret`. Ambos
+ * validam contra a mesma env `CRON_SECRET`.
+ */
+function isAuthorized(request: Request): boolean {
+  const expected = process.env.CRON_SECRET;
+  if (!expected) return false;
+  const header = request.headers.get("x-cron-secret");
+  const bearer = request.headers.get("authorization");
+  return header === expected || bearer === `Bearer ${expected}`;
+}
+
+export async function GET(request: Request) {
+  return run(request);
+}
+
 export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  return run(request);
+}
+
+async function run(request: Request) {
+  if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
