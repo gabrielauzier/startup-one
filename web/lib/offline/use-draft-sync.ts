@@ -20,9 +20,15 @@ function isOffline(): boolean {
  * pendentes, "sincronizando" durante o envio, e "salvo" depois do flush.
  */
 export function useDraftSync(businessId: string, part: 1 | 2 | 3 | 4 | 5) {
-  const [status, setStatus] = useState<DraftSyncStatus>(() =>
-    isOffline() ? "salvo_no_celular" : "salvo"
-  );
+  // Bug (issue-09): `isOffline()` depende de `navigator`, indisponivel
+  // no SSR - inicializar o estado checando offline aqui divergia entre
+  // o HTML gerado no servidor (sempre "salvo") e a 1a renderizacao no
+  // cliente (as vezes "salvo_no_celular"), causando hydration mismatch.
+  // O estado sempre comeca em "salvo" (igual ao servidor); o `flush()`
+  // agendado no mount (useEffect abaixo) corrige para
+  // "salvo_no_celular" no proximo tick se o cliente estiver realmente
+  // offline - sem mudar o comportamento final, so' o valor do 1o render.
+  const [status, setStatus] = useState<DraftSyncStatus>("salvo");
 
   const flush = useCallback(async () => {
     if (isOffline()) {

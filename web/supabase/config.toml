@@ -120,16 +120,37 @@ port = 54324
 # via testes unitarios que nao dependem de um upload de verdade
 # (compressao, validacao de tamanho/formato, grupo obrigatorio) -
 # documentado tambem em tasks.md.
+#
+# issue-09 (2026-10-02): tentativa de reabilitar - desta vez o proprio
+# containerd do Docker Desktop deste host estava com o storage interno
+# corrompido ("read-only file system"/"input/output error" gravando a
+# propria metadata dele), impedindo qualquer pull de imagem e derrubando
+# a stack inteira (nao so' o storage). Revertido para enabled=false para
+# restaurar os demais serviços. Além do healthcheck, há um 2º problema
+# represado para quando o storage puder ser testado de verdade: nenhuma
+# migration/seed cria os buckets que o código espera (`evidences` em
+# cadastro/4/actions.ts, `documentos` em lib/documents/signed-url.ts) -
+# mesmo com o serviço saudável, `createSignedUploadUrl` falharia com
+# "Bucket not found". Os blocos `[storage.buckets.*]` abaixo já resolvem
+# isso (o CLI cria os buckets declarados no `start`) - descomentar
+# junto com `enabled = true` da próxima vez que o Docker deste host
+# estiver saudável.
 enabled = false
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
+# issue-09: ver nota acima - nenhuma migration/seed cria bucket nenhum,
+# então mesmo com o storage saudável o upload falharia com "Bucket not
+# found". Descomentar junto com `enabled = true` acima.
+# [storage.buckets.evidences]
 # public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
+# file_size_limit = "10MiB"
+# allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/heif", "application/pdf"]
+#
+# [storage.buckets.documentos]
+# public = false
+# file_size_limit = "10MiB"
+# allowed_mime_types = ["image/jpeg", "image/png", "image/heic", "image/heif", "application/pdf"]
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]

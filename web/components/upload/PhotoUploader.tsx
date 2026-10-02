@@ -173,6 +173,11 @@ export function PhotoUploader({
   }
 
   const hasUploaded = uploadedCount > 0;
+  // Evita disparar varias tentativas em paralelo (ex.: usuario clicando
+  // de novo enquanto uma falha de rede ja esta em andamento) - cada
+  // envio malsucedido ainda fica visivel na fila, com a mensagem de
+  // erro, mas sem empilhar requisicoes novas por cima.
+  const isUploading = queue.some((item) => item.status === "uploading");
 
   return (
     <div className="flex flex-col gap-2">
@@ -198,6 +203,7 @@ export function PhotoUploader({
               type="button"
               variant="outline"
               size="sm"
+              disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
             >
               Trocar
@@ -211,6 +217,7 @@ export function PhotoUploader({
               type="button"
               variant="default"
               size="sm"
+              disabled={isUploading}
               onClick={() => cameraInputRef.current?.click()}
             >
               <Camera className="size-4" aria-hidden /> Tirar foto
@@ -219,6 +226,7 @@ export function PhotoUploader({
               type="button"
               variant="outline"
               size="sm"
+              disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="size-4" aria-hidden /> Escolher arquivo
