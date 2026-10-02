@@ -9,6 +9,7 @@
   --color-foreground: var(--foreground);
   --color-primary: #1e5a3c;
   --color-cream: #f5f1e8;
+  --color-berry: #9c4221;
   --font-heading: var(--font-newsreader);
   --font-body: var(--font-hanken-grotesk);
   --breakpoint-produtor: 390px;
@@ -38,10 +39,13 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-tertiary-foreground: var(--tertiary-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-banner: var(--banner);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,11 +53,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Container */
+  --container-max-width: 1200px;
+  --container-margin: auto 0;
 }
 
 :root {
   --background: #f5f1e8;
-  --foreground: #171717;
+  --foreground: rgb(26, 36, 32);
   /*
    * Gap de design: --card/--popover estavam iguais a --background
    * (#f5f1e8), então todo `bg-card` (Card, BusinessCard, FourSteps)
@@ -69,6 +76,8 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
+  --tertiary-foreground: #9c4221;
+  --tertiary: #9c4221;
   /*
    * T60/RNF-07: oklch(0.556 0 0) (~#737373) so' fecha contraste
    * 4.2-4.34:1 contra os fundos claros do tema (--muted #f5f5f5 e
@@ -99,6 +108,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+   --banner: #EFEADD;
 }
 
 .dark {

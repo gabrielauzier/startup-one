@@ -28,7 +28,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className={`${newsreader.variable} ${hankenGrotesk.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-body">
+      <body
+        className="min-h-full flex flex-col font-body"
+        suppressHydrationWarning
+      >
         <AppChrome role={role}>{children}</AppChrome>
       </body>
     </html>

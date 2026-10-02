@@ -1,3 +1,5 @@
+import { Info } from "lucide-react";
+import { Typography } from "../ui/typography";
 import { LEGAL_NOTICE_TEXT } from "./legal-notice-text";
 
 /**
@@ -7,10 +9,15 @@ import { LEGAL_NOTICE_TEXT } from "./legal-notice-text";
  */
 export function FixedLegalBanner() {
   return (
-    <footer className="border-t border-border bg-background/95 px-6 py-3 text-center backdrop-blur supports-[backdrop-filter]:bg-background/80 md:fixed md:inset-x-0 md:bottom-0 md:z-30">
-      <p className="mx-auto max-w-2xl font-body text-xs text-foreground/70">
-        {LEGAL_NOTICE_TEXT}
-      </p>
+    <footer className="border-t border-border bg-banner px-6 py-4 text-center md:fixed md:inset-x-0 md:bottom-0 md:z-30 flex items-center justify-center">
+      <Info className="inline-block mr-3 w-4 h-4 text-primary" />
+
+      <Typography color="muted" size="xs" weight="medium">
+        <Typography as="strong" color="default" weight="semibold" size="xs">
+          {LEGAL_NOTICE_TEXT.strong}
+        </Typography>{" "}
+        {LEGAL_NOTICE_TEXT.normal}
+      </Typography>
     </footer>
   );
 }

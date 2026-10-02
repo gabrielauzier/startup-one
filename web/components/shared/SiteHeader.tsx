@@ -56,7 +56,8 @@ export function SiteHeader({ role }: { role: Role | null }) {
               <Typography
                 as="span"
                 variant="body"
-                className="text-foreground/80 hover:text-foreground"
+                weight="medium"
+                color="default"
               >
                 {link.label}
               </Typography>

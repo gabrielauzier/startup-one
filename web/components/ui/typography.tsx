@@ -20,7 +20,10 @@ export type TypographySize =
   | "xl"
   | "2xl"
   | "3xl"
-  | "4xl";
+  | "4xl"
+  | "heading-sm"
+  | "heading-md"
+  | "heading-lg";
 
 /**
  * "light"/"semibold"/"bold" não têm uso real no código hoje (levantamento
@@ -28,10 +31,21 @@ export type TypographySize =
  * como pesos disponíveis por pedido explícito, não porque já existem em
  * algum lugar.
  */
-export type TypographyWeight = "light" | "normal" | "medium" | "semibold" | "bold";
+export type TypographyWeight =
+  | "light"
+  | "normal"
+  | "medium"
+  | "semibold"
+  | "bold";
 
 /** "inverse" = texto sobre fundo colorido (ex.: botão primary, faixa verde). */
-export type TypographyColor = "default" | "muted" | "primary" | "destructive" | "inverse";
+export type TypographyColor =
+  | "default"
+  | "muted"
+  | "primary"
+  | "destructive"
+  | "inverse"
+  | "tertiary";
 
 const SIZE_CLASSES: Record<TypographySize, string> = {
   xs: "text-xs",
@@ -42,6 +56,9 @@ const SIZE_CLASSES: Record<TypographySize, string> = {
   "2xl": "text-2xl",
   "3xl": "text-3xl",
   "4xl": "text-4xl",
+  "heading-sm": "text-4xl",
+  "heading-md": "text-5xl",
+  "heading-lg": "text-6xl",
 };
 
 const WEIGHT_CLASSES: Record<TypographyWeight, string> = {
@@ -58,6 +75,7 @@ const COLOR_CLASSES: Record<TypographyColor, string> = {
   primary: "text-primary",
   destructive: "text-destructive",
   inverse: "text-primary-foreground",
+  tertiary: "text-tertiary-foreground",
 };
 
 interface VariantPreset {
@@ -75,25 +93,83 @@ interface VariantPreset {
  * sobrescrevível individualmente.
  */
 const VARIANT_PRESETS: Record<TypographyVariant, VariantPreset> = {
-  h1: { as: "h1", font: "heading", size: "4xl", weight: "normal", color: "default" },
-  h2: { as: "h2", font: "heading", size: "3xl", weight: "normal", color: "default" },
-  h3: { as: "h3", font: "heading", size: "2xl", weight: "normal", color: "default" },
-  h4: { as: "h4", font: "heading", size: "lg", weight: "normal", color: "default" },
-  body: { as: "p", font: "body", size: "sm", weight: "normal", color: "default" },
-  bodyLarge: { as: "p", font: "body", size: "base", weight: "normal", color: "default" },
-  caption: { as: "span", font: "body", size: "xs", weight: "normal", color: "muted" },
-  label: { as: "label", font: "body", size: "sm", weight: "medium", color: "default" },
-  link: { as: "span", font: "body", size: "sm", weight: "normal", color: "primary" },
+  h1: {
+    as: "h1",
+    font: "heading",
+    size: "4xl",
+    weight: "normal",
+    color: "default",
+  },
+  h2: {
+    as: "h2",
+    font: "heading",
+    size: "3xl",
+    weight: "medium",
+    color: "default",
+  },
+  h3: {
+    as: "h3",
+    font: "heading",
+    size: "2xl",
+    weight: "normal",
+    color: "default",
+  },
+  h4: {
+    as: "h4",
+    font: "heading",
+    size: "lg",
+    weight: "normal",
+    color: "default",
+  },
+  body: {
+    as: "p",
+    font: "body",
+    size: "sm",
+    weight: "normal",
+    color: "default",
+  },
+  bodyLarge: {
+    as: "p",
+    font: "body",
+    size: "base",
+    weight: "normal",
+    color: "default",
+  },
+  caption: {
+    as: "span",
+    font: "body",
+    size: "xs",
+    weight: "normal",
+    color: "muted",
+  },
+  label: {
+    as: "label",
+    font: "body",
+    size: "sm",
+    weight: "medium",
+    color: "default",
+  },
+  link: {
+    as: "span",
+    font: "body",
+    size: "sm",
+    weight: "normal",
+    color: "primary",
+  },
 };
 
-export interface TypographyProps
-  extends Omit<ComponentPropsWithoutRef<"p">, "color"> {
+export interface TypographyProps extends Omit<
+  ComponentPropsWithoutRef<"p">,
+  "color"
+> {
   as?: ElementType;
   variant?: TypographyVariant;
   size?: TypographySize;
   weight?: TypographyWeight;
   color?: TypographyColor;
   children?: ReactNode;
+  /** Só relevante quando `as="label"`. */
+  htmlFor?: string;
 }
 
 /**

@@ -4,5 +4,8 @@
  * fluxo normal) e `FixedLegalBanner` (público/investidor, fixo na tela)
  * para nunca divergir entre as duas variantes visuais.
  */
-export const LEGAL_NOTICE_TEXT =
-  "A Îasy não recebe nem movimenta dinheiro. O contrato e o pagamento são feitos por um parceiro financeiro autorizado.";
+export const LEGAL_NOTICE_TEXT = {
+  strong: "A Îasy não recebe nem movimenta dinheiro.",
+  normal:
+    "O contrato e o pagamento são feitos por um parceiro financeiro autorizado.",
+};

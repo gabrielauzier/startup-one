@@ -9,6 +9,7 @@ import {
   BusinessCard,
   type BusinessSummary,
 } from "@/components/business/BusinessCard";
+import { HelpBanner } from "@/components/marketing/HelpBanner";
 
 interface FeaturedBusinessRow {
   id: string;
@@ -85,27 +86,20 @@ export default async function Home() {
         <div
           className={`max-w-2xl text-center ${featured ? "lg:text-left" : ""}`}
         >
-          <Typography
-            variant="body"
-            size="sm"
-            weight="medium"
-            color="primary"
-            className="text-primary/80"
-          >
+          <Typography size="sm" weight="semibold" color="tertiary">
             Negócios da floresta com informação confiável
           </Typography>
-          <Typography variant="h1" color="primary" className="mt-2">
-            Negócios da Amazônia com visibilidade e transparência.
+          <Typography variant="h2" size="heading-lg" className="mt-6">
+            Conectamos quem produz a quem quer investir.
           </Typography>
           <Typography
             variant="body"
             size="lg"
             className="mt-4 text-foreground/80"
           >
-            Conectamos quem produz a quem quer investir. Organizamos e
-            conferimos as informações de negócios amazônicos: produtores ganham
-            credibilidade e investidores encontram negócios em que podem
-            confiar.
+            Organizamos e conferimos as informações de negócios amazônicos.
+            Produtores ganham credibilidade e investidores encontram negócios em
+            que podem confiar.
           </Typography>
 
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
@@ -133,15 +127,22 @@ export default async function Home() {
 
       <div
         id="como-funciona"
-        className="flex w-full flex-col items-center gap-6 scroll-mt-20"
+        className="flex flex-col mx-auto max-w-5xl w-full gap-6 scroll-mt-20"
       >
         {/* as="h2" preserva a hierarquia semântica (h1 -> h2) mesmo usando
             o estilo visual do variant "h3" (2xl) - exatamente o ponto de
             `as` ser independente de `variant`. */}
-        <Typography as="h2" variant="h3" color="primary">
+        <Typography
+          as="h2"
+          variant="h3"
+          color="default"
+          size="heading-sm"
+          weight="medium"
+        >
           Como funciona
         </Typography>
         <FourSteps />
+        <HelpBanner />
       </div>
     </main>
   );
