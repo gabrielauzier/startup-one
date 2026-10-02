@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
+import { BusinessTonePlaceholder } from "./BusinessTonePlaceholder";
+import { CertificationBadge } from "./CertificationBadge";
+import { FinancialMetricsGrid } from "./FinancialMetricsGrid";
 
 /**
  * RN-28: dados que o card de negocio precisa para renderizar. Reduzido
@@ -58,7 +62,7 @@ export function BusinessCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <Typography variant="caption">Sem foto</Typography>
+            <BusinessTonePlaceholder seed={business.slug} className="h-full w-full" />
           )}
         </div>
 
@@ -69,19 +73,12 @@ export function BusinessCard({
               variant="caption"
               weight="medium"
               color="primary"
-              className="rounded-full bg-primary/10 px-2 py-0.5"
+              className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5"
             >
-              Verificado Îasy
+              <Check className="size-3" aria-hidden /> Verificado Îasy
             </Typography>
             {business.certificadoras.map((sigla) => (
-              <Typography
-                as="span"
-                key={sigla}
-                variant="caption"
-                className="rounded-full bg-muted px-2 py-0.5"
-              >
-                {sigla}
-              </Typography>
+              <CertificationBadge key={sigla} sigla={sigla} />
             ))}
             {typeof alignment === "number" && (
               <Typography
@@ -105,22 +102,26 @@ export function BusinessCard({
             {business.produtos.join(", ")} · {business.cidade}/{business.uf}
           </Typography>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <Typography as="span" variant="body">
-              Busca {formatBRL(business.valorBusca)}
+          <FinancialMetricsGrid
+            valorBusca={business.valorBusca}
+            prazoMeses={business.prazoMeses}
+            retornoProposto={business.retornoProposto}
+          />
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Typography as="span" variant="caption" color="muted">
+              Nota Îasy
             </Typography>
             <Typography as="span" variant="body">
-              Prazo {business.prazoMeses} meses
+              Ambiental {business.notaA}
             </Typography>
             <Typography as="span" variant="body">
-              Retorno proposto {business.retornoProposto}% ao ano
+              Social {business.notaS}
+            </Typography>
+            <Typography as="span" variant="body">
+              Gestão {business.notaG}
             </Typography>
           </div>
-
-          <Typography variant="body" color="muted">
-            Nota Îasy — Ambiental {business.notaA} · Social {business.notaS} · Gestão{" "}
-            {business.notaG}
-          </Typography>
 
           {business.recebeVisitas && (
             <Typography

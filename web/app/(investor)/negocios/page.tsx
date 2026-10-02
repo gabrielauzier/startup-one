@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BusinessCard, type BusinessSummary } from "@/components/business/BusinessCard";
 import { PRODUTOS_OPTIONS } from "@/lib/business/impact-options";
 import { AMAZONIA_LEGAL_UFS } from "@/lib/validation/amazonia-legal";
+import { sumInterests, type Interest } from "@/lib/business/interest-sum";
 
 interface BusinessRow {
   id: string;
@@ -81,22 +83,47 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
 
   const hasActiveFilters = Boolean(q || produto || uf);
 
+  const interestsByBusiness = new Map<string, Interest[]>();
+  const filteredIds = filtered.map((business) => business.id);
+  if (filteredIds.length > 0) {
+    const { data: interestRows } = await admin
+      .from("interests")
+      .select("business_id, valor, status")
+      .in("business_id", filteredIds);
+    for (const row of interestRows ?? []) {
+      const list = interestsByBusiness.get(row.business_id) ?? [];
+      list.push({ valor: row.valor, status: row.status });
+      interestsByBusiness.set(row.business_id, list);
+    }
+  }
+
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-12">
-      <h1 className="font-heading text-2xl">Negócios verificados</h1>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-12">
+      <div>
+        <h1 className="font-heading text-2xl">Negócios verificados</h1>
+        <p className="mt-1 font-body text-sm text-muted-foreground">
+          Todos passaram pela conferência da nossa equipe.
+        </p>
+      </div>
 
       <form method="get" className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
           <label htmlFor="q" className="font-body text-sm font-medium">
             Buscar por nome ou cidade
           </label>
-          <input
-            id="q"
-            name="q"
-            type="text"
-            defaultValue={q}
-            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm"
-          />
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <input
+              id="q"
+              name="q"
+              type="text"
+              defaultValue={q}
+              className="rounded-md border border-border bg-white py-2 pl-9 pr-3 font-body text-sm"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -155,8 +182,12 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((business) => {
+            const { somaAbsoluta } = sumInterests(
+              interestsByBusiness.get(business.id) ?? [],
+              Number(business.valor_busca)
+            );
             const summary: BusinessSummary = {
               slug: business.slug ?? business.id,
               nome: business.nome ?? "",
@@ -171,6 +202,7 @@ export default async function NegociosPage(props: PageProps<"/negocios">) {
               notaG: business.nota_g,
               certificadoras: certsByBusiness.get(business.id) ?? [],
               recebeVisitas: business.recebe_visitas,
+              interesseSomado: somaAbsoluta,
             };
             return <BusinessCard key={business.id} business={summary} />;
           })}

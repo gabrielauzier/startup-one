@@ -12,7 +12,8 @@ export function ConnectionFooter() {
   return (
     <footer className="border-t border-border bg-background px-6 py-8 text-center">
       <p className="mx-auto max-w-2xl font-body text-sm text-foreground/70">
-        {LEGAL_NOTICE_TEXT}
+        <strong className="font-medium text-foreground">{LEGAL_NOTICE_TEXT.strong}</strong>{" "}
+        {LEGAL_NOTICE_TEXT.normal}
       </p>
     </footer>
   );

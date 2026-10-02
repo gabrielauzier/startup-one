@@ -1,7 +1,13 @@
 import Link from "next/link";
+import { Check, Lock, MapPin } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { Card } from "@/components/ui/card";
 import { RecordVisit } from "@/components/business/RecordVisit";
+import { BusinessTonePlaceholder } from "@/components/business/BusinessTonePlaceholder";
+import { CertificationBadge } from "@/components/business/CertificationBadge";
+import { ScoreBars } from "@/components/business/ScoreBars";
+import { FinancialMetricsGrid } from "@/components/business/FinancialMetricsGrid";
 import { sumInterests, formatInterestSummary, type Interest } from "@/lib/business/interest-sum";
 import { InterestModal } from "./_components/InterestModal";
 
@@ -191,92 +197,116 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-12">
       <RecordVisit businessId={business.id} />
 
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 font-body text-xs font-medium text-primary">
-            Verificado Îasy
-          </span>
-          {certificadoras.map((sigla) => (
-            <span
-              key={sigla}
-              className="rounded-full bg-muted px-2 py-0.5 font-body text-xs text-muted-foreground"
-            >
-              {sigla}
+      <nav aria-label="Trilha" className="font-body text-sm text-muted-foreground">
+        <Link href="/negocios" className="text-primary underline">
+          Negócios
+        </Link>{" "}
+        / {business.nome}
+      </nav>
+
+      <header className="grid grid-cols-1 gap-6 md:grid-cols-[1.2fr_1fr]">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-body text-xs font-medium text-primary">
+              <Check className="size-3" aria-hidden /> Verificado Îasy
             </span>
-          ))}
-          <span className="font-body text-xs text-muted-foreground">
-            Verificado em {formatDate(business.verificado_em)}
-          </span>
+            {certificadoras.map((sigla) => (
+              <CertificationBadge key={sigla} sigla={sigla} />
+            ))}
+            <span className="font-body text-xs text-muted-foreground">
+              Verificado em {formatDate(business.verificado_em)}
+            </span>
+          </div>
+
+          <h1 className="font-heading text-2xl">{business.nome}</h1>
+          <p className="font-body text-sm text-muted-foreground">
+            {(business.produtos ?? []).join(", ")} · {business.cidade_ibge}/{business.uf} ·{" "}
+            {business.familias ?? 0} famílias
+          </p>
+
+          <FinancialMetricsGrid
+            valorBusca={Number(business.valor_busca)}
+            prazoMeses={business.prazo_meses}
+            retornoProposto={business.retorno_proposto}
+            bordered
+          />
+
+          <ScoreBars notaA={business.nota_a} notaS={business.nota_s} notaG={business.nota_g} />
         </div>
 
-        <h1 className="font-heading text-2xl">{business.nome}</h1>
-        <p className="font-body text-sm text-muted-foreground">
-          {(business.produtos ?? []).join(", ")} · {business.cidade_ibge}/{business.uf} ·{" "}
-          {business.familias ?? 0} famílias
-        </p>
-
-        <div className="flex flex-wrap gap-x-4 gap-y-1 font-body text-sm">
-          <span>Busca {formatBRL(Number(business.valor_busca))}</span>
-          <span>Prazo {business.prazo_meses} meses</span>
-          <span>Retorno proposto {business.retorno_proposto}% ao ano</span>
-        </div>
-
-        <p className="font-body text-sm text-muted-foreground">
-          Nota Îasy — Ambiental {business.nota_a} · Social {business.nota_s} · Gestão{" "}
-          {business.nota_g}
-        </p>
-
-        {business.recebe_visitas && (
-          <span className="w-fit rounded-full bg-muted px-2 py-0.5 font-body text-xs text-muted-foreground">
-            Recebe visitas
-          </span>
-        )}
+        <BusinessTonePlaceholder
+          seed={business.slug}
+          className="aspect-video w-full rounded-lg md:aspect-auto"
+        />
       </header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[2fr_1fr]">
         <div className="flex flex-col gap-4">
-          <nav className="flex flex-wrap gap-2 border-b border-border pb-2" aria-label="Abas do negócio">
-            {TABS.map((tab) => (
-              <Link
-                key={tab.id}
-                href={`/negocios/${slug}?aba=${tab.id}`}
-                className={
-                  "rounded-full px-3 py-1.5 font-body text-sm " +
-                  (aba === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:text-foreground")
-                }
-              >
-                {tab.label}
-              </Link>
-            ))}
+          <div className="flex flex-wrap items-center gap-4 border-b border-border">
+            <div role="tablist" aria-label="Abas do negócio" className="flex flex-wrap gap-4">
+              {TABS.map((tab) => (
+                <Link
+                  key={tab.id}
+                  id={`aba-${tab.id}`}
+                  role="tab"
+                  aria-selected={aba === tab.id}
+                  aria-controls={`painel-${tab.id}`}
+                  href={`/negocios/${slug}?aba=${tab.id}`}
+                  className={
+                    "border-b-2 px-1 pb-2 font-body text-sm " +
+                    (aba === tab.id
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {tab.label}
+                </Link>
+              ))}
+            </div>
             <Link
               href={`/negocios/${slug}/documentos`}
-              className="rounded-full bg-muted px-3 py-1.5 font-body text-sm text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-1 border-b-2 border-transparent px-1 pb-2 font-body text-sm text-muted-foreground hover:text-foreground"
             >
-              Documentos
+              <Lock className="size-3.5" aria-hidden /> Documentos
             </Link>
-          </nav>
+          </div>
 
           {aba === "producao" && (
-            <section className="flex flex-col gap-3">
+            // SPEC_DEVIATION: a galeria "Fotos da colheita" do protótipo
+            // fica fora deste lote - não há dado real de foto (evidences
+            // não tem resolução de URL pública), só o placeholder
+            // colorido do hero acima.
+            <section
+              id="painel-producao"
+              role="tabpanel"
+              aria-labelledby="aba-producao"
+              className="flex flex-col gap-4"
+            >
               <h2 className="font-heading text-lg">A produção</h2>
-              <p className="font-body text-sm">
-                Produzem: {(business.produtos ?? []).join(", ") || "—"}
-              </p>
-              {business.producao_mensal_kg != null && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <p className="font-body text-sm">
-                  Produção mensal: {business.producao_mensal_kg} kg
+                  Produzem: {(business.produtos ?? []).join(", ") || "—"}
                 </p>
-              )}
+                {business.producao_mensal_kg != null && (
+                  <div className="rounded-lg bg-muted p-4">
+                    <p className="font-body text-xs text-muted-foreground">Produção mensal</p>
+                    <p className="font-heading text-2xl">{business.producao_mensal_kg} kg</p>
+                  </div>
+                )}
+              </div>
               <div>
                 <h3 className="font-body text-sm font-medium">Como cuidam da floresta</h3>
                 {business.praticas.length > 0 ? (
-                  <ul className="mt-1 flex list-disc flex-col gap-1 pl-5 font-body text-sm">
+                  <div className="mt-1 flex flex-wrap gap-1.5">
                     {business.praticas.map((pratica) => (
-                      <li key={pratica}>{pratica}</li>
+                      <span
+                        key={pratica}
+                        className="rounded-full bg-primary/10 px-2.5 py-1 font-body text-sm text-primary"
+                      >
+                        {pratica}
+                      </span>
                     ))}
-                  </ul>
+                  </div>
                 ) : (
                   <p className="font-body text-sm text-muted-foreground">
                     Nenhuma prática informada.
@@ -287,7 +317,12 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
 
           {aba !== "producao" && !canSeePrivateTabs && (
-            <section className="flex flex-col items-start gap-3 rounded-lg bg-muted p-6">
+            <section
+              id={`painel-${aba}`}
+              role="tabpanel"
+              aria-labelledby={`aba-${aba}`}
+              className="flex flex-col items-start gap-3 rounded-lg bg-muted p-6"
+            >
               <p className="font-body text-sm">
                 Você precisa entrar como investidor ou empresa para ver esta aba.
               </p>
@@ -301,7 +336,12 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
 
           {aba === "negocio" && canSeePrivateTabs && (
-            <section className="flex flex-col gap-2">
+            <section
+              id="painel-negocio"
+              role="tabpanel"
+              aria-labelledby="aba-negocio"
+              className="flex flex-col gap-2"
+            >
               <h2 className="font-heading text-lg">O negócio</h2>
               <p className="font-body text-sm">
                 {business.tipo_org ? TIPO_ORG_LABELS[business.tipo_org] ?? business.tipo_org : "—"}
@@ -317,7 +357,12 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
 
           {aba === "quem-cuida" && canSeePrivateTabs && (
-            <section className="flex flex-col gap-2">
+            <section
+              id="painel-quem-cuida"
+              role="tabpanel"
+              aria-labelledby="aba-quem-cuida"
+              className="flex flex-col gap-2"
+            >
               <h2 className="font-heading text-lg">Quem cuida</h2>
               <ul className="flex flex-col gap-1 font-body text-sm">
                 <li>
@@ -329,7 +374,12 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
 
           {aba === "dinheiro" && canSeePrivateTabs && (
-            <section className="flex flex-col gap-2">
+            <section
+              id="painel-dinheiro"
+              role="tabpanel"
+              aria-labelledby="aba-dinheiro"
+              className="flex flex-col gap-2"
+            >
               <h2 className="font-heading text-lg">O dinheiro</h2>
               <p className="font-body text-sm">
                 Finalidade:{" "}
@@ -350,10 +400,10 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
           )}
         </div>
 
-        <aside className="flex flex-col gap-3 rounded-lg bg-muted p-4">
+        <Card className="flex flex-col gap-3 p-4">
           <div className="flex flex-col gap-2">
             <p className="font-body text-sm font-medium">Interesse de investidores</p>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-background">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary"
                 style={{ width: `${percentualBarra}%` }}
@@ -389,7 +439,13 @@ export default async function NegocioPage(props: PageProps<"/negocios/[slug]">) 
                 autoOpen={autoOpenInteresse}
               />
             ))}
-        </aside>
+
+          {business.recebe_visitas && (
+            <div className="flex items-center gap-1.5 border-t border-border pt-3 font-body text-xs text-muted-foreground">
+              <MapPin className="size-3.5" aria-hidden /> Recebe visitas
+            </div>
+          )}
+        </Card>
       </div>
     </main>
   );

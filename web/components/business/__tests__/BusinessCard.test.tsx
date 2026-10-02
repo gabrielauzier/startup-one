@@ -36,9 +36,11 @@ describe("BusinessCard (RN-28)", () => {
     expect(screen.getByText(/Ambiental 90/)).toBeInTheDocument();
     expect(screen.getByText(/Social 80/)).toBeInTheDocument();
     expect(screen.getByText(/Gestão 70/)).toBeInTheDocument();
-    expect(screen.getByText(/Busca/)).toBeInTheDocument();
-    expect(screen.getByText(/Prazo 24 meses/)).toBeInTheDocument();
-    expect(screen.getByText(/Retorno proposto 12\.5% ao ano/)).toBeInTheDocument();
+    expect(screen.getByText("Busca")).toBeInTheDocument();
+    expect(screen.getByText("Prazo")).toBeInTheDocument();
+    expect(screen.getByText("24 meses")).toBeInTheDocument();
+    expect(screen.getByText("Retorno proposto")).toBeInTheDocument();
+    expect(screen.getByText("12.5% ao ano")).toBeInTheDocument();
   });
 
   it("mostra nome, produto/cidade, siglas de certificadoras e a barra de interesse", () => {
