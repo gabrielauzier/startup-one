@@ -1,13 +1,15 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { CadastroFooter } from "@/components/cadastro/CadastroFooter";
 import { AjusteComment, LockedHiddenValue, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import { formatPhoneBR, unformat } from "@/lib/format/masks";
+import { formatCnpj } from "@/lib/validation/cnpj";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte1, type Parte1State } from "./actions";
 
@@ -69,7 +71,7 @@ export function Parte1Form({
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <PartHeader part={1} title="Sobre você" status={status} />
+      <PartHeader part={1} title="Sobre você" status={status} backHref="/produtor" />
       <div className="flex flex-col gap-1">
         <label htmlFor="nome" className="font-body text-sm font-medium">
           Seu nome
@@ -92,14 +94,14 @@ export function Parte1Form({
         </label>
         <Input
           id="telefone"
-          name="telefone"
           type="tel"
           ref={telefoneRef}
           value={telefone}
-          onChange={(e) => setTelefone(e.target.value)}
+          onChange={(e) => setTelefone(formatPhoneBR(e.target.value))}
           required
           readOnly={isFieldLocked(ajuste, "telefone")}
         />
+        <input type="hidden" name="telefone" value={unformat(telefone)} readOnly />
         <AjusteComment ajuste={ajuste} campo="telefone" />
       </div>
 
@@ -124,13 +126,13 @@ export function Parte1Form({
         </label>
         <Input
           id="cnpj"
-          name="cnpj"
           ref={cnpjRef}
           value={cnpj}
-          onChange={(e) => setCnpj(e.target.value)}
+          onChange={(e) => setCnpj(formatCnpj(e.target.value))}
           required
           readOnly={isFieldLocked(ajuste, "cnpj")}
         />
+        <input type="hidden" name="cnpj" value={unformat(cnpj)} readOnly />
         {state.field === "cnpj" && (
           <p className="font-body text-sm text-destructive">
             {state.error ?? "CNPJ inválido"}
@@ -139,7 +141,7 @@ export function Parte1Form({
         <AjusteComment ajuste={ajuste} campo="cnpj" />
       </div>
 
-      <div className="flex items-start gap-2">
+      <Card className="flex-row items-start gap-2 p-4">
         <Checkbox
           id="autorizacao"
           name="autorizacao"
@@ -160,20 +162,13 @@ export function Parte1Form({
           apresentá-lo a investidores. Posso pedir a exclusão quando quiser.
         </label>
         <AjusteComment ajuste={ajuste} campo="autorizacao" />
-      </div>
+      </Card>
 
       {state.error && state.field !== "cnpj" && (
         <p className="font-body text-sm text-destructive">{state.error}</p>
       )}
 
-      <div className="flex items-center justify-between">
-        <Link href="/produtor" className="font-body text-sm text-foreground/70">
-          Voltar
-        </Link>
-        <Button type="submit" disabled={pending}>
-          Continuar
-        </Button>
-      </div>
+      <CadastroFooter pending={pending} />
     </form>
   );
 }

@@ -2,12 +2,14 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { CadastroFooter } from "@/components/cadastro/CadastroFooter";
+import { RadioCard } from "@/components/cadastro/RadioCard";
 import { AjusteComment, LockedHiddenValue, isFieldLocked } from "@/components/cadastro/AjusteFieldNote";
 import { useDraftSync } from "@/lib/offline/use-draft-sync";
+import { BRAZIL_UFS } from "@/lib/validation/amazonia-legal";
 import type { FieldAjusteInfo } from "@/lib/business/adjustable-fields";
 import { submitParte2, type Parte2State } from "./actions";
 
@@ -43,7 +45,7 @@ export function Parte2Form({
 
   const nomeRef = useRef<HTMLInputElement>(null);
   const cidadeRef = useRef<HTMLInputElement>(null);
-  const ufRef = useRef<HTMLInputElement>(null);
+  const ufRef = useRef<HTMLSelectElement>(null);
   const familiasRef = useRef<HTMLInputElement>(null);
   const anosRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +63,7 @@ export function Parte2Form({
 
   useEffect(() => {
     if (!state.field) return;
-    const refs: Record<string, React.RefObject<HTMLInputElement | null>> = {
+    const refs: Record<string, React.RefObject<{ focus: () => void } | null>> = {
       nome: nomeRef,
       cidade: cidadeRef,
       uf: ufRef,
@@ -90,7 +92,7 @@ export function Parte2Form({
   if (state.outOfScope) {
     return (
       <div className="flex flex-col gap-4">
-        <PartHeader part={2} title="Seu negócio" status={status} />
+        <PartHeader part={2} title="Seu negócio" status={status} backHref="/produtor/cadastro/1" />
         <p className="font-body text-sm text-foreground/80">
           Por enquanto, o piloto da Îasy atende só negócios na Amazônia Legal.
           Já guardamos seu contato e avisaremos quando chegarmos até você.
@@ -104,7 +106,7 @@ export function Parte2Form({
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <PartHeader part={2} title="Seu negócio" status={status} />
+      <PartHeader part={2} title="Seu negócio" status={status} backHref="/produtor/cadastro/1" />
       <div className="flex flex-col gap-1">
         <label htmlFor="nome" className="font-body text-sm font-medium">
           Nome do negócio
@@ -122,99 +124,108 @@ export function Parte2Form({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="tipoOrg" className="font-body text-sm font-medium">
-          Tipo de organização
-        </label>
-        <select
-          id="tipoOrg"
-          name="tipoOrg"
-          value={tipoOrg}
-          onChange={(e) => setTipoOrg(e.target.value)}
-          aria-label="Tipo de organização"
-          disabled={isFieldLocked(ajuste, "tipoOrg")}
-          className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm disabled:opacity-50"
-        >
-          <option value="">Selecione...</option>
+        <label className="font-body text-sm font-medium">Tipo de organização</label>
+        <div role="radiogroup" aria-label="Tipo de organização" className="flex flex-wrap gap-2">
           {TIPOS_ORG.map((t) => (
-            <option key={t.value} value={t.value}>
+            <RadioCard
+              key={t.value}
+              selected={tipoOrg === t.value}
+              onSelect={() => setTipoOrg(t.value)}
+              disabled={isFieldLocked(ajuste, "tipoOrg")}
+            >
               {t.label}
-            </option>
+            </RadioCard>
           ))}
-        </select>
+        </div>
+        {!isFieldLocked(ajuste, "tipoOrg") && (
+          <input type="hidden" name="tipoOrg" value={tipoOrg} />
+        )}
         <LockedHiddenValue ajuste={ajuste} campo="tipoOrg" name="tipoOrg" value={tipoOrg} />
         <AjusteComment ajuste={ajuste} campo="tipoOrg" />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="cidade" className="font-body text-sm font-medium">
-          Cidade
-        </label>
-        <Input
-          id="cidade"
-          name="cidade"
-          ref={cidadeRef}
-          value={cidade}
-          onChange={(e) => setCidade(e.target.value)}
-          required
-          readOnly={isFieldLocked(ajuste, "cidade")}
-        />
-        <AjusteComment ajuste={ajuste} campo="cidade" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="cidade" className="font-body text-sm font-medium">
+            Cidade
+          </label>
+          <Input
+            id="cidade"
+            name="cidade"
+            ref={cidadeRef}
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            required
+            readOnly={isFieldLocked(ajuste, "cidade")}
+          />
+          <AjusteComment ajuste={ajuste} campo="cidade" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="uf" className="font-body text-sm font-medium">
+            Estado (UF)
+          </label>
+          <select
+            id="uf"
+            name="uf"
+            ref={ufRef}
+            value={uf}
+            onChange={(e) => setUf(e.target.value)}
+            required
+            disabled={isFieldLocked(ajuste, "uf")}
+            className="rounded-md border border-border bg-white px-3 py-2 font-body text-sm disabled:opacity-50"
+          >
+            <option value="">Selecione...</option>
+            {BRAZIL_UFS.map((estado) => (
+              <option key={estado} value={estado}>
+                {estado}
+              </option>
+            ))}
+          </select>
+          <LockedHiddenValue ajuste={ajuste} campo="uf" name="uf" value={uf} />
+          <AjusteComment ajuste={ajuste} campo="uf" />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="uf" className="font-body text-sm font-medium">
-          Estado (UF)
-        </label>
-        <Input
-          id="uf"
-          name="uf"
-          ref={ufRef}
-          maxLength={2}
-          value={uf}
-          onChange={(e) => setUf(e.target.value)}
-          required
-          readOnly={isFieldLocked(ajuste, "uf")}
-        />
-        <AjusteComment ajuste={ajuste} campo="uf" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="familias" className="font-body text-sm font-medium">
+            Número de famílias
+          </label>
+          <Input
+            id="familias"
+            name="familias"
+            type="number"
+            min={0}
+            ref={familiasRef}
+            value={familias}
+            onChange={(e) => setFamilias(e.target.value)}
+            required
+            readOnly={isFieldLocked(ajuste, "familias")}
+          />
+          <AjusteComment ajuste={ajuste} campo="familias" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="anosAtividade" className="font-body text-sm font-medium">
+            Tempo de atividade (anos)
+          </label>
+          <Input
+            id="anosAtividade"
+            name="anosAtividade"
+            type="number"
+            min={0}
+            ref={anosRef}
+            value={anosAtividade}
+            onChange={(e) => setAnosAtividade(e.target.value)}
+            required
+            readOnly={isFieldLocked(ajuste, "anosAtividade")}
+          />
+          <AjusteComment ajuste={ajuste} campo="anosAtividade" />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="familias" className="font-body text-sm font-medium">
-          Número de famílias
-        </label>
-        <Input
-          id="familias"
-          name="familias"
-          type="number"
-          min={0}
-          ref={familiasRef}
-          value={familias}
-          onChange={(e) => setFamilias(e.target.value)}
-          required
-          readOnly={isFieldLocked(ajuste, "familias")}
-        />
-        <AjusteComment ajuste={ajuste} campo="familias" />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="anosAtividade" className="font-body text-sm font-medium">
-          Tempo de atividade (anos)
-        </label>
-        <Input
-          id="anosAtividade"
-          name="anosAtividade"
-          type="number"
-          min={0}
-          ref={anosRef}
-          value={anosAtividade}
-          onChange={(e) => setAnosAtividade(e.target.value)}
-          required
-          readOnly={isFieldLocked(ajuste, "anosAtividade")}
-        />
-        <AjusteComment ajuste={ajuste} campo="anosAtividade" />
-      </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2.5">
         <Checkbox
           id="recebeVisitas"
           name="recebeVisitas"
@@ -240,14 +251,7 @@ export function Parte2Form({
         <p className="font-body text-sm text-destructive">{state.error}</p>
       )}
 
-      <div className="flex items-center justify-between">
-        <Link href="/produtor/cadastro/1" className="font-body text-sm text-foreground/70">
-          Voltar
-        </Link>
-        <Button type="submit" disabled={pending}>
-          Continuar
-        </Button>
-      </div>
+      <CadastroFooter pending={pending} />
     </form>
   );
 }

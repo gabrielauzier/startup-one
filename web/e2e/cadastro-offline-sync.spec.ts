@@ -38,9 +38,9 @@ test.describe("Rascunho offline do cadastro (CA-07.1/CA-07.2)", () => {
     await page.waitForURL("/produtor/cadastro/2");
 
     await page.getByLabel("Nome do negócio").fill("Cooperativa Teste");
-    await page.getByLabel("Tipo de organização").selectOption("cooperativa");
+    await page.getByRole("radio", { name: "Cooperativa" }).click();
     await page.getByLabel("Cidade").fill("Cametá");
-    await page.getByLabel("Estado (UF)").fill("PA");
+    await page.getByLabel("Estado (UF)").selectOption("PA");
     await page.getByLabel("Número de famílias").fill("12");
     await page.getByLabel("Tempo de atividade (anos)").fill("4");
     await page.getByRole("button", { name: "Continuar" }).click();
@@ -53,20 +53,22 @@ test.describe("Rascunho offline do cadastro (CA-07.1/CA-07.2)", () => {
     await page
       .getByRole("checkbox", { name: "Colhemos sem derrubar a mata" })
       .click();
-    await page.getByLabel("Produção mensal aproximada (kg)").fill("150");
+    await page.getByLabel("Produção mensal aproximada").fill("150");
 
     // Espera o debounce do autosave local (400ms) persistir no
     // IndexedDB antes de voltar a conexao - senao nao ha nada para
     // sincronizar ainda.
     await page.waitForTimeout(800);
 
-    await expect(page.getByText("Parte 3 de 5 · Salvo no celular")).toBeVisible();
+    await expect(page.getByText("Parte 3 de 5")).toBeVisible();
+    await expect(page.getByText("Salvo no celular", { exact: true })).toBeVisible();
 
     // Volta a conexao: o rascunho local deve sincronizar sozinho, sem
     // acao do usuario (CA-07.2), e o indicador volta a "Salvo".
     await context.setOffline(false);
 
-    await expect(page.getByText("Parte 3 de 5 · Salvo", { exact: true })).toBeVisible({
+    await expect(page.getByText("Parte 3 de 5")).toBeVisible();
+    await expect(page.getByText("Salvo", { exact: true })).toBeVisible({
       timeout: 10000,
     });
 

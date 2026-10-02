@@ -74,7 +74,10 @@ test.describe("Service worker do cadastro do produtor (RNF-01)", () => {
     await expect(
       page.getByRole("heading", { name: "Sobre você" })
     ).toBeVisible();
-    await expect(page.getByText("Parte 1 de 5 · Salvo")).toBeVisible();
+    await expect(page.getByText("Parte 1 de 5")).toBeVisible();
+    // Offline: o status inicial e' "Salvo no celular" (useDraftSync
+    // detecta `navigator.onLine === false` já no primeiro render).
+    await expect(page.getByText("Salvo no celular", { exact: true })).toBeVisible();
 
     await context.setOffline(false);
   });

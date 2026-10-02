@@ -1,16 +1,15 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   IMPACT_OPTIONS,
   PRACTICE_OPTIONS,
   PRODUTOS_OPTIONS,
 } from "@/lib/business/impact-options";
 import { PartHeader } from "@/components/cadastro/PartHeader";
+import { CadastroFooter } from "@/components/cadastro/CadastroFooter";
+import { CheckboxPill } from "@/components/cadastro/CheckboxPill";
 import {
   AjusteComment,
   LockedHiddenValues,
@@ -87,21 +86,23 @@ export function Parte3Form({
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <PartHeader part={3} title="Sua produção" status={status} />
+      <PartHeader part={3} title="Sua produção" status={status} backHref="/produtor/cadastro/2" />
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-body text-sm font-medium">Produtos</legend>
-        <div className="flex flex-col gap-2">
+        <legend className="font-body text-sm font-medium">
+          O que você produz? <span className="font-normal text-foreground/60">Marque um ou mais</span>
+        </legend>
+        <div className="flex flex-wrap gap-2">
           {PRODUTOS_OPTIONS.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 font-body text-sm">
-              <Checkbox
-                name="produtos"
-                value={opt}
-                checked={produtos.has(opt)}
-                onCheckedChange={() => toggle(produtos, setProdutos, opt)}
-                disabled={isFieldLocked(ajuste, "produtos")}
-              />
+            <CheckboxPill
+              key={opt}
+              name="produtos"
+              value={opt}
+              checked={produtos.has(opt)}
+              onCheckedChange={() => toggle(produtos, setProdutos, opt)}
+              disabled={isFieldLocked(ajuste, "produtos")}
+            >
               {opt}
-            </label>
+            </CheckboxPill>
           ))}
         </div>
         <LockedHiddenValues
@@ -118,19 +119,28 @@ export function Parte3Form({
 
       <div className="flex flex-col gap-1">
         <label htmlFor="producaoMensalKg" className="font-body text-sm font-medium">
-          Produção mensal aproximada (kg)
+          Produção mensal aproximada
         </label>
-        <Input
-          id="producaoMensalKg"
-          name="producaoMensalKg"
-          type="number"
-          step="any"
-          ref={producaoRef}
-          value={producaoMensalKg}
-          onChange={(e) => setProducaoMensalKg(e.target.value)}
-          required
-          readOnly={isFieldLocked(ajuste, "producaoMensalKg")}
-        />
+        <div className="relative">
+          <Input
+            id="producaoMensalKg"
+            name="producaoMensalKg"
+            type="number"
+            step="any"
+            ref={producaoRef}
+            value={producaoMensalKg}
+            onChange={(e) => setProducaoMensalKg(e.target.value)}
+            required
+            readOnly={isFieldLocked(ajuste, "producaoMensalKg")}
+            className="pr-9"
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-body text-sm text-muted-foreground">
+            kg
+          </span>
+        </div>
+        <p className="font-body text-xs text-muted-foreground">
+          Uma estimativa basta. Conferimos depois.
+        </p>
         {state.field === "producaoMensalKg" && (
           <p className="font-body text-sm text-destructive">{state.error}</p>
         )}
@@ -139,20 +149,21 @@ export function Parte3Form({
 
       <fieldset className="flex flex-col gap-2">
         <legend className="font-body text-sm font-medium">
-          Como cuidam da floresta (marque apenas o que praticam)
+          Como cuidam da floresta? <span className="font-normal text-foreground/60">Marque apenas o que praticam</span>
         </legend>
         <div className="flex flex-col gap-2">
           {PRACTICE_OPTIONS.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 font-body text-sm">
-              <Checkbox
-                name="praticas"
-                value={opt}
-                checked={praticas.has(opt)}
-                onCheckedChange={() => toggle(praticas, setPraticas, opt)}
-                disabled={isFieldLocked(ajuste, "praticas")}
-              />
+            <CheckboxPill
+              key={opt}
+              variant="card"
+              name="praticas"
+              value={opt}
+              checked={praticas.has(opt)}
+              onCheckedChange={() => toggle(praticas, setPraticas, opt)}
+              disabled={isFieldLocked(ajuste, "praticas")}
+            >
               {opt}
-            </label>
+            </CheckboxPill>
           ))}
         </div>
         <LockedHiddenValues
@@ -173,16 +184,17 @@ export function Parte3Form({
         </legend>
         <div className="flex flex-col gap-2">
           {IMPACT_OPTIONS.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 font-body text-sm">
-              <Checkbox
-                name="impactos"
-                value={opt}
-                checked={impactos.has(opt)}
-                onCheckedChange={() => toggle(impactos, setImpactos, opt)}
-                disabled={isFieldLocked(ajuste, "impactos")}
-              />
+            <CheckboxPill
+              key={opt}
+              variant="card"
+              name="impactos"
+              value={opt}
+              checked={impactos.has(opt)}
+              onCheckedChange={() => toggle(impactos, setImpactos, opt)}
+              disabled={isFieldLocked(ajuste, "impactos")}
+            >
               {opt}
-            </label>
+            </CheckboxPill>
           ))}
         </div>
         <LockedHiddenValues
@@ -198,14 +210,7 @@ export function Parte3Form({
         <p className="font-body text-sm text-destructive">{state.error}</p>
       )}
 
-      <div className="flex items-center justify-between">
-        <Link href="/produtor/cadastro/2" className="font-body text-sm text-foreground/70">
-          Voltar
-        </Link>
-        <Button type="submit" disabled={pending}>
-          Continuar
-        </Button>
-      </div>
+      <CadastroFooter pending={pending} />
     </form>
   );
 }

@@ -23,9 +23,9 @@ test.describe("Parte 2 Seu negócio /produtor/cadastro/2 (PRO-03)", () => {
     await chegarNaParte2(page);
 
     await page.getByLabel("Nome do negócio").fill("Fazenda Teste");
-    await page.getByLabel("Tipo de organização").selectOption("cooperativa");
+    await page.getByRole("radio", { name: "Cooperativa" }).click();
     await page.getByLabel("Cidade").fill("São Paulo");
-    await page.getByLabel("Estado (UF)").fill("SP");
+    await page.getByLabel("Estado (UF)").selectOption("SP");
     await page.getByLabel("Número de famílias").fill("5");
     await page.getByLabel("Tempo de atividade (anos)").fill("3");
     await page.getByRole("button", { name: "Continuar" }).click();
@@ -41,9 +41,9 @@ test.describe("Parte 2 Seu negócio /produtor/cadastro/2 (PRO-03)", () => {
     await chegarNaParte2(page);
 
     await page.getByLabel("Nome do negócio").fill("Cooperativa Teste");
-    await page.getByLabel("Tipo de organização").selectOption("cooperativa");
+    await page.getByRole("radio", { name: "Cooperativa" }).click();
     await page.getByLabel("Cidade").fill("Cametá");
-    await page.getByLabel("Estado (UF)").fill("PA");
+    await page.getByLabel("Estado (UF)").selectOption("PA");
     await page.getByLabel("Número de famílias").fill("12");
     await page.getByLabel("Tempo de atividade (anos)").fill("4");
     await page.getByRole("button", { name: "Continuar" }).click();

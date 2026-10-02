@@ -16,9 +16,9 @@ async function chegarNaParte3(page: import("@playwright/test").Page) {
   await page.waitForURL("/produtor/cadastro/2");
 
   await page.getByLabel("Nome do negócio").fill("Cooperativa Teste");
-  await page.getByLabel("Tipo de organização").selectOption("cooperativa");
+  await page.getByRole("radio", { name: "Cooperativa" }).click();
   await page.getByLabel("Cidade").fill("Cametá");
-  await page.getByLabel("Estado (UF)").fill("PA");
+  await page.getByLabel("Estado (UF)").selectOption("PA");
   await page.getByLabel("Número de famílias").fill("12");
   await page.getByLabel("Tempo de atividade (anos)").fill("4");
   await page.getByRole("button", { name: "Continuar" }).click();
@@ -34,14 +34,14 @@ test.describe("Parte 3 Sua produção /produtor/cadastro/3 (PRO-04)", () => {
     await page.getByRole("checkbox", { name: "Açaí" }).click();
     await page.getByRole("checkbox", { name: "Colhemos sem derrubar a mata" }).click();
 
-    await page.getByLabel("Produção mensal aproximada (kg)").fill("0");
+    await page.getByLabel("Produção mensal aproximada").fill("0");
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(
       page.getByText("Informe a produção mensal (maior que zero).")
     ).toBeVisible();
     await expect(page).toHaveURL(/\/produtor\/cadastro\/3/);
 
-    await page.getByLabel("Produção mensal aproximada (kg)").fill("-5");
+    await page.getByLabel("Produção mensal aproximada").fill("-5");
     await page.getByRole("button", { name: "Continuar" }).click();
     await expect(
       page.getByText("Informe a produção mensal (maior que zero).")
@@ -51,7 +51,7 @@ test.describe("Parte 3 Sua produção /produtor/cadastro/3 (PRO-04)", () => {
   test("exige ao menos 1 produto e 1 pratica para avancar", async ({ page }) => {
     await chegarNaParte3(page);
 
-    await page.getByLabel("Produção mensal aproximada (kg)").fill("120");
+    await page.getByLabel("Produção mensal aproximada").fill("120");
     await page.getByRole("button", { name: "Continuar" }).click();
 
     await expect(page.getByText("Escolha ao menos 1 produto.")).toBeVisible();

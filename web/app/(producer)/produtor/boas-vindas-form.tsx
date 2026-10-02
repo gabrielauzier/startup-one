@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { RadioCard } from "@/components/cadastro/RadioCard";
 import { createBusiness, type CreateBusinessState } from "./actions";
 
 export interface Partner {
@@ -29,27 +30,18 @@ export function BoasVindasForm({ partners }: { partners: Partner[] }) {
           Chegou até nós por uma cooperativa ou ONG?
         </legend>
         <div role="radiogroup" aria-label="Chegou até nós por uma cooperativa ou ONG?" className="flex gap-2">
-          <Button
-            type="button"
-            variant={indicado === "sim" ? "default" : "outline"}
-            role="radio"
-            aria-checked={indicado === "sim"}
-            onClick={() => setIndicado("sim")}
-          >
+          <RadioCard selected={indicado === "sim"} onSelect={() => setIndicado("sim")}>
             Sim
-          </Button>
-          <Button
-            type="button"
-            variant={indicado === "nao" ? "default" : "outline"}
-            role="radio"
-            aria-checked={indicado === "nao"}
-            onClick={() => {
+          </RadioCard>
+          <RadioCard
+            selected={indicado === "nao"}
+            onSelect={() => {
               setIndicado("nao");
               setParceiroId("");
             }}
           >
             Não
-          </Button>
+          </RadioCard>
         </div>
       </fieldset>
 

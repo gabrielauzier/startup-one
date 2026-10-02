@@ -17,16 +17,16 @@ test.describe("Parte 4 Fotos e documentos /produtor/cadastro/4 (PRO-05) - smoke"
     await page.waitForURL("/produtor/cadastro/2");
 
     await page.getByLabel("Nome do negócio").fill("Cooperativa Teste");
-    await page.getByLabel("Tipo de organização").selectOption("cooperativa");
+    await page.getByRole("radio", { name: "Cooperativa" }).click();
     await page.getByLabel("Cidade").fill("Cametá");
-    await page.getByLabel("Estado (UF)").fill("PA");
+    await page.getByLabel("Estado (UF)").selectOption("PA");
     await page.getByLabel("Número de famílias").fill("12");
     await page.getByLabel("Tempo de atividade (anos)").fill("4");
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.waitForURL("/produtor/cadastro/3");
 
     await page.getByRole("checkbox", { name: "Açaí" }).click();
-    await page.getByLabel("Produção mensal aproximada (kg)").fill("120");
+    await page.getByLabel("Produção mensal aproximada").fill("120");
     await page.getByRole("checkbox", { name: "Reflorestamento" }).click();
     await page.getByRole("button", { name: "Continuar" }).click();
     await page.waitForURL("/produtor/cadastro/4");

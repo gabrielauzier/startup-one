@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Camera, Upload } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/upload/compress";
 import { validateEvidenceFile } from "@/lib/upload/validate";
 import {
@@ -15,6 +18,8 @@ interface QueueItem {
   fileName: string;
   status: QueueStatus;
   error?: string;
+  /** URL local (via `URL.createObjectURL`) só pra miniatura - nunca enviada ao servidor. */
+  previewUrl?: string;
 }
 
 export interface CreateUploadUrlFn {
@@ -63,6 +68,10 @@ export interface PhotoUploaderProps {
  * item que falha (ex.: sem conexão) fica marcado como erro e pode ser
  * reenviado sem duplicar (CA-09.2), reenviando o mesmo item da fila em
  * vez de criar um novo.
+ *
+ * Gap de design (PRO-05): o protótipo separa "Tirar foto" (abre a
+ * câmera) de "Escolher arquivo" (galeria/arquivos), com miniatura e
+ * estado "Enviado · N fotos" em vez do `<input type=file>` nativo cru.
  */
 export function PhotoUploader({
   businessId,
@@ -78,7 +87,18 @@ export function PhotoUploader({
 }: PhotoUploaderProps) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [uploadedCount, setUploadedCount] = useState(initialCount);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Revoga as URLs de preview ao desmontar, pra nao vazar memoria.
+  useEffect(() => {
+    return () => {
+      for (const item of queue) {
+        if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const uploadFile = useCallback(
     async (file: File, itemId: string) => {
@@ -145,12 +165,14 @@ export function PhotoUploader({
     if (!files) return;
     for (const file of Array.from(files)) {
       const id = `${Date.now()}-${file.name}-${Math.random()}`;
-      setQueue((q) => [...q, { id, fileName: file.name, status: "pending" }]);
+      const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+      setQueue((q) => [...q, { id, fileName: file.name, status: "pending", previewUrl }]);
       setQueue((q) => q.map((it) => (it.id === id ? { ...it, status: "uploading" } : it)));
       void uploadFile(file, id);
     }
   }
 
+  const hasUploaded = uploadedCount > 0;
 
   return (
     <div className="flex flex-col gap-2">
@@ -159,35 +181,95 @@ export function PhotoUploader({
         {required ? "" : " (opcional)"}
       </p>
 
-      {uploadedCount > 0 && (
-        <p className="font-body text-sm text-primary">
-          Enviado · {uploadedCount} {itemLabel}
-        </p>
-      )}
+      <Card
+        className={
+          "gap-2 p-3 " +
+          (hasUploaded
+            ? "border-primary/30"
+            : "border-dashed " + (highlight ? "border-destructive" : "border-border"))
+        }
+      >
+        {hasUploaded && (
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-body text-sm font-medium text-primary">
+              Enviado · {uploadedCount} {itemLabel}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Trocar
+            </Button>
+          </div>
+        )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/heic,application/pdf"
-        multiple
-        capture="environment"
-        aria-label={label}
-        onChange={(e) => handleFiles(e.target.files)}
-        className="font-body text-sm"
-      />
+        {!hasUploaded && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              <Camera className="size-4" aria-hidden /> Tirar foto
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="size-4" aria-hidden /> Escolher arquivo
+            </Button>
+          </div>
+        )}
 
-      <ul className="flex flex-col gap-1">
-        {queue.map((item) => (
-          <li key={item.id} className="font-body text-xs text-foreground/70">
-            {item.fileName} —{" "}
-            {item.status === "uploading" && "Enviando..."}
-            {item.status === "done" && "Enviado"}
-            {item.status === "error" && (
-              <span className="text-destructive">{item.error ?? "Falha no envio"}</span>
-            )}
-          </li>
-        ))}
-      </ul>
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/heic,application/pdf"
+          capture="environment"
+          aria-label={label}
+          onChange={(e) => handleFiles(e.target.files)}
+          className="hidden"
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/heic,application/pdf"
+          multiple
+          aria-label={label}
+          onChange={(e) => handleFiles(e.target.files)}
+          className="hidden"
+        />
+
+        {queue.length > 0 && (
+          <ul className="flex flex-col gap-1.5">
+            {queue.map((item) => (
+              <li key={item.id} className="flex items-center gap-2 font-body text-xs text-foreground/70">
+                {item.previewUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.previewUrl}
+                    alt=""
+                    className="size-8 rounded object-cover"
+                  />
+                )}
+                <span>
+                  {item.fileName} —{" "}
+                  {item.status === "uploading" && "Enviando..."}
+                  {item.status === "done" && "Enviado"}
+                  {item.status === "error" && (
+                    <span className="text-destructive">{item.error ?? "Falha no envio"}</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       {highlight && (
         <p className="font-body text-sm text-destructive">
