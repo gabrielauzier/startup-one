@@ -8,6 +8,7 @@ import type { Role } from "@/lib/auth/roles";
 import { SiteHeader } from "./SiteHeader";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { FixedLegalBanner } from "./FixedLegalBanner";
+import { SetPasswordNotice } from "./SetPasswordNotice";
 import { Typography } from "@/components/ui/typography";
 
 /**
@@ -87,7 +88,15 @@ function AvisoBanner() {
  * não tinha header/nav nenhum, e o rodapé legal rolava com o scroll em
  * vez de ficar fixo.
  */
-export function AppChrome({ role, children }: { role: Role | null; children: ReactNode }) {
+export function AppChrome({
+  role,
+  needsPassword = false,
+  children,
+}: {
+  role: Role | null;
+  needsPassword?: boolean;
+  children: ReactNode;
+}) {
   const pathname = usePathname();
 
   if (NO_CHROME_PATTERNS.some((pattern) => pattern.test(pathname))) {
@@ -102,6 +111,7 @@ export function AppChrome({ role, children }: { role: Role | null; children: Rea
     <>
       <SiteHeader role={role} />
       <AvisoBanner />
+      {needsPassword && <SetPasswordNotice />}
       <div className="flex flex-1 flex-col pb-16 md:pb-10">{children}</div>
       <FixedLegalBanner />
       <MobileBottomNav role={role} />

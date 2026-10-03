@@ -1193,9 +1193,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Usuário com `user_metadata.has_password` ausente que entrou por link vê o aviso com link a `/redefinir-senha`
-- [ ] Dispensar esconde o aviso na mesma sessão; quem tem senha não vê
-- [ ] Gate quick passa: `npm run test`
+- [x] Usuário com `user_metadata.has_password` ausente que entrou por link vê o aviso com link a `/redefinir-senha`
+- [x] Dispensar esconde o aviso na mesma sessão; quem tem senha não vê
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick

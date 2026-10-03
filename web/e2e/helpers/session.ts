@@ -18,6 +18,7 @@ export async function createConfirmedUser(
     /** `null` cria a conta sem senha (como as contas do MVP, que entravam so por codigo). */
     password?: string | null;
     confirmed?: boolean;
+    hasPassword?: boolean;
   } = {}
 ): Promise<string> {
   const res = await fetch(`${API_URL}/auth/v1/admin/users`, {
@@ -31,7 +32,10 @@ export async function createConfirmedUser(
       email,
       ...(opts.password === null ? {} : { password: opts.password ?? TEST_PASSWORD }),
       email_confirm: opts.confirmed ?? true,
-      user_metadata: opts.role ? { role: opts.role, nome: opts.nome } : {},
+      user_metadata: {
+        ...(opts.role ? { role: opts.role, nome: opts.nome } : {}),
+        ...(opts.hasPassword ? { has_password: true } : {}),
+      },
     }),
   });
   const user = (await res.json()) as { id?: string; msg?: string };
