@@ -153,10 +153,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Migração aplica em `supabase db reset`
-- [ ] Teste: `anon` e `authenticated` não leem nem gravam `auth_throttle`; `service_role` sim
-- [ ] Teste: `email_account_status` devolve `none`, `unconfirmed` e `confirmed` para os três casos e é negada a `anon`/`authenticated`
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Migração aplica em `supabase db reset`
+- [x] Teste: `anon` e `authenticated` não leem nem gravam `auth_throttle`; `service_role` sim
+- [x] Teste: `email_account_status` devolve `none`, `unconfirmed` e `confirmed` para os três casos e é negada a `anon`/`authenticated`
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: integration (`e2e/rls-auth-throttle.spec.ts`)
 **Gate**: full
