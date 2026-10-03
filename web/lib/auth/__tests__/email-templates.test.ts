@@ -7,12 +7,11 @@ const template = (name: string) => readFileSync(join(root, "templates", name), "
 const config = readFileSync(join(root, "config.toml"), "utf-8");
 
 describe("templates de e-mail de auth (AUTH-06, AUTH-08, AUTH-12, AUTH-14)", () => {
-  it("confirmation.html aponta para /auth/confirm com token_hash e type=signup e nao traz o codigo", () => {
+  it("confirmation.html aponta para /auth/confirm com token_hash e type=signup e informa a validade", () => {
     const html = template("confirmation.html");
     expect(html).toContain(
       "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next={{ .RedirectTo }}"
     );
-    expect(html).not.toContain("{{ .Token }}");
     expect(html).toContain("10 minutos");
   });
 

@@ -375,6 +375,23 @@ Teste `lib/auth/__tests__/auth-config.test.ts` trava `enable_confirmations`, `mi
 
 ---
 
+## GoTrue verification
+
+Confirmado por `e2e/auth-gotrue-contract.spec.ts` contra o Supabase local (GoTrue v2.197.0, 2026-10-02):
+
+| Premissa | Resultado |
+| --- | --- |
+| `{{ .RedirectTo }}` chega no e-mail | Sim, **URL-encoded** (`next=http%3a%2f%2f…`). O handler lê com `searchParams.get("next")` (já decodificado) e passa por `normalizeNext` |
+| `signUp` com e-mail já confirmado | **Devolve erro `user_already_exists`** (não um usuário "ofuscado" como o design supunha) e não envia e-mail. O design não depende disso: a action consulta `email_account_status` antes e nunca chama `signUp` nesse caso |
+| `signInWithOtp({ shouldCreateUser:false })` com e-mail inexistente | Devolve erro, não cria usuário e não envia e-mail; a action engole o erro |
+| Link do magic link (`token_hash`, `type=email`) | `verifyOtp({ token_hash, type:"email" })` cria sessão em outro cliente; reuso do mesmo hash falha |
+| Reset por OTP | E-mail traz 6 dígitos; `verifyOtp({ email, token, type:"recovery" })` cria sessão; `updateUser` com a mesma senha devolve `code = "same_password"`; e-mail inexistente não devolve erro nem envia |
+| `signInWithPassword` | `email_not_confirmed` (não confirmado); `invalid_credentials` (senha errada e e-mail inexistente) |
+| Política de senha | `weak_password` para senha curta ou sem dígito |
+| 429 / `over_request_rate_limit` | **Não verificado**: os rate limits locais estão em 1000. A action mapeia `status === 429` e `code === "over_request_rate_limit"` por precaução |
+
+---
+
 ## Spec amendments (a aplicar em `spec.md`)
 
 Decorrem de limites encontrados no código; mudam o texto, não o objetivo.

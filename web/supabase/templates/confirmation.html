@@ -3,5 +3,8 @@
 <p>Obrigado por criar sua conta. Para começar a usar a Îasy, confirme que este e-mail é seu.</p>
 <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next={{ .RedirectTo }}" style="display:inline-block;padding:12px 20px;background:#1f5e3b;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:bold;">Confirmar meu e-mail</a></p>
 
+<!-- Transicao (D4): com confirmacao ligada, o 1o e-mail do login por OTP de um usuario novo e' este; o codigo sai em T27. -->
+<p>Seu código de acesso: <strong style="font-size: 24px; letter-spacing: 4px;">{{ .Token }}</strong></p>
+
 <p>O link vale por 10 minutos e só pode ser usado uma vez. Se ele vencer, peça outro na tela de cadastro.</p>
 <p>Se você não criou uma conta na Îasy, pode ignorar este e-mail.</p>

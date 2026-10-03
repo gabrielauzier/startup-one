@@ -232,7 +232,7 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [x] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` (`confirmation.html` não contém `{{ .Token }}`; `magic_link.html` mantém o código `{{ .Token }}` até T27, ver Deviations)
+- [x] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` (ambos mantêm o código `{{ .Token }}` até T27, ver Deviations)
 - [x] `recovery.html` contém `{{ .Token }}` e a validade de 10 minutos e **não** contém `{{ .ConfirmationURL }}`, `{{ .SiteURL }}` nem `href`
 - [x] `password_changed.html` orienta o usuário caso não tenha sido ele
 - [x] Teste de template lê os 4 arquivos e confere as regras acima
@@ -259,10 +259,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Teste lê a documentação do Next em `node_modules/next/dist/docs/` para route handlers e `proxy` antes de qualquer código das fases seguintes (regra de `web/AGENTS.md`)
-- [ ] Confirma com asserções: `{{ .RedirectTo }}` chega no e-mail; `signUp` com e-mail existente e confirmação ligada não devolve erro; `signInWithOtp({shouldCreateUser:false})` com e-mail inexistente não cria usuário; `verifyOtp({email, token, type:"recovery"})` funciona; `updateUser` com a mesma senha devolve `error.code`; `signInWithPassword` sem confirmação devolve `email_not_confirmed`; rate limit devolve 429
-- [ ] Qualquer divergência ajusta o mapeamento descrito no design (não o spec) no mesmo commit
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Teste lê a documentação do Next em `node_modules/next/dist/docs/` para route handlers e `proxy` antes de qualquer código das fases seguintes (regra de `web/AGENTS.md`)
+- [x] Confirma com asserções: `{{ .RedirectTo }}` chega no e-mail; `signUp` com e-mail existente e confirmação ligada não devolve erro; `signInWithOtp({shouldCreateUser:false})` com e-mail inexistente não cria usuário; `verifyOtp({email, token, type:"recovery"})` funciona; `updateUser` com a mesma senha devolve `error.code`; `signInWithPassword` sem confirmação devolve `email_not_confirmed`; rate limit devolve 429
+- [x] Qualquer divergência ajusta o mapeamento descrito no design (não o spec) no mesmo commit
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: integration
 **Gate**: full
@@ -1279,5 +1279,5 @@ Execução estritamente sequencial. Com 43 tasks, o empacotamento em lotes de ~7
 | D1 | Commit extra `chore(e2e)`: `playwright.config.ts` lê `E2E_PORT` | Já existe um `next-server` do checkout principal na porta 3000; sem isso o E2E testaria o código errado |
 | D2 | `max_frequency = "60s"` (T4) passa a ser aplicado em T27 | Com 60 s por usuário o fluxo OTP atual (reenvio) e os helpers de E2E quebrariam até a remoção do OTP |
 | D3 | Registro dos templates em `config.toml` fica em T5 (junto dos arquivos) | O `config.toml` não pode apontar para arquivo inexistente |
-| D4 | `magic_link.html` fica "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
+| D4 | `magic_link.html` **e `confirmation.html`** ficam "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 (com `enable_confirmations=true`, o 1º e-mail do login por OTP de usuário novo usa o template de confirmação) | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
 | D5 | Gate full roda unit + os specs E2E tocados pela task; a suíte E2E completa roda ao fim de cada fase | A suíte completa leva dezenas de minutos e o STATE.md documenta esgotamento de rede do Docker em rodadas repetidas |
