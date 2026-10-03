@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
+import { signInThroughForm } from "./helpers/auth";
+import { createConfirmedUser } from "./helpers/session";
 
-const MAILPIT_URL = "http://127.0.0.1:54324";
 const API_URL = "http://127.0.0.1:54321";
 const SERVICE_ROLE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
@@ -33,36 +34,9 @@ async function getTermosAceitosEm(email: string): Promise<string | null> {
   return rows[0]?.termos_aceitos_em ?? null;
 }
 
-async function getOtpCodeFromMailpit(email: string): Promise<string> {
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    const res = await fetch(
-      `${MAILPIT_URL}/api/v1/search?query=to:${encodeURIComponent(email)}`
-    );
-    const { messages } = (await res.json()) as { messages: { ID: string }[] };
-
-    if (messages.length > 0) {
-      const detail = await fetch(`${MAILPIT_URL}/api/v1/message/${messages[0].ID}`);
-      const body = (await detail.json()) as { Text: string };
-      const match = body.Text.match(/\b\d{6}\b/);
-      if (match) return match[0];
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-
-  throw new Error(`Nenhum código OTP encontrado para ${email} no Mailpit`);
-}
-
 async function loginAsInvestidor(page: Page, email: string) {
-  await page.goto("/entrar");
-  await page.getByRole("radio", { name: "Quero investir" }).click();
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL(/\/entrar\/codigo\?/);
-
-  const code = await getOtpCodeFromMailpit(email);
-  await page.getByLabel("Código de 6 dígitos").fill(code);
-  await page.getByRole("button", { name: "Confirmar" }).click();
+  await createConfirmedUser(email, { role: "investidor", nome: "Investidor Termos" });
+  await signInThroughForm(page, email);
 }
 
 test.describe("Termos de Uso e Política de Privacidade /termos", () => {

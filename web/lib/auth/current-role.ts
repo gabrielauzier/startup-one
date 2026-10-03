@@ -8,11 +8,22 @@ import type { Role } from "./roles";
  * mas como Server Component (não tem acesso a `NextRequest` aqui).
  */
 export async function getCurrentRole(): Promise<Role | null> {
+  return (await getCurrentAuthState()).role;
+}
+
+export interface CurrentAuthState {
+  role: Role | null;
+  /** AUTH-18: logado, com perfil, e nunca definiu senha (conta do MVP que entra por link). */
+  needsPassword: boolean;
+}
+
+/** Papel + se falta definir senha, numa unica leitura de sessao (usado pelo layout raiz). */
+export async function getCurrentAuthState(): Promise<CurrentAuthState> {
   const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) return { role: null, needsPassword: false };
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -20,5 +31,9 @@ export async function getCurrentRole(): Promise<Role | null> {
     .eq("id", user.id)
     .maybeSingle();
 
-  return (profile?.role as Role) ?? null;
+  const role = (profile?.role as Role) ?? null;
+  return {
+    role,
+    needsPassword: role !== null && user.user_metadata?.has_password !== true,
+  };
 }

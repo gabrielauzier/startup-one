@@ -1,6 +1,7 @@
 import { Check, Moon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentRole } from "@/lib/auth/current-role";
 import { BoasVindasForm } from "./boas-vindas-form";
 
 /**
@@ -9,6 +10,7 @@ import { BoasVindasForm } from "./boas-vindas-form";
  * o cadastro de 5 partes.
  */
 export default async function ProdutorBoasVindasPage() {
+  const role = await getCurrentRole();
   const admin = createAdminClient();
   const { data: partners } = await admin
     .from("partners")
@@ -79,7 +81,7 @@ export default async function ProdutorBoasVindasPage() {
         </div>
       </Card>
 
-      <BoasVindasForm partners={partners ?? []} />
+      <BoasVindasForm partners={partners ?? []} isProducer={role === "produtor"} />
     </main>
   );
 }

@@ -1,7 +1,6 @@
-<h2>Seu código de acesso Îasy</h2>
+<h2>Seu acesso à Îasy</h2>
 
-<p>Use o código abaixo para entrar. Ele vale por 10 minutos.</p>
-<p style="font-size: 32px; font-weight: bold; letter-spacing: 4px;">{{ .Token }}</p>
+<p>Clique no botão abaixo para entrar. O link vale por 10 minutos e só pode ser usado uma vez.</p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}" style="display:inline-block;padding:12px 20px;background:#1f5e3b;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:bold;">Entrar na Îasy</a></p>
 
-<p>Ou, se preferir, siga o link abaixo:</p>
-<p><a href="{{ .ConfirmationURL }}">Entrar</a></p>
+<p>Se você não pediu este acesso, pode ignorar este e-mail.</p>

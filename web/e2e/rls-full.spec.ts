@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { createUserSession } from "./helpers/session";
 import { randomValidCnpj } from "./helpers/cnpj";
 import {
   promoteToVerifier,
@@ -24,7 +25,6 @@ import {
 // de `rls-businesses.spec.ts`.
 
 const API_URL = "http://127.0.0.1:54321";
-const MAILPIT_URL = "http://127.0.0.1:54324";
 const ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 const SERVICE_ROLE_KEY =
@@ -38,26 +38,6 @@ function serviceHeaders() {
   };
 }
 
-async function getOtpCodeFromMailpit(email: string): Promise<string> {
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    const res = await fetch(
-      `${MAILPIT_URL}/api/v1/search?query=to:${encodeURIComponent(email)}`
-    );
-    const { messages } = (await res.json()) as { messages: { ID: string }[] };
-
-    if (messages.length > 0) {
-      const detail = await fetch(`${MAILPIT_URL}/api/v1/message/${messages[0].ID}`);
-      const body = (await detail.json()) as { Text: string };
-      const match = body.Text.match(/\b\d{6}\b/);
-      if (match) return match[0];
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-
-  throw new Error(`Nenhum código OTP encontrado para ${email} no Mailpit`);
-}
-
 /** Loga via API (sem browser) e devolve o access_token + user id, já com profile criado. */
 async function loginViaApi(
   emailPrefix: string,
@@ -65,23 +45,7 @@ async function loginViaApi(
 ): Promise<{ accessToken: string; userId: string }> {
   const email = `${emailPrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 
-  await fetch(`${API_URL}/auth/v1/otp`, {
-    method: "POST",
-    headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email, create_user: true }),
-  });
-
-  const code = await getOtpCodeFromMailpit(email);
-
-  const verifyRes = await fetch(`${API_URL}/auth/v1/verify`, {
-    method: "POST",
-    headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email, token: code, type: "email" }),
-  });
-  const session = (await verifyRes.json()) as {
-    access_token: string;
-    user: { id: string };
-  };
+  const session = await createUserSession(email);
 
   await fetch(`${API_URL}/rest/v1/profiles`, {
     method: "POST",

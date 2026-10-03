@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Role } from "@/lib/auth/roles";
+import { signOutAction } from "@/lib/auth/sign-out";
 
 interface NavLink {
   href: string;
@@ -41,6 +42,16 @@ export function MobileBottomNav({ role }: { role: Role | null }) {
           {link.label}
         </Link>
       ))}
+      {role && (
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="min-h-11 min-w-11 font-body text-sm text-foreground"
+          >
+            Sair
+          </button>
+        </form>
+      )}
     </nav>
   );
 }

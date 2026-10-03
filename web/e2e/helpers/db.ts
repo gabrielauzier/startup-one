@@ -350,3 +350,39 @@ export async function getConnectionEvents(
   );
   return (await res.json()) as Record<string, unknown>[];
 }
+
+export async function getProfileByUserId(id: string): Promise<Record<string, unknown> | null> {
+  const res = await fetch(`${API_URL}/rest/v1/profiles?id=eq.${id}&select=*`, {
+    headers: headers(),
+  });
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows[0] ?? null;
+}
+
+/** Grava `count` linhas de auth_throttle antigas (dentro da janela de 1 h, fora do cooldown) para o e-mail. */
+export async function seedThrottle(
+  email: string,
+  kind: "signup" | "magic" | "reset",
+  count: number
+): Promise<void> {
+  const { createHash } = await import("node:crypto");
+  const keyHash = createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+  const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  await fetch(`${API_URL}/rest/v1/auth_throttle`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify(
+      Array.from({ length: count }, () => ({ key_hash: keyHash, kind, created_at: createdAt }))
+    ),
+  });
+}
+
+/** Apaga o historico de envios de auth do e-mail (para testes que repetem o fluxo dentro do cooldown de 60 s). */
+export async function clearThrottle(email: string, kind: "signup" | "magic" | "reset"): Promise<void> {
+  const { createHash } = await import("node:crypto");
+  const keyHash = createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+  await fetch(`${API_URL}/rest/v1/auth_throttle?key_hash=eq.${keyHash}&kind=eq.${kind}`, {
+    method: "DELETE",
+    headers: headers(),
+  });
+}

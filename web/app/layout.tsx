@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Newsreader, Hanken_Grotesk } from "next/font/google";
 import { AppChrome } from "@/components/shared/AppChrome";
-import { getCurrentRole } from "@/lib/auth/current-role";
+import { getCurrentAuthState } from "@/lib/auth/current-role";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const role = await getCurrentRole();
+  const { role, needsPassword } = await getCurrentAuthState();
 
   return (
     <html
@@ -32,7 +32,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         className="min-h-full flex flex-col font-body"
         suppressHydrationWarning
       >
-        <AppChrome role={role}>{children}</AppChrome>
+        <AppChrome role={role} needsPassword={needsPassword}>
+          {children}
+        </AppChrome>
       </body>
     </html>
   );

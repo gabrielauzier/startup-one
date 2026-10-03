@@ -6,12 +6,29 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * tabela do T53 - discriminada por `kind`, ver comentário da
  * migração).
  */
+export const AUTH_EVENT_TYPES = [
+  "auth_cadastro_enviado",
+  "auth_email_confirmado",
+  "auth_login_senha_ok",
+  "auth_login_senha_erro",
+  "auth_magic_link_pedido",
+  "auth_magic_link_ok",
+  "auth_reset_pedido",
+  "auth_reset_codigo_ok",
+  "auth_reset_codigo_erro",
+  "auth_senha_alterada",
+  "auth_logout",
+] as const;
+
+export type AuthEventType = (typeof AUTH_EVENT_TYPES)[number];
+
 export type ProductEventType =
   | "cadastro_iniciado"
   | "cadastro_enviado"
   | "descoberta_concluida"
   | "interesse_enviado"
-  | "conexao_em_negociacao";
+  | "conexao_em_negociacao"
+  | AuthEventType;
 
 export interface TrackEventInput {
   type: ProductEventType;

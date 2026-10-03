@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { signOutAction } from "@/lib/auth/sign-out";
 
 /**
  * RF-29: barra inferior fixa do painel do produtor - Início (o
- * painel), Pedidos (T43) e Interesses (T48). Componente estático (sem
+ * painel), Pedidos (T43), Interesses (T48) e Sair (AUTH-16). Componente estático (sem
  * estado de rota ativa por enquanto - as 3 rotas já têm título
  * próprio na página).
  */
@@ -21,6 +22,14 @@ export function BottomNav() {
       <Link href="/produtor/interesses" className="font-body text-sm text-foreground">
         Interesses
       </Link>
+      <form action={signOutAction}>
+        <button
+          type="submit"
+          className="min-h-11 min-w-11 font-body text-sm text-foreground"
+        >
+          Sair
+        </button>
+      </form>
     </nav>
   );
 }

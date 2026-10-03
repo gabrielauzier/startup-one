@@ -4,6 +4,7 @@ import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import type { Role } from "@/lib/auth/roles";
+import { signOutAction } from "@/lib/auth/sign-out";
 
 interface NavLink {
   href: string;
@@ -65,12 +66,23 @@ export function SiteHeader({ role }: { role: Role | null }) {
           ))}
         </nav>
 
-        <Link
-          href="/entrar"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-        >
-          Entrar
-        </Link>
+        {role ? (
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            >
+              Sair
+            </button>
+          </form>
+        ) : (
+          <Link
+            href="/entrar"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Entrar
+          </Link>
+        )}
       </div>
     </header>
   );

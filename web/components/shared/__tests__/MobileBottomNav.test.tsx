@@ -1,0 +1,32 @@
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+const signOutAction = vi.fn();
+vi.mock("@/lib/auth/sign-out", () => ({ signOutAction: (...a: unknown[]) => signOutAction(...a) }));
+
+import { MobileBottomNav } from "../MobileBottomNav";
+
+describe("MobileBottomNav (AUTH-16)", () => {
+  it("com papel mostra o item Sair com alvo de toque minimo de 44px (min-h-11/min-w-11)", () => {
+    render(<MobileBottomNav role="investidor" />);
+
+    const sair = screen.getByRole("button", { name: "Sair" });
+    expect(sair.className).toContain("min-h-11");
+    expect(sair.className).toContain("min-w-11");
+  });
+
+  it("o botao Sair submete o form ligado a signOutAction", async () => {
+    const { container } = render(<MobileBottomNav role="investidor" />);
+    const form = container.querySelector("form")!;
+
+    expect(form.contains(screen.getByRole("button", { name: "Sair" }))).toBe(true);
+    form.requestSubmit();
+    await vi.waitFor(() => expect(signOutAction).toHaveBeenCalledTimes(1));
+  });
+
+  it("sem papel nao mostra Sair", () => {
+    render(<MobileBottomNav role={null} />);
+
+    expect(screen.queryByRole("button", { name: "Sair" })).toBeNull();
+  });
+});
