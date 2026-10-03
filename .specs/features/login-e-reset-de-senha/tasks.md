@@ -391,12 +391,12 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Primeiro envio é permitido e grava linha
-- [ ] Segundo dentro de 60 s devolve `retryAfterSec` positivo
-- [ ] Quarto na mesma hora devolve bloqueio de teto
-- [ ] Chaves de `kind` e e-mail diferentes não interferem
-- [ ] Linhas com mais de 1 h são removidas na gravação
-- [ ] Gate quick passa: `npm run test`
+- [x] Primeiro envio é permitido e grava linha
+- [x] Segundo dentro de 60 s devolve `retryAfterSec` positivo
+- [x] Quarto na mesma hora devolve bloqueio de teto
+- [x] Chaves de `kind` e e-mail diferentes não interferem
+- [x] Linhas com mais de 1 h são removidas na gravação
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
