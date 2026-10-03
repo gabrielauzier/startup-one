@@ -232,11 +232,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` (`confirmation.html` não contém `{{ .Token }}`; `magic_link.html` mantém o código `{{ .Token }}` até T27, ver Deviations)
-- [ ] `recovery.html` contém `{{ .Token }}` e a validade de 10 minutos e **não** contém `{{ .ConfirmationURL }}`, `{{ .SiteURL }}` nem `href`
-- [ ] `password_changed.html` orienta o usuário caso não tenha sido ele
-- [ ] Teste de template lê os 4 arquivos e confere as regras acima
-- [ ] Gate quick passa: `npm run test`
+- [x] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` (`confirmation.html` não contém `{{ .Token }}`; `magic_link.html` mantém o código `{{ .Token }}` até T27, ver Deviations)
+- [x] `recovery.html` contém `{{ .Token }}` e a validade de 10 minutos e **não** contém `{{ .ConfirmationURL }}`, `{{ .SiteURL }}` nem `href`
+- [x] `password_changed.html` orienta o usuário caso não tenha sido ele
+- [x] Teste de template lê os 4 arquivos e confere as regras acima
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit (`lib/auth/__tests__/email-templates.test.ts`)
 **Gate**: quick

@@ -295,17 +295,26 @@ otp_expiry = 600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
-# RN-02: mostra o codigo de 6 digitos no e-mail (o template padrao so'
-# mostra o link magico, sem o codigo digitavel).
+# AUTH-12: templates em pt-BR. Links usam /auth/confirm?token_hash=...
+# (nao o ConfirmationURL), para funcionar em outro aparelho/navegador.
+# `recovery` mostra so' o codigo de 6 digitos (reset por OTP).
+[auth.email.template.confirmation]
+subject = "Confirme seu e-mail na Îasy"
+content_path = "./supabase/templates/confirmation.html"
+
+# Transicao (D4): ainda mostra o codigo ate o login por OTP sair (T27).
 [auth.email.template.magic_link]
-subject = "Seu código de acesso Îasy"
+subject = "Seu acesso à Îasy"
 content_path = "./supabase/templates/magic_link.html"
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./supabase/templates/password_changed_notification.html"
+[auth.email.template.recovery]
+subject = "Seu código para redefinir a senha da Îasy"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Sua senha da Îasy foi alterada"
+content_path = "./supabase/templates/password_changed.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
