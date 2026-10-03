@@ -475,11 +475,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Teste unitário do `proxy` (mock de `createServerClient`): sem sessão em rota privada redireciona a `/entrar?redirect=…`
-- [ ] Logado sem perfil em `/produtor/painel` e `/entrar` redireciona a `/completar-perfil`
-- [ ] Investidor em `/produtor/painel` redireciona a `/negocios?aviso=sem-permissao`; produtor em `/interesses` a `/produtor?aviso=sem-permissao`; `/api/x` restrita ainda responde 403 JSON
-- [ ] Com cookie `iasy_recovery`, `/negocios` redireciona a `/redefinir-senha` e `/redefinir-senha`, `/esqueci-senha/codigo`, `/auth/confirm` passam
-- [ ] Gate quick passa: `npm run test`
+- [x] Teste unitário do `proxy` (mock de `createServerClient`): sem sessão em rota privada redireciona a `/entrar?redirect=…`
+- [x] Logado sem perfil em `/produtor/painel` e `/entrar` redireciona a `/completar-perfil`
+- [x] Investidor em `/produtor/painel` redireciona a `/negocios?aviso=sem-permissao`; produtor em `/interesses` a `/produtor?aviso=sem-permissao`; `/api/x` restrita ainda responde 403 JSON
+- [x] Com cookie `iasy_recovery`, `/negocios` redireciona a `/redefinir-senha` e `/redefinir-senha`, `/esqueci-senha/codigo`, `/auth/confirm` passam
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit (`__tests__/proxy.test.ts`)
 **Gate**: quick
