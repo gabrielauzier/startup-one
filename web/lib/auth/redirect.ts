@@ -68,6 +68,15 @@ export function normalizeNext(
   return isSafeRedirect(candidate) ? candidate : null;
 }
 
+/**
+ * `searchParams` do Next entrega `string | string[]`: um parametro repetido
+ * (`?redirect=/a&redirect=/b`) vale pelo primeiro valor (edge case da spec).
+ */
+export function firstParam(value: string | string[] | undefined): string {
+  const first = Array.isArray(value) ? value[0] : value;
+  return typeof first === "string" ? first : "";
+}
+
 /** Pagina inicial estatica do papel (usada pelo `proxy`, sem consulta a banco). */
 export function roleHome(role: ProfileRole): string {
   if (role === "verificador") return "/verificacao";

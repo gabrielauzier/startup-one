@@ -32,6 +32,8 @@ const form = (values: Record<string, string>) => {
   return fd;
 };
 
+const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+
 beforeEach(() => {
   vi.clearAllMocks();
   checkAndRecordSend.mockResolvedValue({ allowed: true });
@@ -91,6 +93,12 @@ describe("requestMagicLink (AUTH-06)", () => {
     expect(result.error).toBe("Não foi possível enviar o e-mail. Tente de novo.");
     expect(JSON.stringify(result)).not.toContain("smtp");
     expect(setAuthContext).not.toHaveBeenCalled();
+    // AUTH-10 critério 5: so' code/status vao para o log do servidor.
+    expect(errorLog).toHaveBeenCalledWith("[auth] magic-link.signInWithOtp", {
+      code: "unexpected_failure",
+      status: 500,
+    });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("smtp");
   });
 
   it("throttle em cooldown devolve a espera restante e nao envia", async () => {
@@ -112,6 +120,14 @@ describe("requestMagicLink (AUTH-06)", () => {
     );
     expect(checkAndRecordSend).not.toHaveBeenCalled();
     expect(signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it("falha ao registrar o evento nao impede o pedido do link (AUTH-15 critério 4)", async () => {
+    trackEvent.mockRejectedValueOnce(new Error("boom"));
+
+    await expect(requestMagicLink({}, form({ email: "a@b.com" }))).rejects.toThrow(
+      "NEXT_REDIRECT:/entrar/link-enviado"
+    );
   });
 
   it("registra auth_magic_link_pedido sem PII", async () => {

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { trackEvent } from "@/lib/analytics/track";
 import { readAuthContext, setRecoveryFlag } from "@/lib/auth/auth-context-cookie";
-import { SEND_FAILED, isEmailSendRateLimit, throttleMessage } from "@/lib/auth/messages";
+import { SEND_FAILED, isEmailSendRateLimit, logAuthError, throttleMessage } from "@/lib/auth/messages";
 import { checkAndRecordSend } from "@/lib/auth/throttle";
 
 export interface VerifyResetState {
@@ -79,7 +79,10 @@ export async function resendResetCode(): Promise<ResendResetState> {
 
   const supabase = await createServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(ctx.email);
-  if (error && !isEmailSendRateLimit(error)) return { error: SEND_FAILED };
+  if (error && !isEmailSendRateLimit(error)) {
+    logAuthError("reset.resend", error);
+    return { error: SEND_FAILED };
+  }
 
   return { sent: true, retryAfterSec: 60 };
 }

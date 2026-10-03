@@ -4,6 +4,7 @@ import {
   isSafeRedirect,
   normalizeNext,
   roleHome,
+  firstParam,
 } from "../redirect";
 
 function fakeAdmin(tableData: Record<string, unknown | null>) {
@@ -133,6 +134,18 @@ describe("normalizeNext (AUTH-04 critério 12)", () => {
     expect(normalizeNext(null, origin)).toBeNull();
     expect(normalizeNext(undefined, origin)).toBeNull();
     expect(normalizeNext("nao-e-url", origin)).toBeNull();
+  });
+});
+
+describe("firstParam (edge case: redirect/next duplicado ou lista)", () => {
+  it("usa o primeiro valor de uma lista", () => {
+    expect(firstParam(["/negocios", "/produtor"])).toBe("/negocios");
+  });
+
+  it("devolve a string como veio e vazio para ausente ou lista vazia", () => {
+    expect(firstParam("/negocios")).toBe("/negocios");
+    expect(firstParam(undefined)).toBe("");
+    expect(firstParam([])).toBe("");
   });
 });
 

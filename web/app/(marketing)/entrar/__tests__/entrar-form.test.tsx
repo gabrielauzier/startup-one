@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 
-vi.mock("../actions", () => ({ signInPassword: vi.fn() }));
+const signInPassword = vi.fn();
+vi.mock("../actions", () => ({ signInPassword: (...a: unknown[]) => signInPassword(...a) }));
 vi.mock("../magic-link-actions", () => ({
   requestMagicLink: vi.fn(),
   resendConfirmation: vi.fn(),
@@ -80,6 +81,35 @@ describe("EntrarForm (AUTH-05)", () => {
     expect(
       (container.querySelector('input[name="redirect"]') as HTMLInputElement).value
     ).toBe("/negocios/x");
+  });
+
+  it("enquanto envia, o botao Entrar fica desabilitado e mostra 'Entrando…' (AUTH-05 critério 5)", async () => {
+    signInPassword.mockReturnValue(new Promise(() => {}));
+    const { container } = render(<EntrarForm redirectTo="" notice={null} />);
+    fireEvent.change(screen.getByLabelText("E-mail"), { target: { value: "a@b.com" } });
+    fireEvent.change(screen.getByLabelText("Senha"), { target: { value: "abc12345" } });
+
+    await act(async () => {
+      container.querySelector("form")!.requestSubmit();
+    });
+
+    const botao = screen.getByRole("button", { name: "Entrando…" }) as HTMLButtonElement;
+    expect(botao.disabled).toBe(true);
+  });
+
+  it("campos e botoes de acao tem altura de 44px (h-11) para toque (AUTH-05 critério 14)", () => {
+    render(<EntrarForm redirectTo="" notice={null} />);
+
+    for (const el of [
+      screen.getByLabelText("E-mail"),
+      screen.getByLabelText("Senha"),
+      screen.getByRole("button", { name: "Entrar" }),
+      screen.getByRole("button", { name: "Receber link de acesso por e-mail" }),
+    ]) {
+      expect(el.className, el.outerHTML.slice(0, 60)).toContain("h-11");
+    }
+    expect(screen.getByRole("link", { name: "Esqueci minha senha" }).className).toContain("min-h-11");
+    expect(screen.getByRole("button", { name: "Mostrar" }).className).toContain("min-w-11");
   });
 
   it("a area de erro e uma regiao role=alert", () => {

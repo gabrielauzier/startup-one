@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/notifications/send-email";
 import { setAuthContext } from "@/lib/auth/auth-context-cookie";
 import { requestOrigin } from "@/lib/auth/origin";
 import { normalizeEmail } from "@/lib/auth/email";
-import { SEND_FAILED, throttleMessage } from "@/lib/auth/messages";
+import { SEND_FAILED, logAuthError, throttleMessage } from "@/lib/auth/messages";
 import { passwordRequirementMessage, validatePassword } from "@/lib/auth/password";
 import { isValidRole, validateNome } from "@/lib/auth/role-options";
 import { checkAndRecordSend } from "@/lib/auth/throttle";
@@ -76,14 +76,18 @@ export async function signUpAction(
   const supabase = await createServerClient();
 
   if (status === "confirmed") {
+    const origin = await requestOrigin();
     await sendEmail({
       to: email,
       subject: "Alguém tentou criar uma conta na Îasy com este e-mail",
-      body: `Você já tem uma conta na Îasy. Se foi você, entre em ${await requestOrigin()}/entrar ou use "Esqueci minha senha". Se não foi, ignore este e-mail.`,
+      body: `Você já tem uma conta na Îasy. Se foi você, entre em ${origin}/entrar ou redefina a senha em ${origin}/esqueci-senha. Se não foi, ignore este e-mail.`,
     });
   } else if (status === "unconfirmed") {
     const { error } = await supabase.auth.resend({ type: "signup", email });
-    if (error) return { error: SEND_FAILED, values };
+    if (error) {
+      logAuthError("signup.resend", error);
+      return { error: SEND_FAILED, values };
+    }
   } else {
     const { error } = await supabase.auth.signUp({
       email,
@@ -91,6 +95,7 @@ export async function signUpAction(
       options: { data: { role, nome, has_password: true } },
     });
     if (error && error.code !== "user_already_exists") {
+      logAuthError("signup.signUp", error);
       return { error: error.status === 429 ? TOO_MANY : CREATE_FAILED, values };
     }
   }

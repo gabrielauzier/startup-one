@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { countMails, waitForMail } from "./helpers/mailpit";
-import { createConfirmedUser } from "./helpers/session";
+import { addSessionCookies, createConfirmedUser } from "./helpers/session";
 
 test.describe("/esqueci-senha (AUTH-08 critérios 1 e 3)", () => {
   test("e-mail existente: recebe o e-mail de recuperacao com 6 digitos e sem link; e-mail na URL nao aparece", async ({
@@ -48,5 +48,19 @@ test.describe("/esqueci-senha (AUTH-08 critérios 1 e 3)", () => {
     await page.getByRole("link", { name: "Esqueci minha senha" }).click();
 
     await page.waitForURL("**/esqueci-senha");
+  });
+
+  test("usuario logado que abre /esqueci-senha vai ao destino do papel (AUTH-01 critério 9)", async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    const email = `esq-logado-${Date.now()}@example.com`;
+    await createConfirmedUser(email, { role: "produtor", nome: "Logado" });
+    await addSessionCookies(context, baseURL!, email);
+
+    await page.goto("/esqueci-senha");
+
+    await page.waitForURL("**/produtor");
   });
 });

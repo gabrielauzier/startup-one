@@ -31,6 +31,8 @@ const form = (code: string) => {
   return fd;
 };
 
+const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+
 beforeEach(() => {
   vi.clearAllMocks();
   readAuthContext.mockResolvedValue({ email: "foo@bar.com" });
@@ -97,6 +99,15 @@ describe("verifyResetCode (AUTH-08, critérios 4 a 9)", () => {
     await expect(verifyResetCode({}, form("123456"))).rejects.toThrow("NEXT_REDIRECT:/esqueci-senha");
   });
 
+  it("falha ao registrar o evento nao impede a verificacao do codigo (AUTH-15 critério 4)", async () => {
+    trackEvent.mockRejectedValueOnce(new Error("boom"));
+    await expect(verifyResetCode({}, form("123456"))).rejects.toThrow("NEXT_REDIRECT:/redefinir-senha");
+
+    trackEvent.mockRejectedValueOnce(new Error("boom"));
+    verifyOtp.mockResolvedValue({ data: { session: null }, error: { status: 403 } });
+    expect(await verifyResetCode({}, form("123456"))).toEqual({ error: "Código inválido ou vencido." });
+  });
+
   it("registra auth_reset_codigo_ok e auth_reset_codigo_erro sem PII", async () => {
     await expect(verifyResetCode({}, form("123456"))).rejects.toThrow("NEXT_REDIRECT");
     verifyOtp.mockResolvedValue({ data: { session: null }, error: { status: 403 } });
@@ -134,6 +145,8 @@ describe("resendResetCode (AUTH-08 critério 7, AUTH-09)", () => {
     resetPasswordForEmail.mockResolvedValueOnce({ error: { status: 500, message: "smtp" } });
 
     expect((await resendResetCode()).error).toBe("Não foi possível enviar o e-mail. Tente de novo.");
+    expect(errorLog).toHaveBeenCalledWith("[auth] reset.resend", { code: undefined, status: 500 });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("smtp");
   });
 
   it("sem cookie de contexto volta a /esqueci-senha", async () => {

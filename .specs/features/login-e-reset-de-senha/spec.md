@@ -131,7 +131,7 @@ As recomendações da PRD §15 viram defaults aqui. "Confirmed? n" significa que
 9a. WHEN um usuário é inserido em `auth.users` com `raw_user_meta_data.role` válido THEN o banco SHALL criar a linha em `profiles` com `role` e `nome` do metadado, na mesma transação. <!-- AUTH-11 -->
 10. WHEN o usuário abre o link de confirmação válido (`/auth/confirm?token_hash=…&type=signup`) em qualquer navegador THEN o sistema SHALL confirmar o e-mail, criar a sessão nesse navegador e seguir o destino da primeira história. <!-- AUTH-04 -->
 11. IF o link de confirmação estiver vencido (mais de 10 minutos), já usado ou inválido THEN o sistema SHALL redirecionar a `/cadastro/confirmar-email?erro=expirado` com o botão "Enviar novo link". <!-- AUTH-04 -->
-12. IF o parâmetro `type` de `/auth/confirm` não for `signup` ou `email`, ou o `next` for inseguro THEN o sistema SHALL tratar o `type` como inválido (critério 11) e ignorar o `next`. <!-- AUTH-04 -->
+12. IF o parâmetro `type` de `/auth/confirm` não for `signup` ou `email`, ou o `next` for inseguro THEN o sistema SHALL redirecionar a `/entrar?erro=link-expirado` quando o `type` for inválido e SHALL ignorar o `next` inseguro. <!-- AUTH-04 -->
 13. WHEN o usuário aciona "Reenviar e-mail" THEN o sistema SHALL reenviar a confirmação, exibir "Enviamos outro e-mail" e desabilitar o botão por 60 s com contagem visível. <!-- AUTH-09 -->
 14. IF o reenvio for acionado mais de 3 vezes na hora para o mesmo e-mail THEN o sistema SHALL recusar o envio e exibir "Muitos pedidos. Tente de novo em alguns minutos." <!-- AUTH-09 -->
 15. IF o envio de e-mail pelo provedor falhar THEN o sistema SHALL exibir erro "Não foi possível enviar o e-mail. Tente de novo." e manter a tela com o botão de reenvio habilitado. <!-- AUTH-09 -->
@@ -213,13 +213,13 @@ As recomendações da PRD §15 viram defaults aqui. "Confirmed? n" significa que
 7. WHEN o usuário aciona "Reenviar código" THEN o sistema SHALL enviar um novo código que invalida o anterior, aplicar o cooldown de 60 s e exibir "Enviamos outro código". <!-- AUTH-09 -->
 8. IF o limite de verificações do GoTrue for atingido THEN o sistema SHALL exibir "Muitas tentativas. Peça um novo código." e SHALL NOT aceitar novo código por esse pedido. <!-- AUTH-10 -->
 9. The campo do código SHALL usar `inputmode="numeric"`, `autocomplete="one-time-code"`, `maxLength` 6 e aceitar colar. <!-- AUTH-08 -->
-10. IF o usuário abre `/redefinir-senha` sem sessão de recuperação ou autenticada THEN o sistema SHALL redirecioná-lo a `/esqueci-senha`. <!-- AUTH-14 -->
+10. IF o usuário abre `/redefinir-senha` sem nenhuma sessão (nem de recuperação nem a de um usuário autenticado) THEN o sistema SHALL redirecioná-lo a `/esqueci-senha`. <!-- AUTH-14 -->
 11. WHEN o usuário abre `/redefinir-senha` com sessão de recuperação THEN o sistema SHALL exibir "Nova senha" e "Confirmar nova senha", com mostrar/ocultar e os requisitos da senha. <!-- AUTH-14 -->
 12. IF as duas senhas diferirem, ou a nova senha não cumprir 8 a 72 caracteres com 1 letra e 1 número, THEN o sistema SHALL bloquear o envio e indicar o requisito no campo. <!-- AUTH-14 -->
 13. IF a nova senha for igual à atual THEN o sistema SHALL exibir "Escolha uma senha diferente da atual." <!-- AUTH-14 -->
 14. WHEN o usuário envia senhas válidas e iguais THEN o sistema SHALL chamar `updateUser({ password })`, encerrar as demais sessões do usuário (`signOut({ scope: "others" })`), manter a sessão atual e aplicar o destino pós-login com aviso "Senha alterada". <!-- AUTH-14 -->
 15. WHEN a senha é alterada THEN o sistema SHALL enviar ao titular o e-mail "Sua senha foi alterada" com orientação caso não tenha sido ele. <!-- AUTH-14 -->
-16. WHILE a sessão é de recuperação, o sistema SHALL permitir apenas `/redefinir-senha` e `/auth/*`; qualquer outra rota privada SHALL redirecionar a `/redefinir-senha`. <!-- AUTH-14 -->
+16. WHILE a sessão é de recuperação, o sistema SHALL permitir apenas `/redefinir-senha`, `/esqueci-senha*` (para pedir outro código) e `/auth/*`; qualquer outra rota SHALL redirecionar a `/redefinir-senha`. <!-- AUTH-14 -->
 17. WHEN um usuário do MVP sem senha conclui o reset THEN o sistema SHALL definir a primeira senha dele e permitir o login por senha. <!-- AUTH-14 -->
 
 **Independent Test**: pedir o código no Mailpit, validá-lo, definir senha nova e entrar com ela; entrar com a antiga deve falhar.
@@ -236,10 +236,10 @@ As recomendações da PRD §15 viram defaults aqui. "Confirmed? n" significa que
 
 **Acceptance Criteria**:
 
-1. The sistema SHALL ter em `config.toml` e em `DEPLOY.md` os valores de produção de `email_sent`, `sign_in_sign_ups`, `token_verifications` e `max_frequency`, sem o valor 1000 de dev como padrão de produção. <!-- AUTH-10 -->
-2. WHEN o mesmo e-mail é usado em reset, magic link e cadastro, existindo ou não conta, THEN o sistema SHALL responder com o mesmo texto e o mesmo código HTTP. <!-- AUTH-13 -->
-3. The templates `confirmation`, `magic_link`, `recovery`, `password_changed` e o aviso de cadastro duplicado SHALL estar em pt-BR em `supabase/templates/` e configurados em `config.toml`. <!-- AUTH-12 -->
-4. The `site_url` e `additional_redirect_urls` SHALL conter as URLs de produção e de preview, documentadas em `DEPLOY.md`. <!-- AUTH-12 -->
+1. The `DEPLOY.md` SHALL listar os valores de produção de `email_sent`, `sign_in_sign_ups`, `token_verifications` e `max_frequency` e avisar que o `1000` do `config.toml` (que só vale no ambiente local) é exclusivo da suíte E2E; um teste confere o documento. <!-- AUTH-10 -->
+2. WHEN o mesmo e-mail é usado em reset, magic link e cadastro, existindo ou não conta, THEN o sistema SHALL devolver o mesmo resultado da action (mesma tela de destino e mesmo estado de erro, sem diferença observável pela existência da conta). <!-- AUTH-13 -->
+3. The templates `confirmation`, `magic_link`, `recovery` e `password_changed` SHALL estar em pt-BR em `supabase/templates/` e configurados em `config.toml`; o aviso de cadastro duplicado (AUTH-03 critério 7a) é montado pela aplicação e enviado por `sendEmail`. <!-- AUTH-12 -->
+4. The `DEPLOY.md` SHALL documentar que `site_url` é o domínio final de cada ambiente e que `additional_redirect_urls` libera o padrão `/**` do domínio de produção, do domínio de preview e do localhost; `config.toml` cobre as origens locais. <!-- AUTH-12 -->
 5. IF o envio de e-mail pelo provedor retornar erro THEN o sistema SHALL registrar o erro no servidor sem expor a mensagem interna ao usuário. <!-- AUTH-09 -->
 
 **Independent Test**: comparar a resposta HTTP e o corpo para e-mail existente e inexistente nos três fluxos.
@@ -273,7 +273,7 @@ As recomendações da PRD §15 viram defaults aqui. "Confirmed? n" significa que
 
 **Acceptance Criteria**:
 
-1. WHEN um usuário entra por magic link e nunca definiu senha THEN o sistema SHALL exibir uma vez por sessão um aviso "Defina uma senha para entrar mais rápido" com link a `/redefinir-senha`. <!-- AUTH-18 -->
+1. WHEN um usuário logado, com perfil e sem `has_password` (conta do MVP, que só entra por link), abre uma tela com chrome global THEN o sistema SHALL exibir uma vez por sessão um aviso "Defina uma senha para entrar mais rápido" com link a `/redefinir-senha`. <!-- AUTH-18 -->
 2. WHEN o usuário dispensa o aviso THEN o sistema SHALL não exibi-lo de novo na mesma sessão. <!-- AUTH-18 -->
 
 **Independent Test**: entrar por link com usuário sem senha e ver o aviso uma única vez.

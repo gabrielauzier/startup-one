@@ -77,7 +77,7 @@ Authentication → Providers → Email (espelha `web/supabase/config.toml`, que 
 | Notificação "Password changed" (ativar) | `password_changed.html` | `Sua senha da Îasy foi alterada` |
 
   **Sem os templates** o e-mail sai no padrão do Supabase, em inglês e com `{{ .ConfirmationURL }}`: o link não passa pelo `/auth/confirm` e o reset mostraria link em vez do código.
-- Authentication → **Rate Limits** (valores iniciais de produção; os `1000` do `config.toml` são **só para a suíte E2E local**): e-mails de auth por hora conforme o plano do SMTP (começar em 100/h), tentativas de login/cadastro por IP 30 a cada 5 min, verificações de token/OTP por IP 30 a cada 5 min. O app ainda limita **por e-mail** o envio de cadastro, link e reset (60 s entre envios e no máximo 3 por hora, tabela `auth_throttle`), e o limite de tentativas do código de reset é o de verificações de token do Supabase.
+- Authentication → **Rate Limits** (valores iniciais de produção; os `1000` do `config.toml` são **só para a suíte E2E local**): `email_sent` (e-mails de auth por hora) conforme o plano do SMTP, começando em 100/h; `sign_in_sign_ups` (login/cadastro por IP) 30 a cada 5 min; `token_verifications` (verificação de token/OTP por IP) 30 a cada 5 min. O app ainda limita **por e-mail** o envio de cadastro, link e reset (60 s entre envios e no máximo 3 por hora, tabela `auth_throttle`), e o limite de tentativas do código de reset é o de verificações de token do Supabase.
 - **Contas do MVP**: usuários criados pelo login por código não têm senha. Eles entram por **link de acesso** ou definem a senha em **Esqueci minha senha**. Antes de ligar `Confirm email` em produção, conferir que nenhum usuário existente ficaria bloqueado:
 
 ```sql

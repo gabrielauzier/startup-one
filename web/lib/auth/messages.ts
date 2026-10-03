@@ -19,3 +19,15 @@ export function throttleMessage(result: Extract<ThrottleResult, { allowed: false
 export function isEmailSendRateLimit(error: { code?: string } | null | undefined): boolean {
   return error?.code === "over_email_send_rate_limit";
 }
+
+/**
+ * AUTH-10 critério 5: o erro do provedor de e-mail vai para o log do
+ * servidor (so' `code` e `status`, nunca e-mail ou mensagem interna) e
+ * o usuario recebe apenas `SEND_FAILED`.
+ */
+export function logAuthError(
+  scope: string,
+  error: { code?: string; status?: number } | null | undefined
+): void {
+  console.error(`[auth] ${scope}`, { code: error?.code, status: error?.status });
+}

@@ -28,6 +28,8 @@ const form = (email: string) => {
   return fd;
 };
 
+const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+
 beforeEach(() => {
   vi.clearAllMocks();
   checkAndRecordSend.mockResolvedValue({ allowed: true });
@@ -85,6 +87,11 @@ describe("requestReset (AUTH-08, critérios 1 e 3)", () => {
 
     expect(result).toEqual({ error: "Não foi possível enviar o e-mail. Tente de novo." });
     expect(setAuthContext).not.toHaveBeenCalled();
+    expect(errorLog).toHaveBeenCalledWith("[auth] reset.resetPasswordForEmail", {
+      code: undefined,
+      status: 500,
+    });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("smtp");
   });
 
   it("limite de reenvio do GoTrue (so' existe para conta existente) e tratado como envio normal, sem vazar a conta", async () => {

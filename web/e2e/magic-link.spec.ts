@@ -109,4 +109,51 @@ test.describe("Magic link (AUTH-06, AUTH-07, AUTH-09)", () => {
 
     await page.waitForURL("**/entrar");
   });
+
+  test("usuario do MVP sem senha entra pelo link e cai no destino do papel (AUTH-07 critério 9)", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    const email = `ml-mvp-${Date.now()}@example.com`;
+    await createConfirmedUser(email, { role: "produtor", nome: "Conta MVP", password: null });
+    const before = Date.now();
+    await requestLink(page, email);
+
+    const mail = await waitForMail(email, { after: before });
+    const other = await browser.newContext({ baseURL });
+    const otherPage = await other.newPage();
+    await otherPage.goto(toBaseURL(extractLink(mail.HTML, "/auth/confirm"), baseURL!));
+
+    await otherPage.waitForURL("**/produtor");
+    await other.close();
+  });
+
+  test("usuario ainda nao confirmado que pede o link confirma o e-mail e entra (AUTH-07 critério 6)", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    const email = `ml-nao-confirmado-${Date.now()}@example.com`;
+    await createConfirmedUser(email, { role: "produtor", nome: "Nao Confirmado", confirmed: false });
+    const before = Date.now();
+    await requestLink(page, email);
+
+    const mail = await waitForMail(email, { after: before });
+    const link = extractLink(mail.HTML, "/auth/confirm");
+    const other = await browser.newContext({ baseURL });
+    const otherPage = await other.newPage();
+    await otherPage.goto(toBaseURL(link, baseURL!));
+
+    await otherPage.waitForURL("**/produtor");
+    expect((await other.cookies()).some((c) => c.name.endsWith("-auth-token"))).toBe(true);
+    // o e-mail ficou confirmado: o login por senha passa a funcionar
+    await other.clearCookies();
+    await otherPage.goto("/entrar");
+    await otherPage.getByLabel("E-mail").fill(email);
+    await otherPage.getByLabel("Senha").fill("senha-forte-123");
+    await otherPage.getByRole("button", { name: "Entrar", exact: true }).click();
+    await otherPage.waitForURL("**/produtor");
+    await other.close();
+  });
 });

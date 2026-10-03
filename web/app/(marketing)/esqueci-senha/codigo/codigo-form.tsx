@@ -27,6 +27,14 @@ export function CodigoForm() {
           placeholder="000000"
           autoFocus
           required
+          // AUTH-08.9: colar "123 456" mantem so' os 6 digitos (o maxLength truncaria o espaco).
+          onPaste={(e) => {
+            const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+            if (digits) {
+              e.preventDefault();
+              e.currentTarget.value = digits;
+            }
+          }}
           aria-invalid={state.error ? true : undefined}
           className="h-11 text-center tracking-[0.5em] md:h-11"
         />

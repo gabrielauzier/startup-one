@@ -1,3 +1,4 @@
+import { firstParam } from "@/lib/auth/redirect";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { postAuthDestination } from "@/lib/auth/post-auth-server";
@@ -20,8 +21,7 @@ function noticeFor(
 
 export default async function EntrarPage(props: PageProps<"/entrar">) {
   const searchParams = await props.searchParams;
-  const redirectTo =
-    typeof searchParams.redirect === "string" ? searchParams.redirect : "";
+  const redirectTo = firstParam(searchParams.redirect);
 
   // AUTH-01.9: quem ja esta logado nao ve o formulario.
   const supabase = await createServerClient();

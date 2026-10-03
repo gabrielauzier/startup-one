@@ -1,3 +1,4 @@
+import { firstParam } from "@/lib/auth/redirect";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { postAuthDestination } from "@/lib/auth/post-auth-server";
@@ -5,8 +6,7 @@ import { CompletarPerfilForm } from "./completar-perfil-form";
 
 export default async function CompletarPerfilPage(props: PageProps<"/completar-perfil">) {
   const searchParams = await props.searchParams;
-  const redirectTo =
-    typeof searchParams.redirect === "string" ? searchParams.redirect : "";
+  const redirectTo = firstParam(searchParams.redirect);
 
   const supabase = await createServerClient();
   const {

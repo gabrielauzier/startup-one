@@ -5,7 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { trackEvent } from "@/lib/analytics/track";
 import { normalizeEmail } from "@/lib/auth/email";
 import { setAuthContext } from "@/lib/auth/auth-context-cookie";
-import { SEND_FAILED, isEmailSendRateLimit, throttleMessage } from "@/lib/auth/messages";
+import { SEND_FAILED, isEmailSendRateLimit, logAuthError, throttleMessage } from "@/lib/auth/messages";
 import { checkAndRecordSend } from "@/lib/auth/throttle";
 
 export interface RequestResetState {
@@ -31,7 +31,10 @@ export async function requestReset(
 
   const supabase = await createServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email);
-  if (error && !isEmailSendRateLimit(error)) return { error: SEND_FAILED };
+  if (error && !isEmailSendRateLimit(error)) {
+    logAuthError("reset.resetPasswordForEmail", error);
+    return { error: SEND_FAILED };
+  }
 
   try {
     await trackEvent({ type: "auth_reset_pedido", payload: {} });

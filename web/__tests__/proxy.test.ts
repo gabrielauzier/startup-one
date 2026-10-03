@@ -22,6 +22,20 @@ vi.mock("@/lib/supabase/middleware", () => ({
   updateSession: async () => NextResponse.next(),
 }));
 
+// Hoje nenhuma regra de ROUTE_ACCESS cobre /api/*; este desvio permite
+// exercitar o ramo "papel errado em /api" (AUTH-01, critério 7).
+let forceApiWrongRole = false;
+vi.mock("@/lib/auth/roles", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/roles")>();
+  return {
+    ...actual,
+    resolveAccess: (path: string, role: Parameters<typeof actual.resolveAccess>[1]) =>
+      forceApiWrongRole && path.startsWith("/api/") && role
+        ? { allowed: false as const, reason: "wrong-role" as const }
+        : actual.resolveAccess(path, role),
+  };
+});
+
 const cookieJar = new Map<string, string>();
 
 vi.mock("next/headers", () => ({
@@ -54,6 +68,7 @@ const logged = (role: string | null) => {
 };
 
 beforeEach(() => {
+  forceApiWrongRole = false;
   session = { user: null, profile: null };
   cookieJar.clear();
 });
@@ -159,6 +174,20 @@ describe("proxy: sessao de recuperacao (AUTH-14, critério 16)", () => {
 });
 
 describe("proxy: API", () => {
+  it("papel errado em /api/* responde 403 JSON (nunca redirect), e em pagina nunca JSON", async () => {
+    forceApiWrongRole = true;
+    logged("investidor");
+
+    const api = await run("/api/restrita");
+    expect(api.status).toBe(403);
+    expect(await api.json()).toEqual({ error: "Sem permissão" });
+    expect(api.headers.get("location")).toBeNull();
+
+    const page = await run("/produtor/painel");
+    expect(page.status).toBe(307);
+    expect(page.headers.get("content-type") ?? "").not.toContain("json");
+  });
+
   it("rota /api/* e publica para o proxy (cron usa Bearer proprio)", async () => {
     logged("investidor");
 

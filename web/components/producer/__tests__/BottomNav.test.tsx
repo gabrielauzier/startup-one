@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-vi.mock("@/lib/auth/sign-out", () => ({ signOutAction: vi.fn() }));
+const signOutAction = vi.fn();
+vi.mock("@/lib/auth/sign-out", () => ({ signOutAction: (...a: unknown[]) => signOutAction(...a) }));
 
 import { BottomNav } from "../BottomNav";
 
@@ -19,5 +20,14 @@ describe("BottomNav do produtor (AUTH-16)", () => {
       "/produtor/interesses"
     );
     expect(screen.getByRole("button", { name: "Sair" })).toBeTruthy();
+  });
+
+  it("o botao Sair submete o form ligado a signOutAction", async () => {
+    const { container } = render(<BottomNav />);
+    const form = container.querySelector("form")!;
+
+    expect(form.contains(screen.getByRole("button", { name: "Sair" }))).toBe(true);
+    form.requestSubmit();
+    await vi.waitFor(() => expect(signOutAction).toHaveBeenCalledTimes(1));
   });
 });

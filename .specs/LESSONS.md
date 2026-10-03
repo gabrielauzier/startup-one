@@ -80,6 +80,54 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: S4 web/lib/notifications/queue.ts:214 (tests/supabase-mocks)
 - last seen: 2026-09-29T15:01:48Z
 
+### L-012 - Pin every spec-mandated error status and body with a test that reaches the branch, and delete branches no route can reach
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: M21 web/proxy.ts:86 (validation.md sensor table) (routes)
+- last seen: 2026-10-03T01:11:35Z
+
+### L-013 - Assert every link or element an acceptance criterion lists, not only the first one, in notification bodies
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `notifications` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-03 AC7a web/app/(marketing)/cadastro/actions.ts:82 (notifications)
+- last seen: 2026-10-03T01:11:35Z
+
+### L-014 - When a criterion requires logging an error, assert the logger call as well as the absence of the leak
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `observability` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-10 AC5 (no server logging in app/(marketing)) validation.md P2.5 (observability)
+- last seen: 2026-10-03T01:11:35Z
+
+### L-015 - Record a deviation whenever a config value required by an acceptance criterion is kept at a dev value, and lock it with a test
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `config` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-10 AC1 web/supabase/config.toml:238 validation.md P2.1 (config)
+- last seen: 2026-10-03T01:11:35Z
+
+### L-016 - Cover each user-state variant a criterion names (unconfirmed, passwordless, legacy) with at least one end to end test
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `auth` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-07 AC6 and AC9 (no test with unconfirmed or passwordless user) validation.md S4.6 S4.9 (auth)
+- last seen: 2026-10-03T01:11:36Z
+
+### L-017 - Apply the first-value rule for duplicated query params to every param read, not only the one with a unit test
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: Edge case redirect list web/app/(marketing)/entrar/page.tsx:20 (routes)
+- last seen: 2026-10-03T01:11:36Z
+
+### L-018 - Name the exact target URL when a criterion says treat as invalid so tests and code cannot diverge silently
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-04 AC12 web/app/auth/confirm/__tests__/route.test.ts:78 (spec)
+- last seen: 2026-10-03T01:11:36Z
+
+### L-019 - Resolve conflicts between input length limits and paste normalization rules before writing the criteria
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: AUTH-08 AC9 web/app/(marketing)/esqueci-senha/codigo/codigo-form.tsx:26 (spec)
+- last seen: 2026-10-03T01:11:36Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

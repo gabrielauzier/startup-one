@@ -7,7 +7,7 @@ import { normalizeEmail } from "@/lib/auth/email";
 import { readAuthContext, setAuthContext } from "@/lib/auth/auth-context-cookie";
 import { requestOrigin } from "@/lib/auth/origin";
 import { isSafeRedirect } from "@/lib/auth/redirect";
-import { SEND_FAILED, isEmailSendRateLimit, throttleMessage } from "@/lib/auth/messages";
+import { SEND_FAILED, isEmailSendRateLimit, logAuthError, throttleMessage } from "@/lib/auth/messages";
 import { checkAndRecordSend } from "@/lib/auth/throttle";
 
 export interface SendLinkState {
@@ -47,6 +47,7 @@ async function sendMagicLink(email: string, next: string | null): Promise<SendLi
   });
 
   if (error && error.code !== "otp_disabled" && !isEmailSendRateLimit(error)) {
+    logAuthError("magic-link.signInWithOtp", error);
     return { error: SEND_FAILED };
   }
 
@@ -103,7 +104,10 @@ export async function resendConfirmation(
 
   const supabase = await createServerClient();
   const { error } = await supabase.auth.resend({ type: "signup", email });
-  if (error) return { error: SEND_FAILED };
+  if (error) {
+    logAuthError("signup.resend", error);
+    return { error: SEND_FAILED };
+  }
 
   if (fromForm) {
     await setAuthContext({ email, kind: "signup" });

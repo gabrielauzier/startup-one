@@ -41,6 +41,8 @@ const form = (overrides: Partial<typeof valid> = {}) => {
   return fd;
 };
 
+const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+
 beforeEach(() => {
   vi.clearAllMocks();
   checkAndRecordSend.mockResolvedValue({ allowed: true });
@@ -135,7 +137,7 @@ describe("signUpAction: e-mail ja existente (AUTH-03, critérios 7, 7a, 7b)", ()
     const mail = sendEmail.mock.calls[0][0] as { to: string; body: string };
     expect(mail.to).toBe("helena@example.com");
     expect(mail.body).toContain("https://iasy.test/entrar");
-    expect(mail.body).toContain("Esqueci minha senha");
+    expect(mail.body).toContain("https://iasy.test/esqueci-senha");
   });
 
   it("nao confirmado: reenvia a confirmacao (type=signup) e nao chama signUp", async () => {
@@ -183,5 +185,8 @@ describe("signUpAction: throttle e falha de envio (AUTH-09)", () => {
 
     expect(result.error).toBe("Não foi possível enviar o e-mail. Tente de novo.");
     expect(JSON.stringify(result)).not.toContain("smtp");
+    // AUTH-10 critério 5: o erro do provedor vai para o log do servidor, so' code/status.
+    expect(errorLog).toHaveBeenCalledWith("[auth] signup.resend", { code: undefined, status: 500 });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("smtp");
   });
 });
