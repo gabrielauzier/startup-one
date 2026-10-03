@@ -66,6 +66,22 @@
 - **Date**: 2026-09-27
 - **Status**: active
 
+### AD-009
+- **Decision**: Login por e-mail+senha, magic link e reset de senha por OTP via Supabase Auth; links de e-mail são verificados por `token_hash` em `/auth/confirm` (não PKCE); o perfil é criado por trigger em `auth.users`. Substitui a RN-02 do MVP (entrada sem senha); AD-004 (Supabase Auth + `@supabase/ssr`) permanece.
+- **Reason**: O link precisa funcionar em outro aparelho/navegador (produtor pede no celular, abre em outro), e todo caminho de entrada precisa produzir o mesmo perfil (G3).
+- **Trade-off**: Templates de e-mail próprios e dependência do `{{ .TokenHash }}`/`{{ .RedirectTo }}` do GoTrue; trigger no schema `auth` precisa de teste SQL.
+- **Scope**: Todo fluxo de autenticação (feature login-e-reset-de-senha e futuros).
+- **Date**: 2026-10-02
+- **Status**: active
+
+### AD-010
+- **Decision**: Nenhum dado pessoal em query string nos fluxos de auth; o e-mail entre telas viaja em cookie httpOnly assinado (`iasy_auth_ctx`, 15 min); o envio de e-mail de auth (cadastro, magic link, reset) é limitado por `auth_throttle` (60 s e 3/hora por e-mail e tipo).
+- **Reason**: Evitar PII em histórico/logs e permitir teto de reenvio que o GoTrue não oferece, inclusive para e-mail inexistente.
+- **Trade-off**: Exige segredo `AUTH_COOKIE_SECRET` por ambiente e uma tabela interna com RLS sem policy.
+- **Scope**: Telas e actions de cadastro, magic link e reset.
+- **Date**: 2026-10-02
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: website-mvp (`.specs/features/website-mvp/`)
