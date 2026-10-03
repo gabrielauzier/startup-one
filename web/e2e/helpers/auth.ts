@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { getUserIdByEmail, promoteToVerifier } from "./db";
+import { waitForMail } from "./mailpit";
 import { createConfirmedUser, TEST_PASSWORD } from "./session";
 
 /** Entra pela tela `/entrar` com e-mail e senha (o fluxo real de AUTH-05). */
@@ -65,6 +66,23 @@ export async function loginAsVerifier(page: Page, emailPrefix: string): Promise<
   await page.waitForURL("**/verificacao");
 
   return email;
+}
+
+/**
+ * Fluxo real de esqueci-senha ate a sessao de recuperacao: pede o codigo,
+ * le os 6 digitos no Mailpit, confirma e espera `/redefinir-senha`.
+ */
+export async function reachRecoverySession(page: Page, email: string): Promise<void> {
+  const before = Date.now();
+  await page.goto("/esqueci-senha");
+  await page.getByLabel("E-mail").fill(email);
+  await page.getByRole("button", { name: "Enviar código" }).click();
+  await page.waitForURL("**/esqueci-senha/codigo");
+
+  const mail = await waitForMail(email, { after: before, subject: "redefinir a senha" });
+  await page.getByLabel("Código de 6 dígitos").fill(mail.Text.match(/\b\d{6}\b/)![0]);
+  await page.getByRole("button", { name: "Confirmar" }).click();
+  await page.waitForURL("**/redefinir-senha");
 }
 
 export { getUserIdByEmail };

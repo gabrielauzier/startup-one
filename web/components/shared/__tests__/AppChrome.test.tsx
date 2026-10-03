@@ -76,6 +76,18 @@ describe("faixa de aviso sem-permissao (AUTH-01, critério 7a)", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
+  it("senha-alterada mostra 'Senha alterada.' no destino pos-reset", () => {
+    renderAt("/negocios", "investidor", "aviso=senha-alterada");
+
+    expect(screen.getByRole("status").textContent).toContain("Senha alterada.");
+  });
+
+  it("valor desconhecido de aviso nao mostra nada", () => {
+    renderAt("/negocios", "investidor", "aviso=qualquer");
+
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
   it("nao aparece sem o parametro ou com outro valor", () => {
     renderAt("/negocios", "investidor", "");
     expect(screen.queryByRole("status")).toBeNull();

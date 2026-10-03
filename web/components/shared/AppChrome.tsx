@@ -48,12 +48,18 @@ function AuthChrome({ children }: { children: ReactNode }) {
   );
 }
 
-/** AUTH-01 (7a): papel errado em rota com chrome volta com `?aviso=sem-permissao`. */
+const AVISO_TEXT: Record<string, string> = {
+  "sem-permissao": "Essa área é de outro perfil. Você foi levado à sua página inicial.",
+  "senha-alterada": "Senha alterada.",
+};
+
+/** AUTH-01 (7a) e AUTH-14: `?aviso=sem-permissao` (papel errado) e `?aviso=senha-alterada`. */
 function AvisoBanner() {
   const aviso = useSearchParams().get("aviso");
   const [dismissed, setDismissed] = useState(false);
 
-  if (aviso !== "sem-permissao" || dismissed) return null;
+  const text = aviso ? AVISO_TEXT[aviso] : undefined;
+  if (!text || dismissed) return null;
 
   return (
     <div
@@ -61,7 +67,7 @@ function AvisoBanner() {
       className="flex items-center justify-between gap-4 border-b border-border bg-banner px-6 py-3"
     >
       <Typography variant="body" size="sm">
-        Essa área é de outro perfil. Você foi levado à sua página inicial.
+        {text}
       </Typography>
       <button
         type="button"

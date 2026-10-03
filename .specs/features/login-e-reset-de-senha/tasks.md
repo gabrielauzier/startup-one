@@ -1058,11 +1058,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Sem sessão redireciona a `/esqueci-senha`
-- [ ] Senhas diferentes ou fora da regra bloqueiam; `same_password` mostra "Escolha uma senha diferente da atual."
-- [ ] Sucesso chama `updateUser({password, data:{has_password:true}})`, `signOut({scope:"others"})`, limpa `iasy_recovery`, registra `auth_senha_alterada` e redireciona ao destino com `?aviso=senha-alterada`
-- [ ] Conta do MVP sem senha define a primeira senha e passa a entrar por senha
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Sem sessão redireciona a `/esqueci-senha`
+- [x] Senhas diferentes ou fora da regra bloqueiam; `same_password` mostra "Escolha uma senha diferente da atual."
+- [x] Sucesso chama `updateUser({password, data:{has_password:true}})`, `signOut({scope:"others"})`, limpa `iasy_recovery`, registra `auth_senha_alterada` e redireciona ao destino com `?aviso=senha-alterada`
+- [x] Conta do MVP sem senha define a primeira senha e passa a entrar por senha
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e
 **Gate**: full
