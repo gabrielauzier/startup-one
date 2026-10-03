@@ -1114,11 +1114,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Investidor com `/produtor/painel` cai em `/negocios` ou `/descobrir/1` sem JSON 403; produtor com `/interesses` cai no padrão do papel
-- [ ] `//evil.com`, `/\evil.com`, `https://evil.com`, `/entrar` ignorados
-- [ ] Papel errado por URL direta redireciona à página inicial do papel
-- [ ] Sair encerra a sessão e rota privada volta a pedir login; `/produtor` abre sem login
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Investidor com `/produtor/painel` cai em `/negocios` ou `/descobrir/1` sem JSON 403; produtor com `/interesses` cai no padrão do papel
+- [x] `//evil.com`, `/\evil.com`, `https://evil.com`, `/entrar` ignorados
+- [x] Papel errado por URL direta redireciona à página inicial do papel
+- [x] Sair encerra a sessão e rota privada volta a pedir login; `/produtor` abre sem login
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
@@ -1282,4 +1282,5 @@ Execução estritamente sequencial. Com 43 tasks, o empacotamento em lotes de ~7
 | D4 | `magic_link.html` **e `confirmation.html`** ficam "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 (com `enable_confirmations=true`, o 1º e-mail do login por OTP de usuário novo usa o template de confirmação) | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
 | D6 | `/entrar` deixa de aceitar o login por OTP em T24 (antes de T26/T27): os specs E2E que logam pela UI ficam vermelhos entre T24 e T26; T24 só valida `entrar.spec.ts` | A troca do helper (T26) depende do formulário novo; `PasswordInput` e `AuthTabs` (`components/auth/`) entram em T24 por serem dele |
 | D7 | T32 não muda os `href` dos CTAs da home: "Sou produtor" segue em `/produtor` (agora pública, T12) e "Sou investidor" segue em `/descobrir/1`; a task só prende isso com teste | A descoberta sem conta é parte do MVP (RN-23: visitante responde antes de entrar; meta do piloto "30 investidores com descoberta concluída"); mandar o investidor direto para `/cadastro` removeria esse funil. As boas-vindas do produtor levam ao cadastro em T33. **Decisão a confirmar com o produto** |
+| D8 | T38 também corrige `acceptTerms` (`app/(marketing)/termos/actions.ts`): passa a usar `postAuthDestination` em vez de honrar o `redirect` direto | O E2E de redirect cruzado achou que o redirect de `/termos?redirect=…` ainda ia a rota negada ao papel (AUTH-01, critério 5); a task T13 só previa trocar o import |
 | D5 | Gate full roda unit + os specs E2E tocados pela task; a suíte E2E completa roda ao fim de cada fase | A suíte completa leva dezenas de minutos e o STATE.md documenta esgotamento de rede do Docker em rodadas repetidas |

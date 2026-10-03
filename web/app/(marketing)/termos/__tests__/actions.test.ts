@@ -29,13 +29,15 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 
-// businesses / investor_answers (resolvePostLoginRedirect) seguem vindo
-// do cliente admin - sem cadastro/respostas nestes testes.
-const adminFromMock = vi.fn(() => ({ select: () => selectChain({ data: null }) }));
-const createAdminClientMock = vi.fn().mockReturnValue({ from: adminFromMock });
+// AUTH-01: o destino vem de `postAuthDestination` (valida o redirect pelo
+// papel); o padrao do investidor sem respostas e' /descobrir/1.
+const postAuthDestinationMock = vi.fn(
+  async (_userId: string, requested?: string | null) => requested || "/descobrir/1"
+);
 
-vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: createAdminClientMock,
+vi.mock("@/lib/auth/post-auth-server", () => ({
+  postAuthDestination: (userId: string, requested?: string | null) =>
+    postAuthDestinationMock(userId, requested),
 }));
 
 const redirectMock = vi.fn((url: string) => {
@@ -85,6 +87,20 @@ describe("acceptTerms (CA-03.2)", () => {
         formData({ redirect: "/negocios/coop-acai-mujuu/documentos" })
       )
     ).rejects.toThrow("REDIRECT:/negocios/coop-acai-mujuu/documentos");
+    expect(postAuthDestinationMock).toHaveBeenCalledWith(
+      "user-123",
+      "/negocios/coop-acai-mujuu/documentos"
+    );
+  });
+
+  it("delega ao destino pos-autenticacao o redirect que o papel nao pode acessar (nao o honra direto)", async () => {
+    postAuthDestinationMock.mockResolvedValueOnce("/negocios");
+    const { acceptTerms } = await import("../actions");
+
+    await expect(
+      acceptTerms({}, formData({ redirect: "/produtor/painel" }))
+    ).rejects.toThrow("REDIRECT:/negocios");
+    expect(postAuthDestinationMock).toHaveBeenCalledWith("user-123", "/produtor/painel");
   });
 
   it("manda de volta para /entrar se nao houver sessao", async () => {
