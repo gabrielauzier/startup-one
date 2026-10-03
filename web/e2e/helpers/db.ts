@@ -376,3 +376,13 @@ export async function seedThrottle(
     ),
   });
 }
+
+/** Apaga o historico de envios de auth do e-mail (para testes que repetem o fluxo dentro do cooldown de 60 s). */
+export async function clearThrottle(email: string, kind: "signup" | "magic" | "reset"): Promise<void> {
+  const { createHash } = await import("node:crypto");
+  const keyHash = createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+  await fetch(`${API_URL}/rest/v1/auth_throttle?key_hash=eq.${keyHash}&kind=eq.${kind}`, {
+    method: "DELETE",
+    headers: headers(),
+  });
+}

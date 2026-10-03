@@ -925,11 +925,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Investidor: cadastro, confirmação e `/termos` antes do destino; produtor: cai em `/produtor/painel` ou `/produtor`
-- [ ] Tentativa de login antes de confirmar mostra "Confirme seu e-mail para entrar" e o botão de reenvio
-- [ ] E-mail duplicado mostra a mesma tela de sucesso e não cria segundo usuário
-- [ ] `role=verificador` forjado na requisição não cria conta
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Investidor: cadastro, confirmação e `/termos` antes do destino; produtor: cai em `/produtor/painel` ou `/produtor`
+- [x] Tentativa de login antes de confirmar mostra "Confirme seu e-mail para entrar" e o botão de reenvio
+- [x] E-mail duplicado mostra a mesma tela de sucesso e não cria segundo usuário
+- [x] `role=verificador` forjado na requisição não cria conta
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
