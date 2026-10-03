@@ -364,11 +364,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `readAuthContext` devolve o e-mail de um cookie válido e `null` para adulterado, expirado ou de outro `kind`
-- [ ] Cookie é `httpOnly`, `sameSite=lax`, 15 min e `secure` em produção
-- [ ] `hasRecoveryFlag` lê a flag do `NextRequest`; `clearRecoveryFlag` remove
-- [ ] Sem `AUTH_COOKIE_SECRET` em produção, assinar lança erro explícito
-- [ ] Gate quick passa: `npm run test`
+- [x] `readAuthContext` devolve o e-mail de um cookie válido e `null` para adulterado, expirado ou de outro `kind`
+- [x] Cookie é `httpOnly`, `sameSite=lax`, 15 min e `secure` em produção
+- [x] `hasRecoveryFlag` lê a flag do `NextRequest`; `clearRecoveryFlag` remove
+- [x] Sem `AUTH_COOKIE_SECRET` em produção, assinar lança erro explícito
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
