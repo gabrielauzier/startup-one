@@ -287,9 +287,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `normalizeEmail("  Foo@Bar.COM ")` devolve `foo@bar.com`
-- [ ] `hashEmail` é determinístico, hexadecimal de 64 caracteres e igual para variações de caixa/espaço
-- [ ] Gate quick passa: `npm run test`
+- [x] `normalizeEmail("  Foo@Bar.COM ")` devolve `foo@bar.com`
+- [x] `hashEmail` é determinístico, hexadecimal de 64 caracteres e igual para variações de caixa/espaço
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
