@@ -939,7 +939,7 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 ### T32: CTAs da home e do cabeçalho
 
-**What**: Apontar os CTAs de produtor e investidor a `/cadastro?perfil=…`.
+**What**: Manter os CTAs da home (ver D7) e prendê-los com teste: produtor em `/produtor` (pública) e investidor em `/descobrir/1`.
 **Where**: `app/(marketing)/page.tsx`
 **Depends on**: T31
 **Reuses**: `components/shared/SiteHeader.tsx`
@@ -952,9 +952,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] "Sou produtor, quero ser encontrado" leva a `/cadastro?perfil=produtor` e "Sou investidor…" a `/cadastro?perfil=investidor`
-- [ ] `e2e/home.spec.ts` atualizado e passando
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] "Sou produtor, quero ser encontrado" leva a `/produtor` e "Sou investidor…" a `/descobrir/1` (D7); `/produtor` abre sem login
+- [x] `e2e/home.spec.ts` atualizado e passando
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
@@ -1281,4 +1281,5 @@ Execução estritamente sequencial. Com 43 tasks, o empacotamento em lotes de ~7
 | D3 | Registro dos templates em `config.toml` fica em T5 (junto dos arquivos) | O `config.toml` não pode apontar para arquivo inexistente |
 | D4 | `magic_link.html` **e `confirmation.html`** ficam "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 (com `enable_confirmations=true`, o 1º e-mail do login por OTP de usuário novo usa o template de confirmação) | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
 | D6 | `/entrar` deixa de aceitar o login por OTP em T24 (antes de T26/T27): os specs E2E que logam pela UI ficam vermelhos entre T24 e T26; T24 só valida `entrar.spec.ts` | A troca do helper (T26) depende do formulário novo; `PasswordInput` e `AuthTabs` (`components/auth/`) entram em T24 por serem dele |
+| D7 | T32 não muda os `href` dos CTAs da home: "Sou produtor" segue em `/produtor` (agora pública, T12) e "Sou investidor" segue em `/descobrir/1`; a task só prende isso com teste | A descoberta sem conta é parte do MVP (RN-23: visitante responde antes de entrar; meta do piloto "30 investidores com descoberta concluída"); mandar o investidor direto para `/cadastro` removeria esse funil. As boas-vindas do produtor levam ao cadastro em T33. **Decisão a confirmar com o produto** |
 | D5 | Gate full roda unit + os specs E2E tocados pela task; a suíte E2E completa roda ao fim de cada fase | A suíte completa leva dezenas de minutos e o STATE.md documenta esgotamento de rede do Docker em rodadas repetidas |

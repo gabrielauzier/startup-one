@@ -32,6 +32,24 @@ test.describe("Página inicial /", () => {
     ).toBeVisible();
   });
 
+  test("CTAs: produtor vai as boas-vindas publicas (/produtor) e investidor a descoberta sem conta (/descobrir/1)", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await expect(
+      page.getByRole("link", { name: "Sou produtor, quero ser encontrado" })
+    ).toHaveAttribute("href", "/produtor");
+    await expect(
+      page.getByRole("link", { name: "Sou investidor, quero conhecer negócios" })
+    ).toHaveAttribute("href", "/descobrir/1");
+
+    // AUTH-17: a boas-vindas do produtor abre sem login.
+    await page.getByRole("link", { name: "Sou produtor, quero ser encontrado" }).click();
+    await page.waitForURL("**/produtor");
+    await expect(page.getByRole("heading", { name: "Seja bem-vinda à Îasy" })).toBeVisible();
+  });
+
   test("nao contem nenhum termo proibido de RN-04", async ({ page }) => {
     await page.goto("/");
     const html = (await page.content()).toLowerCase();
