@@ -105,7 +105,8 @@ describe("boas-vindas do produtor publicas (AUTH-17)", () => {
   it("toda subpasta de app/(producer)/produtor esta coberta pela regra de produtor (fail-closed)", () => {
     const dir = join(__dirname, "../../../app/(producer)/produtor");
     const folders = readdirSync(dir, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+      // pastas com `_` (ex.: __tests__) sao privadas no App Router: nao viram rota.
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
       .map((entry) => entry.name);
 
     expect(folders.length).toBeGreaterThan(0);
