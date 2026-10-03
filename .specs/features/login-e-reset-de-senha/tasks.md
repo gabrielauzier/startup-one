@@ -846,11 +846,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Senha inválida, confirmação diferente, nome fora de 2 a 80 e `role` inválido bloqueiam sem chamar o Supabase
-- [ ] `none`: `signUp` com `data:{role,nome,has_password:true}` e `emailRedirectTo` seguro; `confirmed`: não chama `signUp` e chama `sendEmail` do aviso; `unconfirmed`: chama `resend({type:"signup"})` sujeito ao throttle
-- [ ] Todos os ramos gravam o cookie de contexto e redirecionam a `/cadastro/confirmar-email` com resposta idêntica
-- [ ] Registra `auth_cadastro_enviado` sem PII
-- [ ] Gate quick passa: `npm run test`
+- [x] Senha inválida, confirmação diferente, nome fora de 2 a 80 e `role` inválido bloqueiam sem chamar o Supabase
+- [x] `none`: `signUp` com `data:{role,nome,has_password:true}` e `emailRedirectTo` seguro; `confirmed`: não chama `signUp` e chama `sendEmail` do aviso; `unconfirmed`: chama `resend({type:"signup"})` sujeito ao throttle
+- [x] Todos os ramos gravam o cookie de contexto e redirecionam a `/cadastro/confirmar-email` com resposta idêntica
+- [x] Registra `auth_cadastro_enviado` sem PII
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
