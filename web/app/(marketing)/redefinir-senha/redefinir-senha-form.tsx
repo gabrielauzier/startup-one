@@ -57,7 +57,7 @@ export function RedefinirSenhaForm() {
             aria-invalid={passwordError ? true : undefined}
             aria-describedby="nova-senha-ajuda"
           />
-          <Typography id="nova-senha-ajuda" variant="body" size="xs" className="text-foreground/60">
+          <Typography id="nova-senha-ajuda" variant="body" size="xs" className="text-foreground/70">
             Mínimo 8 caracteres, com ao menos 1 letra e 1 número.
           </Typography>
           {passwordError && (

@@ -1168,9 +1168,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Zero violações sérias/críticas nas 5 telas
-- [ ] Campos têm rótulo, `aria-invalid` em erro e navegação completa por teclado
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Zero violações sérias/críticas nas 5 telas
+- [x] Campos têm rótulo, `aria-invalid` em erro e navegação completa por teclado
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full

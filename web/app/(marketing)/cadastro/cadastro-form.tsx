@@ -139,7 +139,7 @@ export function CadastroForm({ initialRole }: { initialRole: EntrarRole | null }
                 aria-invalid={passwordError ? true : undefined}
                 aria-describedby="cadastro-senha-ajuda"
               />
-              <Typography id="cadastro-senha-ajuda" variant="body" size="xs" className="text-foreground/60">
+              <Typography id="cadastro-senha-ajuda" variant="body" size="xs" className="text-foreground/70">
                 Mínimo 8 caracteres, com ao menos 1 letra e 1 número.
               </Typography>
               <FieldError id="cadastro-senha-erro">{passwordError}</FieldError>
@@ -177,7 +177,7 @@ export function CadastroForm({ initialRole }: { initialRole: EntrarRole | null }
 
           <Typography variant="body" size="sm">
             Já tem conta?{" "}
-            <Link href="/entrar" className="text-primary underline-offset-4 hover:underline">
+            <Link href="/entrar" className="text-primary underline underline-offset-4">
               Entrar
             </Link>
           </Typography>

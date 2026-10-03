@@ -147,7 +147,7 @@ export function EntrarForm({
 
             <div className="flex items-center gap-3" aria-hidden>
               <span className="h-px flex-1 bg-border" />
-              <span className="font-body text-sm text-foreground/60">ou</span>
+              <span className="font-body text-sm text-foreground/70">ou</span>
               <span className="h-px flex-1 bg-border" />
             </div>
 
@@ -179,7 +179,7 @@ export function EntrarForm({
 
           <Typography variant="body" size="sm">
             Não tem conta?{" "}
-            <Link href="/cadastro" className="text-primary underline-offset-4 hover:underline">
+            <Link href="/cadastro" className="text-primary underline underline-offset-4">
               Criar conta
             </Link>
           </Typography>

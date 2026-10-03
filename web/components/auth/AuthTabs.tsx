@@ -11,7 +11,7 @@ export function AuthTabs({ current }: { current: "entrar" | "cadastro" }) {
         "flex-1 border-b-2 py-3 text-center font-body text-sm font-medium",
         current === key
           ? "border-primary text-primary"
-          : "border-transparent text-foreground/60 hover:text-foreground"
+          : "border-transparent text-foreground/70 hover:text-foreground"
       )}
     >
       {label}
