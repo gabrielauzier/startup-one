@@ -603,10 +603,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `/entrar`, `/cadastro`, `/esqueci-senha/codigo`, `/redefinir-senha`, `/completar-perfil`, `/auth/confirm` não renderizam `MobileBottomNav`, `FixedLegalBanner` nem `SiteHeader` completo, só o logo com link para `/`
-- [ ] `/negocios?aviso=sem-permissao` exibe a faixa e ela pode ser dispensada
-- [ ] `/produtor/*` e `/verificacao/*` continuam sem chrome
-- [ ] Gate quick passa: `npm run test`
+- [x] `/entrar`, `/cadastro`, `/esqueci-senha/codigo`, `/redefinir-senha`, `/completar-perfil`, `/auth/confirm` não renderizam `MobileBottomNav`, `FixedLegalBanner` nem `SiteHeader` completo, só o logo com link para `/`
+- [x] `/negocios?aviso=sem-permissao` exibe a faixa e ela pode ser dispensada
+- [x] `/produtor/*` e `/verificacao/*` continuam sem chrome
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
