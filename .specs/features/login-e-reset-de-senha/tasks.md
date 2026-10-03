@@ -1218,10 +1218,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `DEPLOY.md` lista cada chave de `config.toml` alterada com o valor de produção e a variável `AUTH_COOKIE_SECRET`
-- [ ] Checklist pré-deploy inclui a consulta que confirma `email_confirmed_at` preenchido nas contas do MVP
-- [ ] Seções que citavam login só por OTP atualizadas
-- [ ] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`
+- [x] `DEPLOY.md` lista cada chave de `config.toml` alterada com o valor de produção e a variável `AUTH_COOKIE_SECRET`
+- [x] Checklist pré-deploy inclui a consulta que confirma `email_confirmed_at` preenchido nas contas do MVP
+- [x] Seções que citavam login só por OTP atualizadas
+- [x] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`
 
 **Tests**: none (documentação)
 **Gate**: build
