@@ -684,11 +684,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Credenciais corretas autenticam e redirecionam via `resolvePostAuthDestination`
-- [ ] `invalid_credentials` (inclusive conta sem senha) devolve "E-mail ou senha incorretos." idêntica nos dois casos
-- [ ] `email_not_confirmed` devolve estado `unconfirmed`; 429 devolve "Muitas tentativas. Aguarde alguns minutos e tente de novo."
-- [ ] Registra `auth_login_senha_ok` e `auth_login_senha_erro` sem e-mail no payload
-- [ ] Gate quick passa: `npm run test`
+- [x] Credenciais corretas autenticam e redirecionam via `resolvePostAuthDestination`
+- [x] `invalid_credentials` (inclusive conta sem senha) devolve "E-mail ou senha incorretos." idêntica nos dois casos
+- [x] `email_not_confirmed` devolve estado `unconfirmed`; 429 devolve "Muitas tentativas. Aguarde alguns minutos e tente de novo."
+- [x] Registra `auth_login_senha_ok` e `auth_login_senha_erro` sem e-mail no payload
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
