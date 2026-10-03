@@ -445,12 +445,12 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Sem perfil devolve `/completar-perfil?redirect=…` (redirect só se seguro)
-- [ ] Investidor/empresa sem termos devolve `/termos?redirect=…` e migra as respostas antes
-- [ ] `redirect` seguro e permitido pelo papel é honrado; investidor com `/produtor/painel` e produtor com `/interesses` caem no padrão do papel
-- [ ] Produtor com negócio vai a `/produtor/painel`; sem negócio, `/produtor`; verificador a `/verificacao`
-- [ ] Investidor com respostas vai a `/negocios`; sem respostas, `/descobrir/1`
-- [ ] Gate quick passa: `npm run test`
+- [x] Sem perfil devolve `/completar-perfil?redirect=…` (redirect só se seguro)
+- [x] Investidor/empresa sem termos devolve `/termos?redirect=…` e migra as respostas antes
+- [x] `redirect` seguro e permitido pelo papel é honrado; investidor com `/produtor/painel` e produtor com `/interesses` caem no padrão do papel
+- [x] Produtor com negócio vai a `/produtor/painel`; sem negócio, `/produtor`; verificador a `/verificacao`
+- [x] Investidor com respostas vai a `/negocios`; sem respostas, `/descobrir/1`
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick

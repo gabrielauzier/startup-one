@@ -12,7 +12,7 @@ let rows: Row[] = [];
 /** Fake minimo do query builder do Supabase para `auth_throttle`. */
 function fakeAdmin() {
   return {
-    from: (_table: string) => ({
+    from: () => ({
       select: () => {
         const filters: ((r: Row) => boolean)[] = [];
         const builder = {
