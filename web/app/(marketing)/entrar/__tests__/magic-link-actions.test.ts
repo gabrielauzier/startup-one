@@ -217,5 +217,7 @@ describe("resendConfirmation (AUTH-02 critérios 13 a 15, AUTH-05 critério 4)",
     const result = await resendConfirmation({}, form({}));
 
     expect(result.error).toBe("Não foi possível enviar o e-mail. Tente de novo.");
+    expect(errorLog).toHaveBeenCalledWith("[auth] signup.resend", { code: undefined, status: 500 });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("smtp");
   });
 });

@@ -242,7 +242,7 @@ As recomendações da PRD §15 viram defaults aqui. "Confirmed? n" significa que
 4. The `DEPLOY.md` SHALL documentar que `site_url` é o domínio final de cada ambiente e que `additional_redirect_urls` libera o padrão `/**` do domínio de produção, do domínio de preview e do localhost; `config.toml` cobre as origens locais. <!-- AUTH-12 -->
 5. IF o envio de e-mail pelo provedor retornar erro THEN o sistema SHALL registrar o erro no servidor sem expor a mensagem interna ao usuário. <!-- AUTH-09 -->
 
-**Independent Test**: comparar a resposta HTTP e o corpo para e-mail existente e inexistente nos três fluxos.
+**Independent Test**: comparar o resultado das actions (tela de destino e estado devolvido) para e-mail existente e inexistente nos três fluxos.
 
 ---
 

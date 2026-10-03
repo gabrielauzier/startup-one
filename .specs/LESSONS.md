@@ -128,6 +128,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AUTH-08 AC9 web/app/(marketing)/esqueci-senha/codigo/codigo-form.tsx:26 (spec)
 - last seen: 2026-10-03T01:11:36Z
 
+### L-020 - Assert the logger call at every error branch of a send path, not only at one representative branch
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `observability` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: N3f/N3g web/app/(marketing)/entrar/magic-link-actions.ts:108 validation.md (observability)
+- last seen: 2026-10-03T01:20:36Z
+
+### L-021 - When a helper is unit tested, also pin its wiring in each page that must use it
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: login-e-reset-de-senha
+- evidence: N4b web/app/(marketing)/entrar/page.tsx:24 validation.md (routes)
+- last seen: 2026-10-03T01:20:36Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

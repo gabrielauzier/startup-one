@@ -22,9 +22,11 @@ describe("CodigoForm (AUTH-08 critério 9)", () => {
     render(<CodigoForm />);
     const input = screen.getByLabelText("Código de 6 dígitos") as HTMLInputElement;
 
-    paste(input, "123 456");
+    const notPrevented = paste(input, "123 456");
 
     expect(input.value).toBe("123456");
+    // o handler assume o colar: sem preventDefault o navegador inseriria "123 456" truncado
+    expect(notPrevented).toBe(false);
   });
 
   it("colar texto com mais de 6 digitos corta nos 6 primeiros e texto sem digitos nao altera", () => {

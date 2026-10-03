@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 20,
+  "next_id": 22,
   "lessons": [
     {
       "id": "L-001",
@@ -346,6 +346,42 @@
       ],
       "created": "2026-10-03T01:11:36Z",
       "last_seen": "2026-10-03T01:11:36Z"
+    },
+    {
+      "id": "L-020",
+      "key": "surviving_mutant::assert the logger call at every error branch of a send path not only at one representative branch",
+      "text": "Assert the logger call at every error branch of a send path, not only at one representative branch",
+      "signal": "surviving_mutant",
+      "scope": "observability",
+      "status": "candidate",
+      "features": [
+        "login-e-reset-de-senha"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "N3f/N3g web/app/(marketing)/entrar/magic-link-actions.ts:108 validation.md (observability)"
+      ],
+      "created": "2026-10-03T01:20:36Z",
+      "last_seen": "2026-10-03T01:20:36Z"
+    },
+    {
+      "id": "L-021",
+      "key": "surviving_mutant::when a helper is unit tested also pin its wiring in each page that must use it",
+      "text": "When a helper is unit tested, also pin its wiring in each page that must use it",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "login-e-reset-de-senha"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "N4b web/app/(marketing)/entrar/page.tsx:24 validation.md (routes)"
+      ],
+      "created": "2026-10-03T01:20:36Z",
+      "last_seen": "2026-10-03T01:20:36Z"
     }
   ]
 }

@@ -110,4 +110,17 @@ test.describe("Tela Entrar /entrar (AUTH-05)", () => {
     expect(page.url()).not.toContain(encodeURIComponent(email));
     expect(page.url()).not.toContain("@");
   });
+
+  test("redirect repetido usa o primeiro valor (?redirect=/produtor/pedidos&redirect=/x)", async ({ page }) => {
+    const email = `entrar-lista-${Date.now()}@example.com`;
+    await createConfirmedUser(email, { role: "produtor", nome: "Lista" });
+
+    await page.goto("/entrar?redirect=/produtor/pedidos&redirect=/x");
+    await expect(page.getByRole("status")).toContainText("Entre para continuar");
+    await page.getByLabel("E-mail").fill(email);
+    await page.getByLabel("Senha").fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: "Entrar", exact: true }).click();
+
+    await page.waitForURL("**/produtor/pedidos");
+  });
 });

@@ -116,6 +116,11 @@ describe("signUpAction: e-mail novo (AUTH-03, critério 6)", () => {
 
     expect(result.error).toBe("Não foi possível criar a conta. Tente de novo.");
     expect(JSON.stringify(result)).not.toContain("Database");
+    expect(errorLog).toHaveBeenCalledWith("[auth] signup.signUp", {
+      code: "unexpected_failure",
+      status: 500,
+    });
+    expect(JSON.stringify(errorLog.mock.calls)).not.toContain("Database");
     expect(setAuthContext).not.toHaveBeenCalled();
   });
 
