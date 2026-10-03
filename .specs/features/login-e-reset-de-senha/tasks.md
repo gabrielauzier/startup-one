@@ -765,10 +765,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Mostra o e-mail do cookie; sem cookie válido redireciona a `/entrar`
-- [ ] Botão "Reenviar" desabilitado por 60 s com contagem e mostra "Enviamos outro link"
-- [ ] Clique duplo no cooldown envia um só e-mail (E2E com Mailpit)
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Mostra o e-mail do cookie; sem cookie válido redireciona a `/entrar`
+- [x] Botão "Reenviar" desabilitado por 60 s com contagem e mostra "Enviamos outro link"
+- [x] Clique duplo no cooldown envia um só e-mail (E2E com Mailpit)
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e (`e2e/magic-link.spec.ts`: existente, inexistente, outro navegador, link usado duas vezes)
 **Gate**: full
