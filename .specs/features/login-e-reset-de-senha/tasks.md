@@ -125,12 +125,12 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Migração aplica em `supabase db reset` sem erro e `seed.sql` continua carregando
-- [ ] Teste SQL/E2E: role `produtor` cria `profiles` com `nome` do metadado; sem `nome` usa o prefixo do e-mail
-- [ ] Teste: `role=verificador` e `role=xyz` falham o `auth.admin.createUser` e não deixam linha em `auth.users` nem em `profiles`
-- [ ] Teste: usuário sem `role` no metadado é criado sem `profiles`
-- [ ] Teste: `anon` e `authenticated` não executam `handle_new_user` diretamente
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Migração aplica em `supabase db reset` sem erro e `seed.sql` continua carregando
+- [x] Teste SQL/E2E: role `produtor` cria `profiles` com `nome` do metadado; sem `nome` usa o prefixo do e-mail
+- [x] Teste: `role=verificador` e `role=xyz` falham o `auth.admin.createUser` e não deixam linha em `auth.users` nem em `profiles`
+- [x] Teste: usuário sem `role` no metadado é criado sem `profiles`
+- [x] Teste: `anon` e `authenticated` não executam `handle_new_user` diretamente
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: integration (`e2e/rls-auth-trigger.spec.ts`)
 **Gate**: full
