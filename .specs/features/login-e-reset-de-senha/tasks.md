@@ -629,10 +629,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Action valida perfil (`investidor`, `empresa`, `produtor`) e nome de 2 a 80 caracteres; `verificador` forjado é recusado
-- [ ] Insere em `profiles` e redireciona via `resolvePostAuthDestination`
-- [ ] E2E: usuário criado sem `role` no metadado cai nesta tela ao abrir `/negocios` e, após enviar, chega ao destino do papel
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Action valida perfil (`investidor`, `empresa`, `produtor`) e nome de 2 a 80 caracteres; `verificador` forjado é recusado
+- [x] Insere em `profiles` e redireciona via `resolvePostAuthDestination`
+- [x] E2E: usuário criado sem `role` no metadado cai nesta tela ao abrir `/negocios` e, após enviar, chega ao destino do papel
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e (`e2e/completar-perfil.spec.ts`)
 **Gate**: full

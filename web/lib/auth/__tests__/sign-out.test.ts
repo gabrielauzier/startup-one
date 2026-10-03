@@ -5,7 +5,7 @@ const getUser = vi.fn(async () => ({ data: { user: { id: "user-1" } } }));
 const redirect = vi.fn((path: string) => {
   throw new Error(`NEXT_REDIRECT:${path}`);
 });
-const trackEvent = vi.fn(async (..._args: unknown[]) => ({ ok: true }));
+const trackEvent = vi.fn(async (...args: unknown[]) => ({ ok: args.length >= 0 }));
 const clearAuthContext = vi.fn(async () => {});
 const clearRecoveryFlag = vi.fn(async () => {});
 

@@ -350,3 +350,11 @@ export async function getConnectionEvents(
   );
   return (await res.json()) as Record<string, unknown>[];
 }
+
+export async function getProfileByUserId(id: string): Promise<Record<string, unknown> | null> {
+  const res = await fetch(`${API_URL}/rest/v1/profiles?id=eq.${id}&select=*`, {
+    headers: headers(),
+  });
+  const rows = (await res.json()) as Record<string, unknown>[];
+  return rows[0] ?? null;
+}
