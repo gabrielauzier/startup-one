@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import { RadioCard } from "@/components/cadastro/RadioCard";
 import { createBusiness, type CreateBusinessState } from "./actions";
 
@@ -12,7 +14,33 @@ export interface Partner {
 
 const INITIAL_STATE: CreateBusinessState = {};
 
-export function BoasVindasForm({ partners }: { partners: Partner[] }) {
+/**
+ * AUTH-17: as boas-vindas sao publicas. Visitante (ou quem nao e' produtor)
+ * ve o convite para criar a conta de produtor; so' o produtor logado ve a
+ * pergunta de indicacao (RN-11) e cria o negocio em rascunho.
+ */
+export function BoasVindasForm({
+  partners,
+  isProducer = true,
+}: {
+  partners: Partner[];
+  isProducer?: boolean;
+}) {
+  if (!isProducer) {
+    return (
+      <Link
+        href="/cadastro?perfil=produtor"
+        className={cn(buttonVariants({ size: "lg" }), "h-11")}
+      >
+        Começar cadastro
+      </Link>
+    );
+  }
+
+  return <BoasVindasProducerForm partners={partners} />;
+}
+
+function BoasVindasProducerForm({ partners }: { partners: Partner[] }) {
   const [indicado, setIndicado] = useState<"sim" | "nao" | null>(null);
   const [parceiroId, setParceiroId] = useState("");
   const [state, formAction, pending] = useActionState(createBusiness, INITIAL_STATE);

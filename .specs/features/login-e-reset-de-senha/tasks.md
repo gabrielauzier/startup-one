@@ -977,10 +977,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Visitante abre `/produtor` e vê as boas-vindas, sem redirecionar a `/entrar`
-- [ ] "Começar cadastro" para visitante leva a `/cadastro?perfil=produtor`; para produtor logado continua chamando `createBusiness`
-- [ ] `e2e/produtor-boas-vindas.spec.ts` atualizado e passando
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Visitante abre `/produtor` e vê as boas-vindas, sem redirecionar a `/entrar`
+- [x] "Começar cadastro" para visitante leva a `/cadastro?perfil=produtor`; para produtor logado continua chamando `createBusiness`
+- [x] `e2e/produtor-boas-vindas.spec.ts` atualizado e passando
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e
 **Gate**: full
