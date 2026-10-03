@@ -1244,9 +1244,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] RN-02, RF-02 e a linha de T02 apontam para `.specs/features/login-e-reset-de-senha/prd.md`
-- [ ] Nenhuma outra regra do MVP é alterada
-- [ ] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`
+- [x] RN-02, RF-02 e a linha de T02 apontam para `.specs/features/login-e-reset-de-senha/prd.md`
+- [x] Nenhuma outra regra do MVP é alterada
+- [x] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`
 
 **Tests**: none (documentação)
 **Gate**: build

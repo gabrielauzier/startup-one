@@ -157,7 +157,7 @@ São 30 histórias, 24 obrigatórias (Must) para o piloto. A coluna "Regras" apo
 | --- | --- | --- |
 | **M1 · Entrada e acesso** |  |  |
 | RF-01 | Página inicial (T01) com a frase principal, card de exemplo, os 4 passos, dois botões de caminho ("Sou produtor, quero ser encontrado" e "Sou investidor, quero conhecer negócios") e menu "Como funciona · Negócios verificados · Para produtores · Entrar". | HU-01 |
-| RF-02 | Tela Entrar (T02) com três perfis ("Quero investir", "Represento uma empresa", "Produzo na Amazônia") e campo de e-mail; envio de código de acesso por e-mail e tela para digitá-lo (a criar), via Supabase Auth OTP. | HU-02 |
+| RF-02 | Tela Entrar (T02) com três perfis ("Quero investir", "Represento uma empresa", "Produzo na Amazônia") e campo de e-mail; envio de código de acesso por e-mail e tela para digitá-lo (a criar), via Supabase Auth OTP. **[Substituída pela feature de login e reset de senha: ver `.specs/features/login-e-reset-de-senha/prd.md`]** | HU-02 |
 | RF-03 | Redirecionamento por perfil: investidor e empresa para a descoberta (ou para a vitrine se já responderam), produtor para as boas-vindas (T15) ou para o painel (T22) se já enviou, verificador para a fila. | HU-02 |
 | RF-04 | Aceite dos termos e da política de privacidade no primeiro acesso do investidor, e autorização de uso dos dados na parte 1 do produtor (T16). | HU-03 |
 | **M2 · Cadastro do produtor** |  |  |
@@ -207,7 +207,7 @@ São 41 regras, cada uma com critérios de aceite no formato Dado / Quando / Ent
 - **CA-01.2** Dado um produtor logado, quando ele acessa uma rota de investidor ou de verificador, então recebe "Sem permissão" e a API não retorna dados dessas áreas.
 - **CA-01.3** Dada uma requisição pública de cadastro com papel verificador, quando enviada, então o servidor responde 403.
 
-**RN-02 · Entrada sem senha** (P) O acesso é só por e-mail: a Îasy envia um código de 6 dígitos, válido por 10 minutos, com até 5 tentativas. A sessão dura 30 dias no aparelho. Toda área privada exige sessão.
+**RN-02 · Entrada sem senha** (P) O acesso é só por e-mail: a Îasy envia um código de 6 dígitos, válido por 10 minutos, com até 5 tentativas. A sessão dura 30 dias no aparelho. Toda área privada exige sessão. **[Substituída pela feature de login e reset de senha: ver `.specs/features/login-e-reset-de-senha/prd.md`]**
 
 - **CA-02.1** Dado um código vencido ou errado 5 vezes, quando o usuário tenta de novo, então precisa pedir um novo código.
 - **CA-02.2** Dado um e-mail que ainda não tem conta, quando o código é confirmado, então a conta é criada com o perfil escolhido.
@@ -466,7 +466,7 @@ O protótipo do pitch tem 24 telas estáticas: 14 do investidor em desktop (1440
 | Tela | Código | Perfil | O que contém | Regras |
 | --- | --- | --- | --- | --- |
 | **T01** Página inicial · `/` | COM-01 | Visitante | Frase principal, card de exemplo, 4 passos, dois caminhos, rodapé de conexão | RN-04 |
-| **T02** Entrar · `/entrar` | COM-02 | Visitante | Três perfis, e-mail, "Sem senha: enviamos um código de acesso" | RN-01, RN-02 |
+| **T02** Entrar · `/entrar` | COM-02 | Visitante | Três perfis, e-mail, "Sem senha: enviamos um código de acesso" **[Substituída pela feature de login e reset de senha: ver `.specs/features/login-e-reset-de-senha/prd.md`]** | RN-01, RN-02 |
 | **T03 a T07** Descoberta · `/descobrir/[n]` | INV-01 a INV-05 | Investidor | Uma pergunta por tela, "Pergunta N de 5", Voltar e Continuar | RN-22, RN-23 |
 | **T08** Resultados · `/descobrir/resultados` | INV-06 | Investidor | "N negócios verificados alinhados ao seu perfil", chips das respostas, filtros, cards com % | RN-24, RN-25, RN-28 |
 | **T09** Negócios verificados · `/negocios` | INV-07 | Todos | Busca, produto, estado, contador, cards | RN-13, RN-26 a RN-29 |
