@@ -7,7 +7,7 @@ import { normalizeEmail } from "@/lib/auth/email";
 import { readAuthContext, setAuthContext } from "@/lib/auth/auth-context-cookie";
 import { requestOrigin } from "@/lib/auth/origin";
 import { isSafeRedirect } from "@/lib/auth/redirect";
-import { SEND_FAILED, throttleMessage } from "@/lib/auth/messages";
+import { SEND_FAILED, isEmailSendRateLimit, throttleMessage } from "@/lib/auth/messages";
 import { checkAndRecordSend } from "@/lib/auth/throttle";
 
 export interface SendLinkState {
@@ -46,7 +46,7 @@ async function sendMagicLink(email: string, next: string | null): Promise<SendLi
     options: { shouldCreateUser: false, emailRedirectTo },
   });
 
-  if (error && error.code !== "otp_disabled") {
+  if (error && error.code !== "otp_disabled" && !isEmailSendRateLimit(error)) {
     return { error: SEND_FAILED };
   }
 

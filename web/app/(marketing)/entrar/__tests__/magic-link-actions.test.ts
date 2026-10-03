@@ -73,6 +73,14 @@ describe("requestMagicLink (AUTH-06)", () => {
     expect(setAuthContext).toHaveBeenCalledWith({ email: "naoexiste@b.com", kind: "magic" });
   });
 
+  it("limite de reenvio do GoTrue (so' para conta existente) nao vaza: segue como e-mail enviado", async () => {
+    signInWithOtp.mockResolvedValueOnce({ error: { code: "over_email_send_rate_limit", status: 429 } });
+
+    await expect(requestMagicLink({}, form({ email: "existe@b.com" }))).rejects.toThrow(
+      "NEXT_REDIRECT:/entrar/link-enviado"
+    );
+  });
+
   it("falha de SMTP devolve a mensagem generica sem expor a interna", async () => {
     signInWithOtp.mockResolvedValueOnce({
       error: { code: "unexpected_failure", status: 500, message: "smtp host unreachable" },

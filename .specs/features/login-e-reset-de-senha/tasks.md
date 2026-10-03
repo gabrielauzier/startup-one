@@ -1031,11 +1031,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Código correto com `type:"recovery"` grava `iasy_recovery` e redireciona a `/redefinir-senha`; espaços colados são removidos
-- [ ] Código errado, vencido, usado ou substituído devolve "Código inválido ou vencido."; 429 devolve "Muitas tentativas. Peça um novo código."
-- [ ] `inputmode="numeric"`, `autocomplete="one-time-code"`, `maxLength=6`
-- [ ] Registra `auth_reset_codigo_ok` e `auth_reset_codigo_erro`
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Código correto com `type:"recovery"` grava `iasy_recovery` e redireciona a `/redefinir-senha`; espaços colados são removidos
+- [x] Código errado, vencido, usado ou substituído devolve "Código inválido ou vencido."; 429 devolve "Muitas tentativas. Peça um novo código."
+- [x] `inputmode="numeric"`, `autocomplete="one-time-code"`, `maxLength=6`
+- [x] Registra `auth_reset_codigo_ok` e `auth_reset_codigo_erro`
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e
 **Gate**: full

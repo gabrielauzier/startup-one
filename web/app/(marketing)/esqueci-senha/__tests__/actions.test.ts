@@ -87,6 +87,16 @@ describe("requestReset (AUTH-08, critérios 1 e 3)", () => {
     expect(setAuthContext).not.toHaveBeenCalled();
   });
 
+  it("limite de reenvio do GoTrue (so' existe para conta existente) e tratado como envio normal, sem vazar a conta", async () => {
+    resetPasswordForEmail.mockResolvedValueOnce({
+      error: { code: "over_email_send_rate_limit", status: 429, message: "after 60 seconds" },
+    });
+
+    await expect(requestReset({}, form("existe@b.com"))).rejects.toThrow(
+      "NEXT_REDIRECT:/esqueci-senha/codigo"
+    );
+  });
+
   it("registra auth_reset_pedido sem PII; falha do evento nao impede o fluxo", async () => {
     await expect(requestReset({}, form("a@b.com"))).rejects.toThrow("NEXT_REDIRECT");
     expect(trackEvent).toHaveBeenCalledWith({ type: "auth_reset_pedido", payload: {} });

@@ -388,6 +388,7 @@ Confirmado por `e2e/auth-gotrue-contract.spec.ts` contra o Supabase local (GoTru
 | Reset por OTP | E-mail traz 6 dígitos; `verifyOtp({ email, token, type:"recovery" })` cria sessão; `updateUser` com a mesma senha devolve `code = "same_password"`; e-mail inexistente não devolve erro nem envia |
 | `signInWithPassword` | `email_not_confirmed` (não confirmado); `invalid_credentials` (senha errada e e-mail inexistente) |
 | Política de senha | `weak_password` para senha curta ou sem dígito |
+| `max_frequency` (60 s) no reenvio | O GoTrue devolve `over_email_send_rate_limit` (429) **só para e-mail com conta**: se a action mostrasse esse erro, revelaria a conta. `lib/auth/messages.ts#isEmailSendRateLimit` faz as actions de reset e magic link tratarem como envio normal; o cooldown visível é o do `auth_throttle` (que vale para qualquer e-mail). Consequência para E2E: pedir um 2º código para o mesmo usuário exige esperar 61 s |
 | 429 / `over_request_rate_limit` | **Não verificado**: os rate limits locais estão em 1000. A action mapeia `status === 429` e `code === "over_request_rate_limit"` por precaução |
 
 ---
