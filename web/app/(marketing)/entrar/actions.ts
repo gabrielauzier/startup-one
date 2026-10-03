@@ -9,7 +9,7 @@ import {
   resolvePostLoginRedirect,
   type EntrarRole,
   type ProfileRole,
-} from "./redirect";
+} from "@/lib/auth/redirect";
 
 export type { EntrarRole };
 

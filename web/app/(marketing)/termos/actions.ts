@@ -7,7 +7,7 @@ import {
   isSafeRedirect,
   resolvePostLoginRedirect,
   type ProfileRole,
-} from "@/app/(marketing)/entrar/redirect";
+} from "@/lib/auth/redirect";
 
 // RN-03: versao dos Termos de Uso e Politica de Privacidade vigente.
 // Mudar este valor faz o investidor aceitar de novo no proximo acesso.

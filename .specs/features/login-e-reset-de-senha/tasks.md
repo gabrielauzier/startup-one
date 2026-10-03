@@ -337,11 +337,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `isSafeRedirect` rejeita `//evil.com`, `/\evil.com`, `/%5Cevil.com`, `https://evil.com`, `/entrar`, `/cadastro`, `/esqueci-senha`, `/redefinir-senha`, `/completar-perfil`, `/auth/x` e caracteres de controle; aceita `/negocios/abc?x=1`
-- [ ] `normalizeNext` aceita URL absoluta da mesma origem (devolve path+query), rejeita outra origem e usa o primeiro valor de lista
-- [ ] `roleHome` devolve `/verificacao`, `/produtor`, `/negocios`
-- [ ] Imports de `termos/actions.ts` e `entrar/actions.ts` atualizados; testes movidos para `lib/auth/__tests__/redirect.test.ts` com contagem igual ou maior que os anteriores
-- [ ] Gate quick passa: `npm run test`
+- [x] `isSafeRedirect` rejeita `//evil.com`, `/\evil.com`, `/%5Cevil.com`, `https://evil.com`, `/entrar`, `/cadastro`, `/esqueci-senha`, `/redefinir-senha`, `/completar-perfil`, `/auth/x` e caracteres de controle; aceita `/negocios/abc?x=1`
+- [x] `normalizeNext` aceita URL absoluta da mesma origem (devolve path+query), rejeita outra origem e usa o primeiro valor de lista
+- [x] `roleHome` devolve `/verificacao`, `/produtor`, `/negocios`
+- [x] Imports de `termos/actions.ts` e `entrar/actions.ts` atualizados; testes movidos para `lib/auth/__tests__/redirect.test.ts` com contagem igual ou maior que os anteriores
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
