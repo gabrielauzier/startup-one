@@ -12,7 +12,7 @@ Regra do projeto (`web/AGENTS.md`): esta versão do Next.js tem mudanças incomp
 
 **Design**: `.specs/features/login-e-reset-de-senha/design.md`
 **Spec**: `.specs/features/login-e-reset-de-senha/spec.md`
-**Status**: Draft
+**Status**: Done (validação: PASS com ressalvas, ver validation.md)
 **Convenção de caminhos (AD-008)**: todo `Where` é relativo a `web/`; `../` sai de `web/`. Os gates rodam com `cwd=web/`.
 
 ---

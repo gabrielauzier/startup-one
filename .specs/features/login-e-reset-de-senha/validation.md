@@ -1,25 +1,35 @@
-# Login com e-mail e senha, magic link e reset de senha - Validation (re-verification, round 1)
+# Login com e-mail e senha, magic link e reset de senha - Validation (final re-verification, round 2)
 
 **Date**: 2026-10-02
-**Spec**: `.specs/features/login-e-reset-de-senha/spec.md` (as amended in `9c2ad9f`)
-**Diff range**: `21f89e8^..9c2ad9f` (spec docs, implementation `cc7b052..f83c9c2`, fix round 1 `f83c9c2..9c2ad9f`)
+**Spec**: `.specs/features/login-e-reset-de-senha/spec.md` (amended in `9c2ad9f`, Independent Test line refreshed in `aa1a0fb`)
+**Diff range**: `21f89e8^..aa1a0fb` (spec docs, implementation `cc7b052..f83c9c2`, fix round 1 `f83c9c2..9c2ad9f`, fix round 2 `9c2ad9f..aa1a0fb`)
 **Verifier**: independent sub-agent (author != verifier); evidence re-derived from the files at HEAD, not from the previous report
-**Verdict**: **FAIL** (minor): 3 surviving mutants and a few weak rows remain; gates all green; every Major gap of round 0 is closed
+**Verdict**: **PASS (with notes)**: every AC has a located assertion matching the (amended) spec outcome; no non-equivalent mutant survives; remaining items are optional weak rows and owner confirmation of three scope-lowering amendments
 
 ---
 
-## Gate Check (HEAD `9c2ad9f`)
+## Gate Check (HEAD `aa1a0fb`)
 
 - lint `npm run lint`: exit 0
 - typecheck `npm run typecheck`: exit 0
-- unit `npm run test`: 70 files, **548 passed, 0 failed** (was 533)
-- e2e full suite `E2E_PORT=3100 npx playwright test --workers=3`: **193 passed, 0 failed, 0 skipped**, 1.5 min (was 190; +3: `web/e2e/esqueci-senha.spec.ts:53`, `web/e2e/magic-link.spec.ts:113`, `web/e2e/magic-link.spec.ts:132`)
+- unit `npm run test`: 70 files, **548 passed, 0 failed**
+- e2e full suite `E2E_PORT=3100 npx playwright test --workers=3`: **194 passed, 0 failed, 0 skipped**, 1.6 min (+1 vs round 1: `web/e2e/entrar.spec.ts:114` "redirect repetido")
 - Isolation: `git status --porcelain` identical before and after the sensor (UNCHANGED); scratch worktree removed and pruned.
 - Tasks: all 43 checked; D9 added.
 
 ---
 
-## Round-0 gaps: re-check
+## Round-2 gaps (from round 1): re-check
+
+| Gap | Evidence now | Status |
+| --- | --- | --- |
+| N3g `signup.signUp` log unpinned | `web/app/(marketing)/cadastro/__tests__/actions.test.ts:119-123` `errorLog toHaveBeenCalledWith("[auth] signup.signUp",{code:"unexpected_failure",status:500})` and no "Database" in log calls; mutant killed | Closed |
+| N3f `signup.resend` log in `resendConfirmation` | `web/app/(marketing)/entrar/__tests__/magic-link-actions.test.ts:220-221` `toHaveBeenCalledWith("[auth] signup.resend",{code:undefined,status:500})`; mutant killed | Closed |
+| N4b `firstParam` wiring on `/entrar` | `web/e2e/entrar.spec.ts:114-125`: `/entrar?redirect=/produtor/pedidos&redirect=/x` shows "Entre para continuar", logs in, `waitForURL("**/produtor/pedidos")`. Mutant (page reverted to `typeof === "string"`) run in scratch with the e2e on port 3101: the test FAILS at `entrar.spec.ts:119` (killed). Unit-only runs still pass, as expected | Closed |
+| N5 paste `preventDefault` | `web/app/(marketing)/esqueci-senha/codigo/__tests__/codigo-form.test.tsx:25-27` asserts `fireEvent.paste` returned `false` (default prevented); mutant now killed | Closed |
+| Stale "Independent Test" (AUTH-13) | `spec.md:245` now compares action results (destination screen and returned state) | Closed |
+
+## Round-0 gaps: re-check (carried from round 1)
 
 | # | Round-0 gap | Evidence now | Status |
 | --- | --- | --- | --- |
@@ -152,7 +162,7 @@ Legend: PASS, WEAK (partial assertion), GAP, SPEC-GAP. Paths relative to `web/` 
 | 13.2 (amended) | per-flow equality `esqueci-senha/__tests__/actions.test.ts:48-62`, `magic-link-actions.test.ts:67-74`, `cadastro/__tests__/actions.test.ts:151-164` | PASS |
 | 12.3 (amended) | `email-templates.test.ts:10-64` | PASS |
 | 12.4 (amended) | `auth-config.test.ts:27-33`; docs `DEPLOY.md` section 1.3 | PASS (docs; no prod URLs yet) |
-| 10.5 / 09 | no leak: `magic-link-actions.test.ts:84-94`, `esqueci-senha/__tests__/actions.test.ts:81-93`, `cadastro/__tests__/actions.test.ts:178-191`; logging asserted at 4 of 6 sites (see gap 3) | WEAK |
+| 10.5 / 09 | no leak: `magic-link-actions.test.ts:84-94`, `esqueci-senha/__tests__/actions.test.ts:81-93`, `cadastro/__tests__/actions.test.ts:178-191`; logging asserted at all 6 send-error sites (`cadastro/__tests__/actions.test.ts:119`, `:189`; `magic-link-actions.test.ts:97`, `:220`; `esqueci-senha/__tests__/actions.test.ts:90`; `codigo/__tests__/actions.test.ts:148`) | PASS |
 | 15.1 | `e2e/auth-eventos.spec.ts:117-119` (each of 11 types incremented) | PASS |
 | 15.2 | `auth-eventos.spec.ts:129-136`; `sign-in-password.test.ts:115-124` | PASS |
 | 15.3 | `e2e/events-auth-types.spec.ts:21-28`; `lib/analytics/__tests__/track-auth-types.test.ts:33-46` | PASS |
@@ -167,12 +177,12 @@ Legend: PASS, WEAK (partial assertion), GAP, SPEC-GAP. Paths relative to `web/` 
 | Other-browser confirm; original tab unchanged | `cadastro-confirmacao.spec.ts:50-53` (clean context; original tab not asserted) | WEAK |
 | Scanner consumes link | `magic-link.spec.ts:67-85`; `auth-confirm.spec.ts:82-96` | PASS |
 | Logged in other tab | `entrar.spec.ts:80-88` | PASS |
-| `redirect`/`next` list -> first value | `next`: `redirect.test.ts:127-130`; helper `redirect.test.ts:140-150`; page wiring untested (N4b survived) | WEAK |
+| `redirect`/`next` list -> first value | `next`: `redirect.test.ts:127-130`; helper `redirect.test.ts:140-150`; page wiring pinned by `e2e/entrar.spec.ts:114-125` | PASS |
 | E-mail normalized | `sign-in-password.test.ts:37-41`; `magic-link-actions.test.ts:43-50` | PASS |
 | Orphan account | `proxy.test.ts:78-86`; `completar-perfil.spec.ts:6-25` | PASS |
 | Pasted code with spaces | `codigo-form.test.tsx:21-28`; `codigo/__tests__/actions.test.ts:57-61` | PASS |
 
-**Tally**: PASS 66 rows, WEAK 10 (S2.13, S2.15, S3.13, S3.14, S4.7, S5.7, S5.8, 10.5, 01.6, edge list-wiring; plus 1 edge), GAP 0, SPEC-GAP 0 after amendments. All remaining WEAK items are partial assertions, not unmet outcomes.
+**Tally**: PASS 68 rows, WEAK 8 (S2.13, S2.15, S3.13, S3.14, S4.7, S5.7, S5.8, 01.6; plus the edge "original tab unchanged"), GAP 0, SPEC-GAP 0 after amendments. All remaining WEAK items are partial assertions, not unmet outcomes.
 
 ---
 
@@ -189,11 +199,11 @@ Scratch: `git worktree add --detach <scratchpad>/sensor HEAD` (`9c2ad9f`), `web/
 | N3c | `entrar/magic-link-actions.ts:50` | drop `logAuthError("magic-link.signInWithOtp")` | Killed |
 | N3d | `esqueci-senha/actions.ts` | drop `logAuthError("reset.resetPasswordForEmail")` | Killed |
 | N3e | `esqueci-senha/codigo/actions.ts` | drop `logAuthError("reset.resend")` | Killed |
-| N3f | `entrar/magic-link-actions.ts:108` | drop `logAuthError("signup.resend")` in `resendConfirmation` | **SURVIVED** |
-| N3g | `cadastro/actions.ts:98` | drop `logAuthError("signup.signUp")` | **SURVIVED** |
+| N3f | `entrar/magic-link-actions.ts:108` | drop `logAuthError("signup.resend")` in `resendConfirmation` | Killed (round 2) |
+| N3g | `cadastro/actions.ts:98` | drop `logAuthError("signup.signUp")` | Killed (round 2) |
 | N4 | `web/lib/auth/redirect.ts:74` | `firstParam` ignores lists | Killed |
-| N4b | `entrar/page.tsx:24` | page reverts to `typeof === "string"` | **SURVIVED** (wiring untested) |
-| N5 | `esqueci-senha/codigo/codigo-form.tsx:33` | drop `preventDefault` in `onPaste` | Survived, probably equivalent (jsdom cannot see the default paste) |
+| N4b | `entrar/page.tsx:24` | page reverts to `typeof === "string"` | Killed by e2e `entrar.spec.ts:114` (unit files alone still pass; the pin is the e2e) |
+| N5 | `esqueci-senha/codigo/codigo-form.tsx:33` | drop `preventDefault` in `onPaste` | Killed (round 2, `defaultPrevented` asserted) |
 | N5b | same `:31` | `slice(0,7)` | Killed |
 | N6 | `cadastro/actions.ts:83` | duplicate notice drops the reset link | Killed |
 | N7 | `components/shared/MobileBottomNav.tsx:46` | Sair form not wired to `signOutAction` | Killed |
@@ -215,8 +225,8 @@ Scratch: `git worktree add --detach <scratchpad>/sensor HEAD` (`9c2ad9f`), `web/
 | M16 | `web/proxy.ts:56` | recovery flag ignored | Killed |
 | M17 | `esqueci-senha/actions.ts:34` | surface GoTrue 429 | Killed |
 
-**Sensor depth**: P0-full manual injection, 31 mutations (10 new + 21 carried from round 0).
-**Result**: 28 killed, 3 survived (N3f, N3g, N4b) + 1 likely-equivalent (N5). FAIL until the three are pinned.
+**Sensor depth**: P0-full manual injection, 31 distinct mutations over the two rounds; round 2 re-ran N3f, N3g, N4b, N5 plus 17 carried (N1, N2, N3c, N4, N5b, N6, N10, M1, M2, M8a, M9, M10, M11, M12, M13, M14, M16, M17), all killed (N4b via e2e). Real worktree porcelain UNCHANGED, scratch removed.
+**Result**: 31/31 killed. PASS.
 
 ---
 
@@ -226,12 +236,13 @@ D1-D8 unchanged and acceptable (see round 0: resolved or transient). **D9** (spe
 
 ---
 
-## Fix Plans (iteration 2 of max 3)
+## Remaining notes (non-blocking)
 
-1. Assert `logAuthError` for `signup.resend` inside `resendConfirmation` and for `signup.signUp` in `cadastro/__tests__/actions.test.ts` / `entrar/__tests__/magic-link-actions.test.ts` (kills N3f, N3g). Priority: Minor.
-2. Pin the `firstParam` wiring on the pages: an e2e (`/entrar?redirect=/produtor/pedidos&redirect=/x` shows "Entre para continuar", or a page-level unit) (kills N4b). Priority: Minor.
-3. Optional: assert `event.defaultPrevented` in the paste test or add an e2e paste; assert the literal "Enviamos outro e-mail/link/código" strings; replace class-name 44 px checks with a computed-size e2e. Priority: Cosmetic.
-4. Spec owner to confirm the three scope-lowering amendments (AUTH-10.1, 12.3, 12.4) and refresh the stale "Independent Test" line of the P2 story.
+1. Optional weak rows: literal "Enviamos outro e-mail/link/código" strings unasserted (`cadastro/confirmar-email/page.tsx:38`, `link-enviado/page.tsx:27`, `codigo/page.tsx:30`); 429 cases mapping-only (not reproducible on local GoTrue); 44 px asserted as class names; AUTH-01.6 asserts call order, not an `investor_answers` row; S2.15 "resend enabled" not asserted; edge "original tab unchanged" not asserted.
+2. Owner confirmation pending for the three scope-lowering amendments (AUTH-10.1, 12.3, 12.4) and for D9.
+3. The `/api/*` 403 branch is still unreachable in production (no route rule matches `/api/*`); it is pinned only through a mocked rule.
+
+**Why PASS-with-notes rather than FAIL**: validate.md makes surviving mutants and unmet or uncovered ACs the FAIL criteria. Neither exists now: each AC has a located assertion on the spec-defined outcome, the sensor kills 31/31, and the gates are green (548 unit, 194 e2e). The residual items are partial assertions on outcomes that cannot be exercised locally or that are cosmetic, plus a product decision (spec owner sign-off) that no test can resolve.
 
 ---
 
@@ -240,18 +251,18 @@ D1-D8 unchanged and acceptable (see round 0: resolved or transient). **D9** (spe
 | Requirement | Previous | New |
 | --- | --- | --- |
 | AUTH-01, 02, 03, 04, 05, 06, 07, 08, 11, 12, 13, 14, 15, 16, 17, 18 | Needs Fix / Verified | Verified |
-| AUTH-09 / AUTH-10 (logging, rate-limit docs) | Needs Fix | Verified with Minor open (N3f, N3g) |
+| AUTH-09 / AUTH-10 (logging, rate-limit docs) | Needs Fix | Verified |
 
 ---
 
 ## Summary
 
-**Overall**: FAIL (Minor) - ready after Fix Plans 1-2.
+**Overall**: PASS with notes (final iteration, 3 of 3 used).
 
-**Spec-anchored check**: 66 rows matched the spec outcome (as amended), 10 weak (partial assertions), 0 unmet, 0 unresolved spec-precision gaps (4 resolved by amendment, 3 of them scope-lowering and pending owner confirmation)
-**Sensor**: 28/31 killed; survivors N3f, N3g, N4b (+ N5 likely equivalent)
-**Gate**: lint 0, typecheck 0, unit 548/548, e2e 193/193
+**Spec-anchored check**: 68 rows matched the spec outcome (as amended), 9 weak (partial assertions, listed above), 0 unmet, 0 unresolved spec-precision gaps
+**Sensor**: 31/31 mutations killed
+**Gate**: lint 0, typecheck 0, unit 548/548, e2e 194/194
 
-**What works**: every Major gap of round 0 is closed with real assertions (`/api` 403, reset link in the notice, server logging, magic-link edge users, pending state, `/esqueci-senha` redirect, Sair wiring, paste handling); no regression across the full suites.
+**What works**: all round-0 and round-1 gaps closed with real assertions; no regression across full suites.
 
-**Next steps**: Fix Plans 1-2, then re-verify (iteration 3 of 3 at most).
+**Next steps**: spec owner confirms AUTH-10.1, 12.3, 12.4 and D9.
