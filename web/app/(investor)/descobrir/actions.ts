@@ -120,7 +120,7 @@ export async function loadAnswers(): Promise<DiscoveryAnswers> {
 /**
  * RN-23/CA-23.1: "um visitante sem conta responde as 5 perguntas [...]
  * o sistema guarda as respostas no navegador e migra para o perfil ao
- * entrar". Chamada por `verifyOtp` (app/(marketing)/entrar/actions.ts)
+ * entrar". Chamada por `resolvePostAuthDestination` (lib/auth/post-auth.ts)
  * logo apos autenticar, antes de qualquer redirect - so' grava se as
  * respostas do cookie ja' estao completas (as 4 obrigatorias); um
  * visitante que respondeu so' parte das perguntas antes de entrar

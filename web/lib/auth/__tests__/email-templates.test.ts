@@ -15,10 +15,17 @@ describe("templates de e-mail de auth (AUTH-06, AUTH-08, AUTH-12, AUTH-14)", () 
     expect(html).toContain("10 minutos");
   });
 
-  it("magic_link.html aponta para /auth/confirm com type=email", () => {
-    expect(template("magic_link.html")).toContain(
+  it("magic_link.html aponta para /auth/confirm com type=email e traz so o link, sem codigo (AUTH-06 criterio 3)", () => {
+    const html = template("magic_link.html");
+    expect(html).toContain(
       "{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
     );
+    expect(html).toContain("Entrar na Îasy");
+    expect(html).not.toContain("{{ .Token }}");
+  });
+
+  it("confirmation.html nao traz codigo de 6 digitos", () => {
+    expect(template("confirmation.html")).not.toContain("{{ .Token }}");
   });
 
   it("recovery.html mostra o codigo e a validade e nao traz link", () => {

@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 const verifyOtp = vi.fn();
-const postAuthDestination = vi.fn(async (..._a: unknown[]) => "/produtor");
-const trackEvent = vi.fn(async (..._a: unknown[]) => ({ ok: true }));
+const postAuthDestination = vi.fn(async (...a: unknown[]) => (a.length >= 0 ? "/produtor" : ""));
+const trackEvent = vi.fn(async (...a: unknown[]) => ({ ok: a.length >= 0 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerClient: async () => ({ auth: { verifyOtp } }),

@@ -35,4 +35,8 @@ describe("supabase/config.toml [auth] (AUTH-02, AUTH-12)", () => {
   it("exige confirmacao de e-mail no cadastro", () => {
     expect(value(section("auth.email"), "enable_confirmations")).toBe("true");
   });
+
+  it("limita o reenvio de e-mail de auth a 1 a cada 60 s por usuario", () => {
+    expect(value(section("auth.email"), "max_frequency")).toBe('"60s"');
+  });
 });

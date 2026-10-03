@@ -72,10 +72,7 @@ export async function requestMagicLink(
 }
 
 /** AUTH-06 (7, 8) / AUTH-09: reenvio em /entrar/link-enviado. */
-export async function resendMagicLink(
-  _prev: SendLinkState,
-  _formData: FormData
-): Promise<SendLinkState> {
+export async function resendMagicLink(): Promise<SendLinkState> {
   const ctx = await readAuthContext("magic");
   if (!ctx) redirect("/entrar");
 

@@ -42,7 +42,7 @@ test.describe("RLS de profiles (RN-01, T12)", () => {
     const email = `rls-${Date.now()}@example.com`;
     const { accessToken, userId } = await loginViaApi(email);
 
-    // O profile ainda nao existe (so' e' criado pelo verifyOtp da UI) -
+    // O profile ainda nao existe (so' e' criado pelo trigger quando ha `role` no metadado) -
     // o proprio usuario tenta se auto-promover a verificador.
     const insertRes = await fetch(`${API_URL}/rest/v1/profiles`, {
       method: "POST",

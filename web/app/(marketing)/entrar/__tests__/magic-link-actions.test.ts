@@ -117,7 +117,7 @@ describe("resendMagicLink (AUTH-09)", () => {
   it("reenvia para o e-mail do cookie e devolve sent com cooldown de 60 s", async () => {
     readAuthContext.mockResolvedValue({ email: "foo@bar.com" });
 
-    expect(await resendMagicLink({}, form({}))).toEqual({ sent: true, retryAfterSec: 60 });
+    expect(await resendMagicLink()).toEqual({ sent: true, retryAfterSec: 60 });
     expect(readAuthContext).toHaveBeenCalledWith("magic");
     expect(signInWithOtp).toHaveBeenCalledTimes(1);
   });
@@ -125,7 +125,7 @@ describe("resendMagicLink (AUTH-09)", () => {
   it("sem cookie valido redireciona a /entrar", async () => {
     readAuthContext.mockResolvedValue(null);
 
-    await expect(resendMagicLink({}, form({}))).rejects.toThrow("NEXT_REDIRECT:/entrar");
+    await expect(resendMagicLink()).rejects.toThrow("NEXT_REDIRECT:/entrar");
   });
 
   it("dentro do cooldown (clique duplo) envia um so e-mail", async () => {
@@ -134,8 +134,8 @@ describe("resendMagicLink (AUTH-09)", () => {
       .mockResolvedValueOnce({ allowed: true })
       .mockResolvedValueOnce({ allowed: false, reason: "cooldown", retryAfterSec: 59 });
 
-    await resendMagicLink({}, form({}));
-    const second = await resendMagicLink({}, form({}));
+    await resendMagicLink();
+    const second = await resendMagicLink();
 
     expect(signInWithOtp).toHaveBeenCalledTimes(1);
     expect(second.retryAfterSec).toBe(59);
@@ -145,7 +145,7 @@ describe("resendMagicLink (AUTH-09)", () => {
     readAuthContext.mockResolvedValue({ email: "foo@bar.com" });
     checkAndRecordSend.mockResolvedValue({ allowed: false, reason: "hourly-cap", retryAfterSec: 1800 });
 
-    expect((await resendMagicLink({}, form({}))).error).toBe(
+    expect((await resendMagicLink()).error).toBe(
       "Muitos pedidos. Tente de novo em alguns minutos."
     );
   });

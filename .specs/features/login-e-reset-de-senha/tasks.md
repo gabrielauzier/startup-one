@@ -818,10 +818,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Pasta `entrar/codigo` e `e2e/entrar-codigo.spec.ts` removidas; `sendOtp`/`verifyOtp` removidos de `entrar/actions.ts` e de `entrar/__tests__/actions.test.ts`
-- [ ] `GET /entrar/codigo` responde 308 para `/entrar` (E2E)
-- [ ] Nenhuma referência restante a `sendOtp`, `verifyOtp` ou `/entrar/codigo` (`grep` vazio)
-- [ ] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`; E2E completo passa: `npm run test:e2e`
+- [x] Pasta `entrar/codigo` e `e2e/entrar-codigo.spec.ts` removidas; `sendOtp`/`verifyOtp` removidos de `entrar/actions.ts` e de `entrar/__tests__/actions.test.ts`
+- [x] `GET /entrar/codigo` responde 308 para `/entrar` (E2E)
+- [x] Nenhuma referência restante a `sendOtp`, `verifyOtp` ou `/entrar/codigo` (`grep` vazio)
+- [x] Gate build passa: `npm run lint && npm run build && npm run typecheck && npm run test`; E2E completo passa: `npm run test:e2e`
 
 **Tests**: e2e (`e2e/entrar-redirect-legado.spec.ts`)
 **Gate**: build
