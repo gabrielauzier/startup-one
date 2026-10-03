@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { createConfirmedUser, TEST_PASSWORD } from "./helpers/session";
 import { randomValidCnpj } from "./helpers/cnpj";
 import { createBusiness, createProfileWithAuth, getInterest } from "./helpers/db";
 import { loginAsInvestor, loginAsProducer } from "./helpers/auth";
@@ -68,32 +69,12 @@ test.describe("Formulário Tenho interesse /negocios/[slug] (T46)", () => {
     await expect(page.getByTestId("botao-tenho-interesse")).toHaveAttribute("href", expectedHref);
     await page.getByTestId("botao-tenho-interesse").click();
 
-    // Entra como investidor (OTP + aceite de termos, novo cadastro).
-    await page.getByRole("radio", { name: "Quero investir" }).click();
+    // Entra como investidor (senha + aceite de termos, primeiro acesso).
     const email = `interesse-fluxo-${Date.now()}@example.com`;
+    await createConfirmedUser(email, { role: "investidor", nome: "Investidor Interesse" });
     await page.getByLabel("E-mail").fill(email);
-    await page.getByRole("button", { name: "Entrar" }).click();
-    await page.waitForURL(/\/entrar\/codigo\?/);
-
-    const mailpit = async () => {
-      for (let attempt = 0; attempt < 20; attempt += 1) {
-        const res = await fetch(
-          `http://127.0.0.1:54324/api/v1/search?query=to:${encodeURIComponent(email)}`
-        );
-        const { messages } = (await res.json()) as { messages: { ID: string }[] };
-        if (messages.length > 0) {
-          const detail = await fetch(`http://127.0.0.1:54324/api/v1/message/${messages[0].ID}`);
-          const body = (await detail.json()) as { Text: string };
-          const match = body.Text.match(/\b\d{6}\b/);
-          if (match) return match[0];
-        }
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-      throw new Error("OTP não encontrado");
-    };
-    const code = await mailpit();
-    await page.getByLabel("Código de 6 dígitos").fill(code);
-    await page.getByRole("button", { name: "Confirmar" }).click();
+    await page.getByLabel("Senha").fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: "Entrar", exact: true }).click();
 
     // RN-03: novo investidor passa pelos Termos antes de voltar ao
     // destino original - o redirect sobrevive a essa etapa também.

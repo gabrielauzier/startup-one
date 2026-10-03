@@ -68,3 +68,32 @@ export async function addSessionCookies(
 
   await context.addCookies(captured.map(({ name, value }) => ({ name, value, url: baseURL })));
 }
+
+/** Entra por senha direto no GoTrue (sem browser) e devolve o token de acesso e o usuario. */
+export async function signInViaApi(
+  email: string,
+  password: string = TEST_PASSWORD
+): Promise<{ access_token: string; user: { id: string } }> {
+  const res = await fetch(`${API_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const session = (await res.json()) as { access_token?: string; user?: { id: string }; msg?: string };
+  if (!session.access_token || !session.user) {
+    throw new Error(`Login por senha falhou para ${email}: ${session.msg ?? res.status}`);
+  }
+  return { access_token: session.access_token, user: session.user };
+}
+
+/**
+ * Cria um usuario confirmado SEM `role` no metadado (sem profile - o teste
+ * decide o que inserir) e devolve a sessao. Substitui o antigo login por
+ * OTP via API (`/auth/v1/otp` + codigo do Mailpit) nos specs de RLS.
+ */
+export async function createUserSession(
+  email: string
+): Promise<{ access_token: string; user: { id: string } }> {
+  await createConfirmedUser(email);
+  return signInViaApi(email);
+}

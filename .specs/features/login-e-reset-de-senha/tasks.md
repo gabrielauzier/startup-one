@@ -791,11 +791,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Os três helpers mantêm assinatura e retorno (e-mail usado) e terminam na mesma URL de antes (`/produtor`, `/termos`→`/descobrir/1`, `/verificacao`)
-- [ ] Nenhum spec fora de `e2e/entrar*.spec.ts` e `e2e/auth-*.spec.ts` chama OTP ou lê código no Mailpit
-- [ ] `rls-*.spec.ts` e `loginViaApi` auditados
-- [ ] Suíte E2E completa passa
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Os três helpers mantêm assinatura e retorno (e-mail usado) e terminam na mesma URL de antes (`/produtor`, `/termos`→`/descobrir/1`, `/verificacao`)
+- [x] Nenhum spec fora de `e2e/entrar*.spec.ts` e `e2e/auth-*.spec.ts` chama OTP ou lê código no Mailpit
+- [x] `rls-*.spec.ts` e `loginViaApi` auditados
+- [x] Suíte E2E completa passa
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e (suíte completa)
 **Gate**: full
