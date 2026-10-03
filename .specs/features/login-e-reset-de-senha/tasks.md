@@ -179,10 +179,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] CHECK aceita os 11 novos tipos e continua aceitando os 14 existentes
-- [ ] Teste: `trackEvent({ type: "auth_login_senha_ok", payload: {} })` grava `kind='produto'`; tipo inexistente é rejeitado pelo banco
-- [ ] `ProductEventType` espelha 1:1 o CHECK (teste de paridade lê o `.sql`)
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] CHECK aceita os 11 novos tipos e continua aceitando os 14 existentes
+- [x] Teste: `trackEvent({ type: "auth_login_senha_ok", payload: {} })` grava `kind='produto'`; tipo inexistente é rejeitado pelo banco
+- [x] `ProductEventType` espelha 1:1 o CHECK (teste de paridade lê o `.sql`)
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + integration (`lib/analytics/__tests__/track.test.ts`, `e2e/avisos-eventos.spec.ts`)
 **Gate**: full
