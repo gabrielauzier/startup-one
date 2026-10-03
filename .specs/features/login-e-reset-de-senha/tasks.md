@@ -1141,11 +1141,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Cada um dos 11 tipos aparece em `events` após executar o fluxo correspondente
-- [ ] Nenhum payload contém `@`, a senha usada ou o código/token
-- [ ] Nenhuma URL visitada no fluxo contém o e-mail (assert em todas as navegações)
-- [ ] Falha forçada de `trackEvent` não quebra o fluxo
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Cada um dos 11 tipos aparece em `events` após executar o fluxo correspondente
+- [x] Nenhum payload contém `@`, a senha usada ou o código/token
+- [x] Nenhuma URL visitada no fluxo contém o e-mail (assert em todas as navegações)
+- [x] Falha forçada de `trackEvent` não quebra o fluxo
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full
