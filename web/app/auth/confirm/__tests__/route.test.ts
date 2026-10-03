@@ -43,6 +43,12 @@ describe("GET /auth/confirm (AUTH-04, AUTH-07)", () => {
     expect(postAuthDestination).toHaveBeenCalledWith("user-1", "/negocios/x?y=1");
   });
 
+  it("next que e' so' a raiz (site_url injetado pelo GoTrue sem emailRedirectTo) nao conta como destino pedido", async () => {
+    await call(`token_hash=abc&type=email&next=${encodeURIComponent(`${BASE}/`)}`);
+
+    expect(postAuthDestination).toHaveBeenCalledWith("user-1", null);
+  });
+
   it.each([
     "http://evil.com/negocios",
     "//evil.com",

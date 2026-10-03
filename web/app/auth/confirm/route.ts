@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const next = normalizeNext(searchParams.getAll("next"), origin);
+  // Sem `emailRedirectTo` o GoTrue injeta o `site_url` (raiz): isso nao e'
+  // um destino pedido, vale o destino padrao do papel.
+  const requested = normalizeNext(searchParams.getAll("next"), origin);
+  const next = requested === "/" ? null : requested;
 
   const redirectTo = (path: string) => NextResponse.redirect(new URL(path, request.url));
 

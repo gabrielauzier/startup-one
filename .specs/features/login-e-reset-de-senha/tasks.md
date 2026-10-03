@@ -711,11 +711,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `signInWithOtp` é chamado com `shouldCreateUser:false`; erro de e-mail inexistente é engolido e o resultado é idêntico
-- [ ] Cookie de contexto é gravado e o redirect vai a `/entrar/link-enviado`; e-mail não aparece na URL
-- [ ] Reenvio dentro de 60 s ou acima de 3/hora devolve a mensagem de espera/teto; falha de SMTP devolve "Não foi possível enviar o e-mail. Tente de novo." sem expor a mensagem interna
-- [ ] Registra `auth_magic_link_pedido`
-- [ ] Gate quick passa: `npm run test`
+- [x] `signInWithOtp` é chamado com `shouldCreateUser:false`; erro de e-mail inexistente é engolido e o resultado é idêntico
+- [x] Cookie de contexto é gravado e o redirect vai a `/entrar/link-enviado`; e-mail não aparece na URL
+- [x] Reenvio dentro de 60 s ou acima de 3/hora devolve a mensagem de espera/teto; falha de SMTP devolve "Não foi possível enviar o e-mail. Tente de novo." sem expor a mensagem interna
+- [x] Registra `auth_magic_link_pedido`
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
