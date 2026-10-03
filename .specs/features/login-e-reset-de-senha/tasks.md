@@ -578,9 +578,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `BottomNav` renderiza "Sair" que submete `signOutAction`
-- [ ] Itens existentes continuam renderizando (teste de snapshot de rótulos)
-- [ ] Gate quick passa: `npm run test`
+- [x] `BottomNav` renderiza "Sair" que submete `signOutAction`
+- [x] Itens existentes continuam renderizando (teste de snapshot de rótulos)
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
