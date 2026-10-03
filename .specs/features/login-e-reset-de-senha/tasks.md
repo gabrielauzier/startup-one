@@ -873,10 +873,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `?perfil=produtor|investidor|empresa` marca o perfil; valor inválido não marca nenhum
-- [ ] Validação no cliente mostra o requisito faltante no campo e bloqueia o envio
-- [ ] `autocomplete="new-password"`, alvos de 44 px, usuário logado redireciona ao destino do papel
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] `?perfil=produtor|investidor|empresa` marca o perfil; valor inválido não marca nenhum
+- [x] Validação no cliente mostra o requisito faltante no campo e bloqueia o envio
+- [x] `autocomplete="new-password"`, alvos de 44 px, usuário logado redireciona ao destino do papel
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e (`e2e/cadastro.spec.ts`)
 **Gate**: full
