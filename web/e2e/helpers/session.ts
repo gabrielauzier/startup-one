@@ -12,7 +12,12 @@ export const TEST_PASSWORD = "senha-forte-123";
 /** Cria um usuario de auth ja confirmado, com senha, via admin API. */
 export async function createConfirmedUser(
   email: string,
-  opts: { role?: "investidor" | "empresa" | "produtor"; nome?: string; password?: string } = {}
+  opts: {
+    role?: "investidor" | "empresa" | "produtor";
+    nome?: string;
+    password?: string;
+    confirmed?: boolean;
+  } = {}
 ): Promise<string> {
   const res = await fetch(`${API_URL}/auth/v1/admin/users`, {
     method: "POST",
@@ -24,7 +29,7 @@ export async function createConfirmedUser(
     body: JSON.stringify({
       email,
       password: opts.password ?? TEST_PASSWORD,
-      email_confirm: true,
+      email_confirm: opts.confirmed ?? true,
       user_metadata: opts.role ? { role: opts.role, nome: opts.nome } : {},
     }),
   });

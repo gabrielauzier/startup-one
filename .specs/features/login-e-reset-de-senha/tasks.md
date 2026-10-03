@@ -738,11 +738,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Sem seleção de perfil; exibe e-mail, senha, "Mostrar", "Esqueci minha senha", "Receber link de acesso por e-mail", "Criar conta" e o texto para contas do MVP
-- [ ] Mostra "Entre para continuar" com `redirect`, o aviso de `sem-permissao`, de `senha-alterada` e de `link-expirado`
-- [ ] Erros em `role="alert"`, `aria-invalid`, foco no primeiro campo com erro, botão desabilitado ao enviar, `autocomplete` correto
-- [ ] Usuário logado com perfil é redirecionado ao destino do papel
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Sem seleção de perfil; exibe e-mail, senha, "Mostrar", "Esqueci minha senha", "Receber link de acesso por e-mail", "Criar conta" e o texto para contas do MVP
+- [x] Mostra "Entre para continuar" com `redirect`, o aviso de `sem-permissao`, de `senha-alterada` e de `link-expirado`
+- [x] Erros em `role="alert"`, `aria-invalid`, foco no primeiro campo com erro, botão desabilitado ao enviar, `autocomplete` correto
+- [x] Usuário logado com perfil é redirecionado ao destino do papel
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e (`e2e/entrar.spec.ts` reescrito)
 **Gate**: full
@@ -1280,4 +1280,5 @@ Execução estritamente sequencial. Com 43 tasks, o empacotamento em lotes de ~7
 | D2 | `max_frequency = "60s"` (T4) passa a ser aplicado em T27 | Com 60 s por usuário o fluxo OTP atual (reenvio) e os helpers de E2E quebrariam até a remoção do OTP |
 | D3 | Registro dos templates em `config.toml` fica em T5 (junto dos arquivos) | O `config.toml` não pode apontar para arquivo inexistente |
 | D4 | `magic_link.html` **e `confirmation.html`** ficam "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 (com `enable_confirmations=true`, o 1º e-mail do login por OTP de usuário novo usa o template de confirmação) | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
+| D6 | `/entrar` deixa de aceitar o login por OTP em T24 (antes de T26/T27): os specs E2E que logam pela UI ficam vermelhos entre T24 e T26; T24 só valida `entrar.spec.ts` | A troca do helper (T26) depende do formulário novo; `PasswordInput` e `AuthTabs` (`components/auth/`) entram em T24 por serem dele |
 | D5 | Gate full roda unit + os specs E2E tocados pela task; a suíte E2E completa roda ao fim de cada fase | A suíte completa leva dezenas de minutos e o STATE.md documenta esgotamento de rede do Docker em rodadas repetidas |
