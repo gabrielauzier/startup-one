@@ -312,9 +312,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Tabela de casos: 7 caracteres falha `min`; 73 falha `max`; sem número falha `digit`; sem letra falha `letter`; `abc12345` passa; 72 caracteres válidos passa
-- [ ] `passwordRequirementMessage` devolve texto pt-BR por requisito faltante
-- [ ] Gate quick passa: `npm run test`
+- [x] Tabela de casos: 7 caracteres falha `min`; 73 falha `max`; sem número falha `digit`; sem letra falha `letter`; `abc12345` passa; 72 caracteres válidos passa
+- [x] `passwordRequirementMessage` devolve texto pt-BR por requisito faltante
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
