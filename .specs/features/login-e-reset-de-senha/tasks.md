@@ -502,10 +502,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Chama `supabase.auth.signOut()` e `redirect("/")`
-- [ ] Remove `iasy_auth_ctx` e `iasy_recovery`
-- [ ] Falha em `trackEvent` não impede o logout
-- [ ] Gate quick passa: `npm run test`
+- [x] Chama `supabase.auth.signOut()` e `redirect("/")`
+- [x] Remove `iasy_auth_ctx` e `iasy_recovery`
+- [x] Falha em `trackEvent` não impede o logout
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
