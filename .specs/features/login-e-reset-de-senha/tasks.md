@@ -1085,11 +1085,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] E-mail de recuperação contém 6 dígitos e nenhum link
-- [ ] Reuso do código e código substituído por reenvio falham
-- [ ] Durante a sessão de recuperação, abrir `/negocios` redireciona a `/redefinir-senha`
-- [ ] Segundo contexto de navegador logado perde a sessão após a troca; e-mail "senha alterada" chega ao Mailpit
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] E-mail de recuperação contém 6 dígitos e nenhum link
+- [x] Reuso do código e código substituído por reenvio falham
+- [x] Durante a sessão de recuperação, abrir `/negocios` redireciona a `/redefinir-senha`
+- [x] Segundo contexto de navegador logado perde a sessão após a troca; e-mail "senha alterada" chega ao Mailpit
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: e2e
 **Gate**: full

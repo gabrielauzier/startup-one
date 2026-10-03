@@ -15,7 +15,8 @@ export async function createConfirmedUser(
   opts: {
     role?: "investidor" | "empresa" | "produtor";
     nome?: string;
-    password?: string;
+    /** `null` cria a conta sem senha (como as contas do MVP, que entravam so por codigo). */
+    password?: string | null;
     confirmed?: boolean;
   } = {}
 ): Promise<string> {
@@ -28,7 +29,7 @@ export async function createConfirmedUser(
     },
     body: JSON.stringify({
       email,
-      password: opts.password ?? TEST_PASSWORD,
+      ...(opts.password === null ? {} : { password: opts.password ?? TEST_PASSWORD }),
       email_confirm: opts.confirmed ?? true,
       user_metadata: opts.role ? { role: opts.role, nome: opts.nome } : {},
     }),
