@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { resolveAccess } from "../roles";
 
 describe("resolveAccess", () => {
@@ -72,5 +74,46 @@ describe("resolveAccess", () => {
     expect(resolveAccess("/negocios/coop-acai-mujuu", null)).toEqual({
       allowed: true,
     });
+  });
+});
+
+describe("boas-vindas do produtor publicas (AUTH-17)", () => {
+  it("/produtor e /produtor/ abrem sem sessao", () => {
+    expect(resolveAccess("/produtor", null)).toEqual({ allowed: true });
+    expect(resolveAccess("/produtor/", null)).toEqual({ allowed: true });
+  });
+
+  it.each([
+    "/produtor/cadastro",
+    "/produtor/cadastro/1",
+    "/produtor/cadastro/revisar",
+    "/produtor/painel",
+    "/produtor/painel/documentos-adicionais",
+    "/produtor/pedidos",
+    "/produtor/interesses",
+  ])("%s sem sessao exige login", (path) => {
+    expect(resolveAccess(path, null)).toEqual({ allowed: false, reason: "no-session" });
+  });
+
+  it("subrotas de trabalho continuam negadas a investidor", () => {
+    expect(resolveAccess("/produtor/interesses", "investidor")).toEqual({
+      allowed: false,
+      reason: "wrong-role",
+    });
+  });
+
+  it("toda subpasta de app/(producer)/produtor esta coberta pela regra de produtor (fail-closed)", () => {
+    const dir = join(__dirname, "../../../app/(producer)/produtor");
+    const folders = readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
+    expect(folders.length).toBeGreaterThan(0);
+    for (const folder of folders) {
+      expect(
+        resolveAccess(`/produtor/${folder}`, null),
+        `/produtor/${folder} deveria exigir sessao ou ser adicionada a ROUTE_ACCESS conscientemente`
+      ).toEqual({ allowed: false, reason: "no-session" });
+    }
   });
 });

@@ -419,10 +419,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `resolveAccess("/produtor", null)` permite; `/produtor/painel`, `/produtor/cadastro/1`, `/produtor/pedidos`, `/produtor/interesses` sem sessão devolvem `no-session`
-- [ ] Teste enumera as pastas de `app/(producer)/produtor` e falha se alguma não for `cadastro`, `painel`, `pedidos`, `interesses` ou `/` (fail-closed)
-- [ ] Testes existentes de `roles.test.ts` atualizados sem reduzir a contagem
-- [ ] Gate quick passa: `npm run test`
+- [x] `resolveAccess("/produtor", null)` permite; `/produtor/painel`, `/produtor/cadastro/1`, `/produtor/pedidos`, `/produtor/interesses` sem sessão devolvem `no-session`
+- [x] Teste enumera as pastas de `app/(producer)/produtor` e falha se alguma não for `cadastro`, `painel`, `pedidos`, `interesses` ou `/` (fail-closed)
+- [x] Testes existentes de `roles.test.ts` atualizados sem reduzir a contagem
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick

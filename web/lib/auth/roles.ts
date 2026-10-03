@@ -15,7 +15,13 @@ interface RouteRule {
  * A primeira regra cujo padrao combina com o caminho e' a que vale.
  */
 export const ROUTE_ACCESS: RouteRule[] = [
-  { pattern: /^\/produtor(\/|$)/, roles: ["produtor"] },
+  // AUTH-17: as boas-vindas (`/produtor` exato) sao publicas; so' as
+  // subrotas de trabalho exigem sessao de produtor. Lista fechada: o teste
+  // de `roles.test.ts` falha se surgir uma pasta nova em `produtor/`.
+  {
+    pattern: /^\/produtor\/(cadastro|painel|pedidos|interesses)(\/|$)/,
+    roles: ["produtor"],
+  },
   { pattern: /^\/verificacao(\/|$)/, roles: ["verificador"] },
   { pattern: /^\/interesses(\/|$)/, roles: ["investidor", "empresa"] },
   {
