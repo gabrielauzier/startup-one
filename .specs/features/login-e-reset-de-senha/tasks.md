@@ -657,11 +657,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Token válido `type=signup` ou `email` cria sessão e redireciona via `resolvePostAuthDestination`, com `next` honrado só se seguro e permitido
-- [ ] Token inválido, vencido ou usado redireciona a `/cadastro/confirmar-email?erro=expirado` (`signup`) ou `/entrar?erro=link-expirado` (`email`)
-- [ ] `type=recovery` ou desconhecido é tratado como inválido; `next` inseguro é ignorado
-- [ ] Registra `auth_email_confirmado` e `auth_magic_link_ok` sem PII
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Token válido `type=signup` ou `email` cria sessão e redireciona via `resolvePostAuthDestination`, com `next` honrado só se seguro e permitido
+- [x] Token inválido, vencido ou usado redireciona a `/cadastro/confirmar-email?erro=expirado` (`signup`) ou `/entrar?erro=link-expirado` (`email`)
+- [x] `type=recovery` ou desconhecido é tratado como inválido; `next` inseguro é ignorado
+- [x] Registra `auth_email_confirmado` e `auth_magic_link_ok` sem PII
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e (`e2e/auth-confirm.spec.ts`: link aberto em contexto limpo)
 **Gate**: full

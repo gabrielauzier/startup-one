@@ -57,3 +57,16 @@ export function extractLink(html: string, contains: string): string {
   if (!match) throw new Error(`Nenhum link com "${contains}" no e-mail`);
   return match;
 }
+
+/**
+ * O `{{ .SiteURL }}` do GoTrue local e' sempre a 3000; o e2e roda em
+ * outra porta quando ja ha um `next dev` ocupando a 3000 (E2E_PORT).
+ * Troca a origem do link pelo `baseURL` do teste.
+ */
+export function toBaseURL(link: string, baseURL: string): string {
+  const url = new URL(link);
+  const base = new URL(baseURL);
+  url.protocol = base.protocol;
+  url.host = base.host;
+  return url.toString();
+}
