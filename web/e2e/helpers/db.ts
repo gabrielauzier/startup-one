@@ -358,3 +358,21 @@ export async function getProfileByUserId(id: string): Promise<Record<string, unk
   const rows = (await res.json()) as Record<string, unknown>[];
   return rows[0] ?? null;
 }
+
+/** Grava `count` linhas de auth_throttle antigas (dentro da janela de 1 h, fora do cooldown) para o e-mail. */
+export async function seedThrottle(
+  email: string,
+  kind: "signup" | "magic" | "reset",
+  count: number
+): Promise<void> {
+  const { createHash } = await import("node:crypto");
+  const keyHash = createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+  const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  await fetch(`${API_URL}/rest/v1/auth_throttle`, {
+    method: "POST",
+    headers: { ...headers(), Prefer: "return=minimal" },
+    body: JSON.stringify(
+      Array.from({ length: count }, () => ({ key_hash: keyHash, kind, created_at: createdAt }))
+    ),
+  });
+}

@@ -899,10 +899,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Mostra o e-mail do cookie; sem cookie redireciona a `/cadastro`
-- [ ] `?erro=expirado` mostra "Enviar novo link"
-- [ ] Cooldown de 60 s com contagem; 4º reenvio na hora mostra "Muitos pedidos. Tente de novo em alguns minutos."
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] Mostra o e-mail do cookie; sem cookie redireciona a `/cadastro`
+- [x] `?erro=expirado` mostra "Enviar novo link"
+- [x] Cooldown de 60 s com contagem; 4º reenvio na hora mostra "Muitos pedidos. Tente de novo em alguns minutos."
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e
 **Gate**: full
