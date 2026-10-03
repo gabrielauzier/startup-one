@@ -6,6 +6,8 @@ import { createConfirmedUser } from "./helpers/session";
 // AUTH-05 (critérios 6 e 14), RNF-07: WCAG 2.1 AA nas telas de auth.
 // Falha com violacao `critical` ou `serious` (mesmo criterio de a11y-investor.spec.ts).
 async function expectNoCriticalViolations(page: Page) {
+  // O <title> chega por streaming depois da navegacao da server action.
+  await expect(page).toHaveTitle(/.+/);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();

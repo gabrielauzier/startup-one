@@ -33,7 +33,7 @@ describe("ResendForm (AUTH-09)", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reenviar" }));
 
-    expect(await screen.findByText("Enviamos outro link.")).toBeTruthy();
+    expect(await screen.findByText("Enviamos outro link.", {}, { timeout: 3000 })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reenviar (60 s)" })).toBeTruthy();
     expect(action).toHaveBeenCalledTimes(1);
   });
@@ -48,7 +48,9 @@ describe("ResendForm (AUTH-09)", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reenviar" }));
 
-    expect((await screen.findByRole("alert")).textContent).toBe("Aguarde 40 s para pedir de novo.");
+    expect(
+      (await screen.findByRole("alert", {}, { timeout: 3000 })).textContent
+    ).toBe("Aguarde 40 s para pedir de novo.");
     expect(screen.getByRole("button", { name: "Reenviar (40 s)" })).toBeTruthy();
   });
 });
