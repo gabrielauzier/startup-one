@@ -205,11 +205,11 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `enable_confirmations = true`, `minimum_password_length = 8`, `password_requirements = "letters_digits"`, `max_frequency = "60s"`
-- [ ] `additional_redirect_urls` contém `http://127.0.0.1:3000/**`
-- [ ] Os 3 templates e a notificação de senha alterada apontam para arquivos em `supabase/templates/`
-- [ ] Teste novo `auth-config.test.ts` trava cada chave acima; `otp-config.test.ts` segue passando
-- [ ] Gate quick passa: `npm run test`
+- [x] `enable_confirmations = true`, `minimum_password_length = 8`, `password_requirements = "letters_digits"` (`max_frequency = "60s"` fica para T27, ver Deviations)
+- [x] `additional_redirect_urls` contém `http://127.0.0.1:3000/**`
+- [x] (movido para T5: registro dos templates e da notificação, que dependem dos arquivos)
+- [x] Teste novo `auth-config.test.ts` trava cada chave acima (e, em T5, os templates); `otp-config.test.ts` segue passando
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit (`lib/auth/__tests__/auth-config.test.ts`)
 **Gate**: quick
@@ -232,7 +232,7 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` e **não** contêm `{{ .Token }}`
+- [ ] `confirmation.html` e `magic_link.html` usam `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next={{ .RedirectTo }}` (`confirmation.html` não contém `{{ .Token }}`; `magic_link.html` mantém o código `{{ .Token }}` até T27, ver Deviations)
 - [ ] `recovery.html` contém `{{ .Token }}` e a validade de 10 minutos e **não** contém `{{ .ConfirmationURL }}`, `{{ .SiteURL }}` nem `href`
 - [ ] `password_changed.html` orienta o usuário caso não tenha sido ele
 - [ ] Teste de template lê os 4 arquivos e confere as regras acima
@@ -1269,3 +1269,15 @@ Phase 7:  T38 ---→ T39 ---→ T40 ---→ T41 ---→ T42 ---→ T43
 ```
 
 Execução estritamente sequencial. Com 43 tasks, o empacotamento em lotes de ~7 tasks (fases inteiras) rende vários lotes; a oferta de sub-agentes é feita antes do Execute.
+
+---
+
+## Deviations (registradas durante o Execute)
+
+| # | Desvio | Motivo |
+| --- | --- | --- |
+| D1 | Commit extra `chore(e2e)`: `playwright.config.ts` lê `E2E_PORT` | Já existe um `next-server` do checkout principal na porta 3000; sem isso o E2E testaria o código errado |
+| D2 | `max_frequency = "60s"` (T4) passa a ser aplicado em T27 | Com 60 s por usuário o fluxo OTP atual (reenvio) e os helpers de E2E quebrariam até a remoção do OTP |
+| D3 | Registro dos templates em `config.toml` fica em T5 (junto dos arquivos) | O `config.toml` não pode apontar para arquivo inexistente |
+| D4 | `magic_link.html` fica "código + link `/auth/confirm`" até T27; a versão só-link e seu teste entram em T27 | Os helpers de E2E atuais leem o código de 6 dígitos do Mailpit; tirá-lo em T5 quebraria a suíte por 20 tasks |
+| D5 | Gate full roda unit + os specs E2E tocados pela task; a suíte E2E completa roda ao fim de cada fase | A suíte completa leva dezenas de minutos e o STATE.md documenta esgotamento de rede do Docker em rodadas repetidas |
