@@ -1005,10 +1005,10 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] E-mail existente e inexistente redirecionam do mesmo jeito a `/esqueci-senha/codigo`; só o existente recebe e-mail
-- [ ] Resposta e texto idênticos quando o throttle bloqueia, sem diferença por existência de conta
-- [ ] Registra `auth_reset_pedido`
-- [ ] Gate full passa: `npm run test && npm run test:e2e`
+- [x] E-mail existente e inexistente redirecionam do mesmo jeito a `/esqueci-senha/codigo`; só o existente recebe e-mail
+- [x] Resposta e texto idênticos quando o throttle bloqueia, sem diferença por existência de conta
+- [x] Registra `auth_reset_pedido`
+- [x] Gate full passa: `npm run test && npm run test:e2e`
 
 **Tests**: unit + e2e
 **Gate**: full
