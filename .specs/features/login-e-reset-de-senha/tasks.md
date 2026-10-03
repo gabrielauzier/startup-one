@@ -528,9 +528,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Com `role=null` o cabeçalho mostra link "Entrar" para `/entrar`; com qualquer papel mostra botão "Sair" e não mostra "Entrar"
-- [ ] Botão "Sair" submete `signOutAction`
-- [ ] Gate quick passa: `npm run test`
+- [x] Com `role=null` o cabeçalho mostra link "Entrar" para `/entrar`; com qualquer papel mostra botão "Sair" e não mostra "Entrar"
+- [x] Botão "Sair" submete `signOutAction`
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit (`components/shared/__tests__/SiteHeader.test.tsx`)
 **Gate**: quick
