@@ -553,9 +553,9 @@ T38 → T39 → T40 → T41 → T42 → T43
 
 **Done when**:
 
-- [ ] Com papel, a barra mostra "Sair"; sem papel, não
-- [ ] Alvo de toque de ao menos 44 px (classe de altura/largura mínima)
-- [ ] Gate quick passa: `npm run test`
+- [x] Com papel, a barra mostra "Sair"; sem papel, não
+- [x] Alvo de toque de ao menos 44 px (classe de altura/largura mínima)
+- [x] Gate quick passa: `npm run test`
 
 **Tests**: unit
 **Gate**: quick
